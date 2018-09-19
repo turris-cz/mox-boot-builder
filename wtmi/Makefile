@@ -64,7 +64,7 @@ all: tools $(COBJ) $(AOBJ)
 
 clean:
 	$(ECHO) "  CLEAN"
-	@$(RM) -f $(COBJ) $(COBJ:.o=.d) wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin
+	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin
 
 tools:
 	@if [ -z "$(shell which $(CC))" ]; then $(ECHO) "$(CC) not found"; exit 1; fi;
