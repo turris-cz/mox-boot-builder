@@ -48,7 +48,7 @@
  * DDR tuning uses part of the memory to store tuning results
  * at DDR_TUNE_RESULT_MEM_BASE
  */
-#define DDR_TUNE_RESULT_MEM_BASE	0x44000432
+#define DDR_TUNE_RESULT_MEM_BASE	0x64000432
 
 #if DEBUG
 #define ddr_debug printf
