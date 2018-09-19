@@ -37,6 +37,7 @@
 #include "avs.h"
 #include "ddr/ddrcore.h"
 #include "string.h"
+#include "printf.h"
 
 #define CM3_WIN_CONROL(win)		(0xc000c700 + ((win) << 4))
 #define CM3_WIN_BASE(win)		(0xc000c704 + ((win) << 4))
@@ -49,12 +50,6 @@
  * at DDR_TUNE_RESULT_MEM_BASE
  */
 #define DDR_TUNE_RESULT_MEM_BASE	0x64000432
-
-#if DEBUG
-#define ddr_debug printf
-#else
-#define ddr_debug(...)
-#endif
 
 /* DDR topology file defines the memory size by MiB. */
 /* This macro is used to covert the size into Bytes. */
@@ -142,8 +137,6 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_
 	struct ddr_init_result *result_in_dram, result_in_sram;
 	u32 chksum_in_dram = 0;
 
-	printf("WTMI: system early-init\n");
-
 	result_in_dram = (struct ddr_init_result *)(DDR_TUNE_RESULT_MEM_BASE);
 
 	ddr_para.warm_boot = sys_check_warm_boot();
@@ -165,19 +158,19 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_
 		map.cs[1].capacity  = DDR_CS_CAP(DEV_CAP, BUS_WIDTH);
 	}
 
-	ddr_debug("\nDDR topology parameters:\n");
-	ddr_debug("========================\n");
-	ddr_debug("ddr type               DDR%d\n", DDR_TYPE+3);
-	ddr_debug("ddr speedbin           %d\n", SPEED_BIN);
-	ddr_debug("bus width              %d-bits\n", map.bus_width);
-	ddr_debug("cs num                 %d\n", map.cs_num);
-	ddr_debug("  cs[0] - group num    %d\n", map.cs[0].group_num);
-	ddr_debug("  cs[0] - bank num     %d\n", map.cs[0].bank_num);
-	ddr_debug("  cs[0] - capacity     %dMiB\n", map.cs[0].capacity);
+	debug("\nDDR topology parameters:\n");
+	debug("========================\n");
+	debug("ddr type               DDR%d\n", DDR_TYPE+3);
+	debug("ddr speedbin           %d\n", SPEED_BIN);
+	debug("bus width              %d-bits\n", map.bus_width);
+	debug("cs num                 %d\n", map.cs_num);
+	debug("  cs[0] - group num    %d\n", map.cs[0].group_num);
+	debug("  cs[0] - bank num     %d\n", map.cs[0].bank_num);
+	debug("  cs[0] - capacity     %dMiB\n", map.cs[0].capacity);
 	if (map.cs_num > 1) {
-		ddr_debug("  cs[1] - group num    %d\n", map.cs[1].group_num);
-		ddr_debug("  cs[1] - bank num     %d\n", map.cs[1].bank_num);
-		ddr_debug("  cs[1] - capacity     %dMiB\n", map.cs[1].capacity);
+		debug("  cs[1] - group num    %d\n", map.cs[1].group_num);
+		debug("  cs[1] - bank num     %d\n", map.cs[1].bank_num);
+		debug("  cs[1] - capacity     %dMiB\n", map.cs[1].capacity);
 	}
 
 	/* WTMI_CLOCK was set in the compile parametr */
@@ -270,25 +263,25 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_
 		}
 	}
 
-	ddr_debug("\nDRAM windows:\n");
-	ddr_debug("=============\n");
-	ddr_debug("WIN[0] - base addr     0x%08x\n", CM3_DRAM_WIN0_BASE);
-	ddr_debug("WIN[0] - size          0x%08x\n", CM3_DRAM_WIN0_SZ_MAX);
+	debug("\nDRAM windows:\n");
+	debug("=============\n");
+	debug("WIN[0] - base addr     0x%08x\n", CM3_DRAM_WIN0_BASE);
+	debug("WIN[0] - size          0x%08x\n", CM3_DRAM_WIN0_SZ_MAX);
 	if (map.cs_num > 1) {
-		ddr_debug("WIN[1] - base addr     0x%08x\n", CM3_DRAM_WIN1_BASE);
-		ddr_debug("WIN[1] - size          0x%08x\n", CM3_DRAM_WIN1_SZ_MAX);
+		debug("WIN[1] - base addr     0x%08x\n", CM3_DRAM_WIN1_BASE);
+		debug("WIN[1] - size          0x%08x\n", CM3_DRAM_WIN1_SZ_MAX);
 		if (_MB(map.cs[0].capacity) > CM3_DRAM_WIN0_SZ_MAX)
-			ddr_debug("WIN[1] - remap addr    0x%08x\n",
+			debug("WIN[1] - remap addr    0x%08x\n",
 				_MB(map.cs[0].capacity));
 	}
 
-	ddr_debug("\nmemory test region:\n");
-	ddr_debug("===================\n");
-	ddr_debug("CS[0]                  0x%08x - 0x%08x\n",
+	debug("\nmemory test region:\n");
+	debug("===================\n");
+	debug("CS[0]                  0x%08x - 0x%08x\n",
 		ddr_para.cs_wins[0].base,
 		ddr_para.cs_wins[0].base + ddr_para.cs_wins[0].size - 1);
 	if (map.cs_num > 1)
-		ddr_debug("CS[1]                  0x%08x - 0x%08x\n",
+		debug("CS[1]                  0x%08x - 0x%08x\n",
 			ddr_para.cs_wins[1].base,
 			ddr_para.cs_wins[1].base + ddr_para.cs_wins[1].size - 1);
 

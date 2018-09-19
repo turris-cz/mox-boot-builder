@@ -38,7 +38,7 @@
 void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed)
 {
         unsigned int wrval = 0, rdval = 0;
-        printf("\nRestore CAS Read and Write Latency");
+        debug("\nRestore CAS Read and Write Latency");
         rdval = ll_read32(CH0_Dram_Config_1);
         if(type==DDR3)
         {
@@ -53,7 +53,7 @@ void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed)
                 wrval = (rdval & ~(0x00003F3F)) | (0xB0C);              //for 800MHz CL[0:5], cwl = 11[0xB], cl = 12[0xC]
 
         ll_write32(CH0_Dram_Config_1, wrval);
-        //printf("\nCH0_DRAM_Config_1 \t0x%08X\n", ll_read32(CH0_Dram_Config_1));
+        //debug("\nCH0_DRAM_Config_1 \t0x%08X\n", ll_read32(CH0_Dram_Config_1));
 }
 
 void send_mr_commands(enum ddr_type type){
@@ -83,12 +83,12 @@ void set_clear_trm(int set, unsigned int orig_val)
         rdval = ll_read32(CH0_PHY_Control_2);
         if(set)
         {
-                printf("\nRestore termination values to original values");
+                debug("\nRestore termination values to original values");
                 ll_write32(CH0_PHY_Control_2, rdval | orig_val);
         }
         else
         {
-                printf("\nSet termination values to 0");
+                debug("\nSet termination values to 0");
                 wrval = (rdval & ~(0x0FF00000));                //set trm to 0
                 ll_write32(CH0_PHY_Control_2, wrval);
         }
@@ -97,14 +97,14 @@ void set_clear_trm(int set, unsigned int orig_val)
 void self_refresh_entry()
 {
 	ll_write32(USER_COMMAND_0, 0x13000040);   // Enter self-refresh
-	printf("\nNow in Self-refresh Mode");
+	debug("\nNow in Self-refresh Mode");
 }
 
 void self_refresh_exit()
 {
 	ll_write32(USER_COMMAND_0, 0x13000080);   // Exit self-refresh
 	while((ll_read32(DRAM_STATUS) & BIT(2))) {};
-	printf("\nExited self-refresh ...\n");
+	debug("\nExited self-refresh ...\n");
 }
 
 void self_refresh_test(int verify, unsigned int base_addr, unsigned int size)
@@ -117,12 +117,12 @@ void self_refresh_test(int verify, unsigned int base_addr, unsigned int size)
         if(!verify)
         {
                 // Write pattern
-                printf("\nFill memory before self refresh...");
+                debug("\nFill memory before self refresh...");
                 for (waddr = (unsigned int *)base_addr; waddr  < (unsigned int *)end ; waddr++)
                 {
                         *waddr = (unsigned int)waddr;
                 }
-                printf("done\n");
+                debug("done\n");
         }
         else
         {
@@ -132,16 +132,16 @@ void self_refresh_test(int verify, unsigned int base_addr, unsigned int size)
                         temp = *waddr;
                         if (temp != (unsigned int)waddr)
                         {
-                                printf("\nAt 0x%08x, expect 0x%08x, read back 0x%08x", (unsigned int)waddr, (unsigned int)waddr, temp);
+                                debug("\nAt 0x%08x, expect 0x%08x, read back 0x%08x", (unsigned int)waddr, (unsigned int)waddr, temp);
                                 refresh_error++;
                         }
                 }
                 if (refresh_error)
-                        printf("\n\nSelf refresh fail !!!!!!!!!!!!!!!!!!!. error cnt = 0x%x", refresh_error);
+                        debug("\n\nSelf refresh fail !!!!!!!!!!!!!!!!!!!. error cnt = 0x%x", refresh_error);
                 else
-                        printf("\n\nSelf refresh Pass.");
+                        debug("\n\nSelf refresh Pass.");
 
-                printf("\nDDR self test mode test done!!");
+                debug("\nDDR self test mode test done!!");
         }
 }
 

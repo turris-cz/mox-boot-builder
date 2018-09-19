@@ -48,14 +48,14 @@ int qs_gating(unsigned int base_addr, unsigned int cs_num, unsigned int log_en, 
 	unsigned int enable_wl_rl_ctl_val = 0;
 
         //QS Gate calibration does not require write data to be properly calibrated. Dummy reads that generate a DQS burst is all that is required. The DQ value is not important.
-        printf("\n\nQS GATING\n=============");
+        debug("\n\nQS GATING\n=============");
 
         //1.Set QSG_CLR=0, then set QSG_CLR=1. This is to clear the outp/outn registers
         //enable phy rl enable
         replace_val(CH0_PHY_WL_RL_Control, 0x3, CH0_PHY_WL_RL_CONTROL_RL_ENABLE_SHIFT, CH0_PHY_WL_RL_CONTROL_RL_ENABLE_MASK);
 	enable_wl_rl_ctl_val = ll_read32(CH0_PHY_WL_RL_Control);
         if(log_en)
-                printf("\n\nEnable Read Leveling and clear QSG_Outp/QSG_Outn registers: 0x%08X 0x%08X", CH0_PHY_WL_RL_Control, ll_read32(CH0_PHY_WL_RL_Control));
+                debug("\n\nEnable Read Leveling and clear QSG_Outp/QSG_Outn registers: 0x%08X 0x%08X", CH0_PHY_WL_RL_Control, ll_read32(CH0_PHY_WL_RL_Control));
 
         ll_read32(base_addr + 0x4);
         wait_ns(100000);
@@ -64,8 +64,8 @@ int qs_gating(unsigned int base_addr, unsigned int cs_num, unsigned int log_en, 
         result_outn = ll_read32(CH0_PHY_DQS_Gate_Outn_result);
         if(log_en)
         {
-                printf("\n\nPost clearing outp outn");
-                printf("\nresult_outp[0x%08X] = 0x%08X result_outn[0x%08X] = 0x%08X rl_cycle_dly = 0x%02X rl_tap_dly = 0x%02X\n",\
+                debug("\n\nPost clearing outp outn");
+                debug("\nresult_outp[0x%08X] = 0x%08X result_outn[0x%08X] = 0x%08X rl_cycle_dly = 0x%02X rl_tap_dly = 0x%02X\n",\
                         CH0_PHY_DQS_Gate_Outp_result, result_outp, CH0_PHY_DQS_Gate_Outn_result, result_outn, rl_cycle_dly, rl_tap_dly);
         }
 
@@ -97,13 +97,13 @@ int qs_gating(unsigned int base_addr, unsigned int cs_num, unsigned int log_en, 
                         //5.Read register QSG_Dx_OUTP and QSG_Dx_OUTN.
                         result_outp = ll_read32(CH0_PHY_DQS_Gate_Outp_result);
                         result_outn = ll_read32(CH0_PHY_DQS_Gate_Outn_result);
-                        //printf("\nOutp = 0x%08X Outn = 0x%08X cycle = 0x%02X tap =0x%02X", result_outp, result_outn, rl_cycle_dly, rl_tap_dly);
+                        //debug("\nOutp = 0x%08X Outn = 0x%08X cycle = 0x%02X tap =0x%02X", result_outp, result_outn, rl_cycle_dly, rl_tap_dly);
 
                         //6.If QSG_Dx_OUTP != 0xF and QSG_Dx_OUTN != 0xE, then increase either QSG_ALL_CYC_DLY, QSG_Dx_PH_DLY, or QSG_Dx_TAP_DLY. Repeat from 3.
                         //7.If QSG_Dx_OUTP == 0xF and QSG_Dx_OUTN == 0xE, then calibration is done
                         if( (result_outp == 0xFF) && (result_outn == 0xEE) )
                         {
-                                printf("\nCalibration done: cycle = 0x%02X tap =0x%02X\n", rl_cycle_dly, rl_tap_dly);
+                                debug("\nCalibration done: cycle = 0x%02X tap =0x%02X\n", rl_cycle_dly, rl_tap_dly);
                                 cal_done_flag = 1;
                                 break;
                         }

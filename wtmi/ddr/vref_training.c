@@ -40,7 +40,7 @@ int vdac_set(unsigned int vref_range, unsigned int vref_ctrl)   //read vref trai
         replace_val(PHY_Control_15, vref_range, 30, 0xC0000000);
         wait_ns(1000);
 
-//      printf("\nPHY CONTROL 15 %x", ll_read32(PHY_Control_15));
+//      debug("\nPHY CONTROL 15 %x", ll_read32(PHY_Control_15));
         return 0;
 }
 
@@ -88,9 +88,9 @@ unsigned int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
                         }
                 }
                 if(init_para.log_level)
-                        printf(" max  = 0x%X min = 0x%X window_size = %d\n", max, min, window_size);
+                        debug(" max  = 0x%X min = 0x%X window_size = %d\n", max, min, window_size);
         }
-        //printf("\nFinal max  = 0x%X Final min = 0x%X Final window size = 0x%X", prev_max, prev_min, window_size);
+        //debug("\nFinal max  = 0x%X Final min = 0x%X Final window size = 0x%X", prev_max, prev_min, window_size);
         if(prev_min!=prev_max)                                                  		//prev values are the correct ones
                 return (((prev_max-prev_min)/2) + prev_min);					//PASS
         else
@@ -99,7 +99,7 @@ unsigned int vref_read_training(int num_of_cs, struct ddr_init_para init_para)
 
 int vref_set(unsigned int range, unsigned int VREF_training_value_DQ)
 {
-	// printf("\n\nvref = 0x%X\n", VREF_training_value_DQ);
+	// debug("\n\nvref = 0x%X\n", VREF_training_value_DQ);
 
 	// 1. set range
 	replace_val(CH0_DRAM_Config_4, range, 23, 0x00800000);
@@ -175,9 +175,9 @@ unsigned int vref_write_training(int num_of_cs, struct ddr_init_para init_para)
                         }
                 }
                 if(init_para.log_level)
-                        printf(" max  = 0x%X min = 0x%X window_size = %d\n", max, min, window_size);
+                        debug(" max  = 0x%X min = 0x%X window_size = %d\n", max, min, window_size);
         }
-        //printf("\nFinal max  = 0x%X Final min = 0x%X Final window size = 0x%X", prev_max, prev_min, window_size);
+        //debug("\nFinal max  = 0x%X Final min = 0x%X Final window size = 0x%X", prev_max, prev_min, window_size);
 
 	//disable vref training
         en_dis_write_vref(0);

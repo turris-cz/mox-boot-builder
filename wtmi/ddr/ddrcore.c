@@ -130,7 +130,7 @@ int init_ddr(struct ddr_init_para init_para,
 
 	if(init_para.warm_boot)
         {
-                printf("\nWarm boot is set");
+                debug("\nWarm boot is set");
 
                 if(tc_ddr_type == DDR3)
                 {
@@ -165,7 +165,7 @@ int init_ddr(struct ddr_init_para init_para,
                 ll_write32(CH0_PHY_DLL_control_B1, result->dll_tune.dll_ctrl_b1);
                 ll_write32(CH0_PHY_DLL_control_ADCM, result->dll_tune.dll_ctrl_adcm);
 
-                printf("\nWarm boot completed");
+                debug("\nWarm boot completed");
                 return 0;
         }
 	
@@ -184,12 +184,12 @@ int init_ddr(struct ddr_init_para init_para,
 			qs_res[cs] = qs_gating(init_para.cs_wins[cs].base, cs, init_para.log_level, result);
 			if(qs_res[cs])		//if qs gate training passed, update res and dump register
 			{
-				printf("CH0_PHY_RL_Control_CS%d_B0[0x%08X]: 0x%08X\n", cs, (CH0_PHY_RL_Control_CS0_B0 + cs*0x24), ll_read32(CH0_PHY_RL_Control_CS0_B0 + cs*0x24));
-				printf("CH0_PHY_RL_Control_CS%d_B1[0x%08X]: 0x%08X\n", cs, (CH0_PHY_RL_Control_CS0_B1 + cs*0x24), ll_read32(CH0_PHY_RL_Control_CS0_B1 + cs*0x24));
+				debug("CH0_PHY_RL_Control_CS%d_B0[0x%08X]: 0x%08X\n", cs, (CH0_PHY_RL_Control_CS0_B0 + cs*0x24), ll_read32(CH0_PHY_RL_Control_CS0_B0 + cs*0x24));
+				debug("CH0_PHY_RL_Control_CS%d_B1[0x%08X]: 0x%08X\n", cs, (CH0_PHY_RL_Control_CS0_B1 + cs*0x24), ll_read32(CH0_PHY_RL_Control_CS0_B1 + cs*0x24));
 			}
 			else			//qs gating fails
 			{
-				printf("\nCS%d: QS GATE TRAINING FAILED\n", cs);
+				debug("\nCS%d: QS GATE TRAINING FAILED\n", cs);
 				ret_val = -3;
 			}
 		}
@@ -202,17 +202,17 @@ int init_ddr(struct ddr_init_para init_para,
 	result->ddr4.vref_read = ll_read32(PHY_Control_15);
 	if(tc_ddr_type == DDR4)
 	{
-		printf("\nVref read training\n===================");
+		debug("\nVref read training\n===================");
 		vdac_value = vref_read_training(tc_cs_num, init_para);
 		if(vdac_value != 0)				//training passed
 		{
-			printf("\nFinal vdac_value 0x%08X\n", vdac_value);
+			debug("\nFinal vdac_value 0x%08X\n", vdac_value);
 			vdac_set(1, vdac_value);                //Set the tuned vdac value
                         result->ddr4.vref_read = ll_read32(PHY_Control_15);
 		}
 		else
 		{
-			printf("\nVREF READ TRAINING FAILED\n");
+			debug("\nVREF READ TRAINING FAILED\n");
 			ret_val = -3;
 		}
 	}
@@ -222,11 +222,11 @@ int init_ddr(struct ddr_init_para init_para,
 	result->ddr4.vref_write = ll_read32(CH0_DRAM_Config_4);
 	if(tc_ddr_type == DDR4)
         {
-                printf("\nVref write training\n===================");
+                debug("\nVref write training\n===================");
                 vref_value = vref_write_training(tc_cs_num, init_para);
                 if(vref_value != 0)				//training passed
 		{
-                        printf("\nFinal vref_value 0x%08X\n", vref_value);
+                        debug("\nFinal vref_value 0x%08X\n", vref_value);
 			en_dis_write_vref(1);
 	                vref_set(1, vref_value);                //Set the tuned vref value
 	                en_dis_write_vref(0);
@@ -234,7 +234,7 @@ int init_ddr(struct ddr_init_para init_para,
                 }
 		else
                 {
-			printf("\nVREF WRITE TRAINING FAILED\n");
+			debug("\nVREF WRITE TRAINING FAILED\n");
 			ret_val = -3;
 		}
         }
@@ -256,7 +256,7 @@ int init_ddr(struct ddr_init_para init_para,
 	}
 	else
 	{
-		printf("\nDLL TUNING FAILED\n");
+		debug("\nDLL TUNING FAILED\n");
 		ret_val = -3;
 	}
 

@@ -223,7 +223,7 @@ unsigned short DLL_fine_tune(unsigned int ratio, struct ddr_init_para init_para,
 			}while(!DDR_WR_Test(init_para.cs_wins[cs].base, 100*2) && right[cs]<DLL_PHSEL_END);
 
 			m[cs] = left[cs] + (right[cs] -left[cs])/ratio;
-			//printf(" CS%d:  DLL 0x%8x[%2d:%2d]: [%x,%x,%x]\n",cs,
+			//debug(" CS%d:  DLL 0x%8x[%2d:%2d]: [%x,%x,%x]\n",cs,
 				//PHY_DLL_CONTROL_BASE+offset[i], bit_offset[i]+5, bit_offset[i], left[cs], right[cs],m[cs]);
 			set_dll_phsel(offset[i], bit_offset[i], m[cs]);
 		}  		
@@ -240,12 +240,12 @@ unsigned short DLL_fine_tune(unsigned int ratio, struct ddr_init_para init_para,
 
 		med = l + (r - l)/ratio;
 		if(log_en)
-			printf("   DLL 0x%8x[%2d:%2d]: [%x,%x,%x]\n",
+			debug("   DLL 0x%8x[%2d:%2d]: [%x,%x,%x]\n",
 				PHY_DLL_CONTROL_BASE+offset[i], bit_offset[i]+5, bit_offset[i], l, r, med);
 		set_dll_phsel(offset[i], bit_offset[i], med);
 	}
 	if(log_en)
-		printf(" DLL: pass  ");
+		debug(" DLL: pass  ");
 	return 1;	//DLL passed
 }
 
@@ -260,7 +260,7 @@ static unsigned int mpr_read_Test(unsigned int start, unsigned int ddr_size)
         {
                 l_rdata = *l_waddr;
 
-                //printf("\nRead data 0x%08X : 0x%08x Pattern: 0x%08x", l_waddr, l_rdata, l_pattern_ddr4);
+                //debug("\nRead data 0x%08X : 0x%08x Pattern: 0x%08x", l_waddr, l_rdata, l_pattern_ddr4);
                 if (l_rdata != l_pattern_ddr4)
                 {
                         return 1;               //1 => fail
@@ -312,7 +312,7 @@ unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs_base, unsigned i
 	}
 	if(left>right){
                 if(log_en)
-                        printf(" DLL: fail  ");
+                        debug(" DLL: fail  ");
                 return 0;
         }else{
                 medium = left + ((right-left)/ratio);
@@ -336,7 +336,7 @@ unsigned int DLL_tuning(unsigned int ratio, unsigned int num_of_cs, struct ddr_i
 	unsigned short optimal[MAX_CS_NUM], medium[MAX_CS_NUM];
 
 	if(init_para.log_level)
-		printf("\nDLL TUNING\n==============\n");
+		debug("\nDLL TUNING\n==============\n");
 
 	for (cs=0; cs<num_of_cs; cs++)
 	{
