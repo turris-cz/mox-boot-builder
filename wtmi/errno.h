@@ -1,0 +1,10 @@
+#ifndef _ERRNO_H_
+#define _ERRNO_H_
+
+#define EIO		5
+#define EACCES		13
+#define EINVAL		22
+#define ENODATA		61
+#define ETIMEDOUT	110
+
+#endif /* _ERRNO_H_ */

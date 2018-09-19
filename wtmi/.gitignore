@@ -1,0 +1,6 @@
+*.d
+*.o
+wtmi.bin
+wtmi_h.bin
+wtmi.dis
+wtmi.elf
