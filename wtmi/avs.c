@@ -205,13 +205,13 @@ int init_avs(u32 speed)
 			   AVS_VDD_BASE) & AVS_VDD_MASK;
 		regval |= (vdd_otp << HIGH_VDD_LIMIT_OFF);
 		regval |= (vdd_otp << LOW_VDD_LIMIT_OFF);
-		printf("SVC REV: %d, CPU VDD voltage: %s\n", svc_rev,
-			avis_dump[vdd_otp].desc);
+		debug("SVC REV: %d, CPU VDD voltage: %s\n", svc_rev,
+		      avis_dump[vdd_otp].desc);
 	} else {
 		regval |= (vdd_default << HIGH_VDD_LIMIT_OFF);
 		regval |= (vdd_default << LOW_VDD_LIMIT_OFF);
-		printf("CPU VDD voltage default value: %s\n",
-			avis_dump[vdd_default].desc);
+		debug("CPU VDD voltage default value: %s\n",
+		      avis_dump[vdd_default].desc);
 	}
 
 	/* Set high&low VDD limit */
