@@ -4,6 +4,7 @@
 #include "clock.h"
 #include "ebg.h"
 #include "mbox.h"
+#include "string.h"
 
 #define EBG_CTRL	0x40002c00
 #define EBG_ENTROPY	0x40002c04
@@ -64,17 +65,6 @@ void ebg_systick(void) {
 		return;
 
 	ebg_buffer[ebg_fill++] = val;
-}
-
-void *memcpy(void *dest, const void *src, u32 n)
-{
-	u8 *d = dest, *e = d + n;
-	const u8 *s = src;
-
-	while (d < e)
-		*d++ = *s++;
-
-	return dest;
 }
 
 int ebg_rand(void *buffer, int size)

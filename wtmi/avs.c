@@ -32,7 +32,9 @@
 ***************************************************************************
 */
 
-#include "sys.h"
+#include "io.h"
+#include "clock.h"
+#include "printf.h"
 #include "avs.h"
 
 struct avs_val_map {

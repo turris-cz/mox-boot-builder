@@ -1,6 +1,8 @@
 #ifndef _IO_H_
 #define _IO_H_
 
+#include "types.h"
+
 #define BIT(n)		(1UL << (n))
 
 static inline u16 readw(u32 addr)

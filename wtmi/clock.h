@@ -16,24 +16,27 @@
  * ***************************************************************************
 */
 
-#ifndef __CLOCK_H
-#define __CLOCK_H
+#ifndef _CLOCK_H_
+#define _CLOCK_H_
 
-enum clock_src {
-	TBG_A,
-	TBG_B
+#include "types.h"
+
+enum clk_preset {
+	CLK_PRESET_CPU600_DDR600  = 0,
+	CLK_PRESET_CPU800_DDR800,
+	CLK_PRESET_CPU1000_DDR800,
+	CLK_PRESET_CPU1200_DDR750,
+	CLK_PRESET_MAX,
 };
 
-enum clock_line {
-	TBG_A_P = 0,
-	TBG_B_P = 1,
-	TBG_A_S = 2,
-	TBG_B_S = 3
-};
+int set_clock_preset(enum clk_preset idx);
+int get_cpu_clock(void);
+int get_ddr_clock(void);
+int setup_clock_tree(void);
 
-u32 clock_init(void);
+int clock_init(void);
 u32 get_ref_clk(void);
 u32 get_cm3_clk(void);
 void wait_ns(u32 wait_ns);
 
-#endif /* __CLOCK_H */
+#endif /* _CLOCK_H_ */

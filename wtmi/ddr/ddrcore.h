@@ -35,6 +35,10 @@
 #ifndef __DDRCORE_H_
 #define __DDRCORE_H_
 
+#include "../io.h"
+#include "../clock.h"
+#include "../printf.h"
+
 #define MAX_CS_NUM		2
 #define MAX_BANK_GROUP_NUM	4
 #define MAX_BANK_NUM	8
@@ -46,10 +50,10 @@
 #define LOG_LEVEL_DEBUG 3
 
 /* REGS DUMP BITMAP */
-#define FLAG_REGS_DUMP_NONE     NO_BIT
-#define FLAG_REGS_DUMP_SELFTEST BIT0
-#define FLAG_REGS_DUMP_DDR_CTRL BIT1
-#define FLAG_REGS_DUMP_DDR_PHY  BIT2
+#define FLAG_REGS_DUMP_NONE     0
+#define FLAG_REGS_DUMP_SELFTEST BIT(0)
+#define FLAG_REGS_DUMP_DDR_CTRL BIT(1)
+#define FLAG_REGS_DUMP_DDR_PHY  BIT(2)
 #define FLAG_REGS_DUMP_ALL      0xFFFFFFFF
 
 enum ddr_type {
@@ -107,7 +111,7 @@ struct ddr_win {
 };
 
 struct ddr_init_para {
-	bool warm_boot;
+	int warm_boot;
 	unsigned int speed;
 	unsigned int log_level;
 	unsigned int flags;
@@ -118,6 +122,6 @@ struct ddr_init_para {
 int set_ddr_type(enum ddr_type type);
 int set_ddr_topology_parameters(struct ddr_topology top_map);
 int init_ddr(struct ddr_init_para init_para,
-	struct ddr_init_result *result);
+	     struct ddr_init_result *result);
 
 #endif /* __DDRCORE_H_ */

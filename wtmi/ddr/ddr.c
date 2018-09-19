@@ -32,7 +32,6 @@
 ***************************************************************************
 */
 
-#include "../sys.h"
 #include "ddr.h"
 #include "ddr_support.h"
 
@@ -104,7 +103,7 @@ void self_refresh_entry()
 void self_refresh_exit()
 {
 	ll_write32(USER_COMMAND_0, 0x13000080);   // Exit self-refresh
-	while((ll_read32(DRAM_STATUS) & BIT2)) {};
+	while((ll_read32(DRAM_STATUS) & BIT(2))) {};
 	printf("\nExited self-refresh ...\n");
 }
 

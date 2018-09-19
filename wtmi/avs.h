@@ -32,16 +32,16 @@
 ***************************************************************************
 */
 
-#ifndef __AVS_H_
-#define __AVS_H_
+#ifndef _AVS_H_
+#define _AVS_H_
 
 /* AVS Register */
-#define MVEBU_AVS_REGS_BASE		(APPLICATION_CPU_REGS_BASE + 0x11500)
+#define MVEBU_AVS_REGS_BASE		0xc0011500
 #define MVEBU_AVS_CONTROL0		(MVEBU_AVS_REGS_BASE + 0x0)
-#define AVS_SOFT_RST_BIT		BIT31
-#define AVS_ENABLE_BIT			BIT30
-#define AVS_PAUSE_BIT			BIT29
-#define SEL_VSENSE0_BIT			BIT28
+#define AVS_SOFT_RST_BIT		BIT(31)
+#define AVS_ENABLE_BIT			BIT(30)
+#define AVS_PAUSE_BIT			BIT(29)
+#define SEL_VSENSE0_BIT			BIT(28)
 #define HIGH_VDD_LIMIT_OFF		(16)
 #define LOW_VDD_LIMIT_OFF		(22)
 #define MVEBU_AVS_CONTROL1		(MVEBU_AVS_REGS_BASE + 0x4)
@@ -52,19 +52,19 @@
 #define MVEBU_AVS_COLLECT_CTRL		(MVEBU_AVS_REGS_BASE + 0x18)
 
 /* NB OTP Register */
-#define MVEBU_NORTH_OTP_REGS_BASE	(APPLICATION_CPU_REGS_BASE + 0x12600)
+#define MVEBU_NORTH_OTP_REGS_BASE	0xc0012600
 #define MVEBU_NORTH_OTP_CTRL		(MVEBU_NORTH_OTP_REGS_BASE + 0x0)
-#define OTP_MODE_BIT			(BIT15)
-#define OTP_RPTR_RST_BIT		(BIT14)
-#define OTP_POR_B_BIT			(BIT13)
-#define OTP_SCLK_BIT			(BIT8)
-#define OTP_PRDT_BIT			(BIT3)
-#define OTP_CSB_BIT			(BIT2)
-#define OTP_WRPROT_BIT			(BIT1)
-#define OTP_PGM_BIT			(BIT0)
+#define OTP_MODE_BIT			BIT(15)
+#define OTP_RPTR_RST_BIT		BIT(14)
+#define OTP_POR_B_BIT			BIT(13)
+#define OTP_SCLK_BIT			BIT(8)
+#define OTP_PRDT_BIT			BIT(3)
+#define OTP_CSB_BIT			BIT(2)
+#define OTP_WRPROT_BIT			BIT(1)
+#define OTP_PGM_BIT			BIT(0)
 #define MVEBU_NORTH_OTP_RD_PORT		(MVEBU_NORTH_OTP_REGS_BASE + 0x4)
 #define MVEBU_NORTH_OTP_RD_POINTER	(MVEBU_NORTH_OTP_REGS_BASE + 0x8)
-#define OTP_PTR_INC_BIT			(BIT8)
+#define OTP_PTR_INC_BIT			BIT(8)
 
 enum otp_data_id {
 	OTP_DATA_SVC_REV_ID = 0,
@@ -103,4 +103,4 @@ enum avs_default_value {
 
 int init_avs(u32 speed);
 
-#endif /* __AVS_H_ */
+#endif /* _AVS_H_ */

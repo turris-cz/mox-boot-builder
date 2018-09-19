@@ -8,8 +8,7 @@
 #include "clock.h"
 #include "irq.h"
 #include "crypto.h"
-
-#include "ddr/export.h"
+#include "ddr.h"
 
 volatile int jiffies;
 
@@ -102,21 +101,21 @@ static void init_ddr(void)
 		size = 512;
 	}
 
-	wtmi_ddr_main(2, 0, 16, 12, 1, size);
+	ddr_main(CLK_PRESET_CPU1000_DDR800, 0, 16, 12, 1, size);
 
 	wait_ns(1000000);
 }
 
 void main(void)
 {
-	u32 status;
+	int res;
 
-	status = clock_init();
-	if (status)
+	res = clock_init();
+	if (res < 0)
 		return;
 
-	status = uart_init(115200);
-	if (status)
+	res = uart_init(115200);
+	if (res < 0)
 		return;
 
 	init_printf(NULL, uart_putc);

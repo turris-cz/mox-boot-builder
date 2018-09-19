@@ -38,7 +38,7 @@ ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
 LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -Xlinker "--build-id=none"
 
 
-CSRC = $(wildcard *.c ddr/*.c ddr/ddrcore/*.c)
+CSRC = $(wildcard *.c ddr/*.c)
 ASRC = $(wildcard *.S)
 
 COBJ   = $(CSRC:.c=.o)

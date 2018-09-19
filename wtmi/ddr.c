@@ -32,12 +32,23 @@
 ***************************************************************************
 */
 
-#include "sys.h"
-#include "export.h"
+#include "io.h"
 #include "clock.h"
 #include "avs.h"
-#include "ddrcore/ddrcore.h"
-#include <string.h>
+#include "ddr/ddrcore.h"
+#include "string.h"
+
+#define CM3_WIN_CONROL(win)		(0xc000c700 + ((win) << 4))
+#define CM3_WIN_BASE(win)		(0xc000c704 + ((win) << 4))
+#define CM3_WIN_REMAP_LOW(win)		(0xc000c708 + ((win) << 4))
+
+/*
+ * This memory region is allocated as part of ATF PSCI domain, which
+ * is used for the reserved data through system suspend cycle.
+ * DDR tuning uses part of the memory to store tuning results
+ * at DDR_TUNE_RESULT_MEM_BASE
+ */
+#define DDR_TUNE_RESULT_MEM_BASE	0x44000432
 
 #if DEBUG
 #define ddr_debug printf
@@ -91,13 +102,13 @@ static void set_cm3_win_remap(u32 win, u32 remap_addr)
 
 	/* Disable the window before configuring it. */
 	reg = readl(CM3_WIN_CONROL(win));
-	reg &= ~BIT0;
+	reg &= ~BIT(0);
 	writel(reg, CM3_WIN_CONROL(win));
 
 	writel((remap_addr & 0xFFFF0000), CM3_WIN_REMAP_LOW(win));
 
 	/* Re-enable the window. */
-	reg |= BIT0;
+	reg |= BIT(0);
 	writel(reg, CM3_WIN_CONROL(win));
 }
 
@@ -117,14 +128,14 @@ static u32 do_checksum32(u32 *start, u32 len)
 
 static int sys_check_warm_boot(void)
 {
-	/* warm boot bit is stored in BIT0 of 0xC001404C */
-	if (readl(0xC001404C) & BIT0)
+	/* warm boot bit is stored in BIT(0) of 0xC001404C */
+	if (readl(0xC001404C) & BIT(0))
 		return 1;
 
 	return 0;
 }
 
-int wtmi_ddr_main(int WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_BIN, int CS_NUM, int DEV_CAP)
+int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_BIN, int CS_NUM, int DEV_CAP)
 {
 	struct ddr_topology map;
 	struct ddr_init_para ddr_para;
