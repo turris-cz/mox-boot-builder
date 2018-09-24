@@ -13,8 +13,31 @@ static u16 ebg_buffer[512];
 static int ebg_fill;
 static u32 reg;
 
+static int ebg_next(int wait, u16 *res)
+{
+	u32 val;
+
+	if (wait) {
+		while (!((val = readl(EBG_ENTROPY)) & BIT(31)))
+			wait_ns(51300);
+	} else {
+		val = readl(EBG_ENTROPY);
+		if (!(val & BIT(31)))
+			return -ETIMEDOUT;
+	}
+
+	writel(reg | 0x1000, EBG_CTRL);
+
+	if (res)
+		*res = val & 0xffff;
+
+	return 0;
+}
+
 void ebg_init(void)
 {
+	int i;
+
 	reg = readl(EBG_CTRL);
 	reg &= 0x901f;
 	writel(reg, EBG_CTRL);
@@ -34,25 +57,10 @@ void ebg_init(void)
 	writel(reg, EBG_CTRL);
 
 	writel(reg | 0x1000, EBG_CTRL);
-}
 
-static int ebg_next(int wait, u16 *res)
-{
-	u32 val;
-
-	if (wait) {
-		while (!((val = readl(EBG_ENTROPY)) & BIT(31)))
-			wait_ns(51300);
-	} else {
-		val = readl(EBG_ENTROPY);
-		if (!(val & BIT(31)))
-			return -ETIMEDOUT;
-	}
-
-	writel(reg | 0x1000, EBG_CTRL);
-
-	*res = val & 0xffff;
-	return 0;
+	/* throw away first 16 values */
+	for (i = 0; i < 16; ++i)
+		ebg_next(1, NULL);
 }
 
 void ebg_systick(void) {
