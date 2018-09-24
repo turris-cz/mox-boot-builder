@@ -14,6 +14,8 @@
 #define EFUSE_MASTER_CTRL	0x400037f4
 #define EFUSE_RC(r,c)		((((r) & 0x3f) << 7) | ((c) & 0x7f))
 
+#define SEC_STATUS		0x40000104
+
 static const struct {
 	int row;
 	u32 pos;
@@ -135,6 +137,9 @@ static int _efuse_raw_read(u32 rwreg, u32 ecc_pos, u64 *val, int *lock)
 
 static inline int is_row_masked(int row)
 {
+	if (!(readl(SEC_STATUS) & BIT(1)))
+		return 0;
+
 	if (row < 32) {
 		if ((readl(EFUSE_ROW_MASK0) >> row) & 1)
 			return 1;
@@ -298,6 +303,7 @@ static int efuse_raw_write(int row, u64 val)
 
 	wait_ns(1000000);
 	efuse_write_disable();
+	wait_ns(1000000);
 
 	return 0;
 }
@@ -307,6 +313,11 @@ static int efuse_raw_lock(int row)
 	int res;
 
 	res = efuse_write_enable();
+	if (res < 0)
+		return res;
+
+	/* row must be read before programming, otherwise locking won't work */
+	res = _efuse_read_row(row, NULL, NULL, 0, 0);
 	if (res < 0)
 		return res;
 
@@ -325,6 +336,7 @@ static int efuse_raw_lock(int row)
 
 	wait_ns(1000000);
 	efuse_write_disable();
+	wait_ns(1000000);
 
 	return 0;
 }
@@ -388,4 +400,88 @@ int efuse_write_row_no_ecc(int row, u64 val, int lock)
 	}
 
 	return 0;
+}
+
+int efuse_write_row_with_ecc_lock(int row, u64 val)
+{
+	u64 _val, eccval;
+	int res, lock_ecc, _lock, i;
+
+	if (row < 0 || row > 43)
+		return -EINVAL;
+
+	if (ecc[row].row == -1)
+		return -EINVAL;
+
+	res = _efuse_read_row(row, &_val, &_lock, 0, 0);
+	if (res < 0)
+		return res;
+
+	if (_lock)
+		return -EACCES;
+
+	res = _efuse_read_row(ecc[row].row, &eccval, &_lock, 0, 0);
+	if (res < 0)
+		return res;
+
+	if (_lock)
+		return -EACCES;
+
+	if ((eccval >> ((ecc[row].pos - 1) * 8)) & 0xff)
+		return -EACCES;
+
+	val |= _val;
+	eccval |= secded_ecc(val) << ((ecc[row].pos - 1) * 8);
+
+	for (i = 0; i < 44; ++i) {
+		if (i != row && ecc[i].row == ecc[row].row) {
+			res = _efuse_read_row(ecc[i].row, NULL, &_lock, 0, 0);
+			if (res < 0)
+				return res;
+
+			if (!_lock)
+				break;
+		}
+	}
+
+	lock_ecc = (i == 45);
+
+	res = efuse_write_row_no_ecc(row, val, 1);
+	if (res < 0)
+		return res;
+
+	res = efuse_write_row_no_ecc(ecc[row].row, eccval, lock_ecc);
+	if (res < 0)
+		return res;
+
+	res = _efuse_read_row(row, &_val, NULL, 1, 0);
+	if (res < 0)
+		return res;
+
+	if (_val != val)
+		return -EIO;
+
+	return 0;
+}
+
+int efuse_write_secure_buffer(u32 *priv)
+{
+	int i, res;
+	u64 val;
+
+	for (i = 6; i < 8; ++i) {
+		val = priv[i * 2 + 1];
+		val <<= 32;
+		val |= priv[i * 2];
+		res = efuse_write_row_with_ecc_lock(30 + i, val);
+		val = 0;
+		if (res < 0)
+			return res;
+	}
+
+	val = priv[16];
+	res = efuse_write_row_with_ecc_lock(40, val);
+	val = 0;
+
+	return res;
 }
