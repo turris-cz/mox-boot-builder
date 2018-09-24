@@ -1,11 +1,12 @@
 #include "types.h"
+#include "irq.h"
 #include "printf.h"
 
 extern u32 stack_top;
 extern void main(void);
 extern void reset_handler(void);
 
-void __attribute__((interrupt)) default_handler(void)
+void __irq default_handler(void)
 {
 	while (1);
 }
