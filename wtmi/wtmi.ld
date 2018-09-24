@@ -8,7 +8,8 @@ SECTIONS
 {
   . = 0x1FFF0000;
   .ro : {
-    KEEP(*(.isr_vector))
+    KEEP(*(.isr_vector));
+    KEEP(*(.from_mox_builder));
     *(.text*)
     *(.rodata*)
   }

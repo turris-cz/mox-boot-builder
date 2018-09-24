@@ -9,6 +9,7 @@
 #include "irq.h"
 #include "crypto.h"
 #include "ddr.h"
+#include "manufacturing.h"
 
 volatile int jiffies;
 
@@ -119,27 +120,21 @@ void main(void)
 		return;
 
 	init_printf(NULL, uart_putc);
+
+#if 0
+	ebg_init();
+	manufacturing();
+	while (1)
+		wait_for_irq();
+#else
+
 	init_ddr();
 	ebg_init();
 	enable_systick();
 
-	if (0) {
-		wait_ns(100000000);
-		u32 pub[17];
-		ecdsa_get_efuse_public_key(pub);
-		int i;
-		for (i = 0; i < 17; ++i)
-			printf("%08x", pub[i]);
-		printf("\n");
-	//	test_zmodp();
-		while(1);
-	}
-
 	mbox_init();
 	mbox_register_cmd(MBOX_CMD_GET_RANDOM, cmd_get_random);
 	mbox_register_cmd(MBOX_CMD_BOARD_INFO, cmd_board_info);
-//	mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
-//	mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);
 	mbox_register_cmd(MBOX_CMD_ECDSA_PUB_KEY, cmd_ecdsa_pub_key);
 	enable_irq();
 
@@ -149,4 +144,5 @@ void main(void)
 		wait_for_irq();
 		mbox_process_commands();
 	}
+#endif
 }
