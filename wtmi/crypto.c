@@ -400,6 +400,22 @@ static inline int zmodp_op(u32 op, u32 *res, const u32 *x, const u32 *y,
 	return 0;
 }
 
+int ecdsa_generate_efuse_private_key(void)
+{
+	int res;
+	u32 priv[17];
+
+	do
+		bn_random(priv, secp521r1.order, 521);
+	while (bn_is_zero(priv));
+
+	res = efuse_write_secure_buffer(priv);
+
+	bn_from_u32(priv, 0);
+
+	return res;
+}
+
 int ecdsa_sign(ec_sig_t *sig, const u32 *z)
 {
 	int res;
@@ -501,6 +517,7 @@ int ecdsa_get_efuse_public_key(u32 *compressed_pub)
 	return 0;
 }
 
+#if 0
 void test_zmodp(void)
 {
 	ec_point_t pub;
@@ -527,3 +544,4 @@ void test_zmodp(void)
 
 	printf("Verification status: %d\n", ecdsa_verify(&pub, &sig, z));
 }
+#endif

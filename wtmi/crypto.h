@@ -30,6 +30,7 @@ typedef struct {
 extern int ecdsa_sign(ec_sig_t *sig, const u32 *z);
 extern int ecdsa_verify(const ec_point_t *pub, const ec_sig_t *sig,
 			const u32 *z);
+extern int ecdsa_generate_efuse_private_key(void);
 extern int ecdsa_get_efuse_public_key(u32 *compressed_pub);
 extern void test_ecp(void);
 
