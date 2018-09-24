@@ -9,7 +9,7 @@
 #include "irq.h"
 #include "crypto.h"
 #include "ddr.h"
-#include "manufacturing.h"
+#include "deploy.h"
 
 volatile int jiffies;
 
@@ -121,12 +121,67 @@ void main(void)
 
 	init_printf(NULL, uart_putc);
 
-#if 0
+#if 1
 	ebg_init();
-	manufacturing();
+	deploy();
+	if (0) {
+		int res;
+		wait_ns(100000000);
+		res = efuse_write_row_no_ecc(0, 0x70000000000700ULL, 0);
+		printf("row 0: %d\n", res);
+		res = efuse_write_row_no_ecc(1, 0x70ULL, 0);
+		printf("row 1: %d\n", res);
+		res = efuse_write_row_no_ecc(3, 0x7000ULL, 0);
+		printf("row 3: %d\n", res);
+		res = efuse_write_row_no_ecc(8, 0x54CD1E9D6A7EA3F4ULL, 0);
+		printf("row 8: %d\n", res);
+		res = efuse_write_row_no_ecc(9, 0xA837D47FE2A7AA59ULL, 0);
+		printf("row 9: %d\n", res);
+		res = efuse_write_row_no_ecc(10, 0x401BDC5EC61A029BULL, 0);
+		printf("row 10: %d\n", res);
+		res = efuse_write_row_no_ecc(11, 0xF3BCD57080284634ULL, 0);
+		printf("row 11: %d\n", res);
+		int i;
+		for (i = 0; i < 44; ++i) {
+			u64 val;
+			int lock;
+			res = efuse_read_row_no_ecc(i, &val, &lock);
+			printf("row %d (%d) %08x%08x %i\n", i, res, (u32) (val >> 32), (u32) val, lock);
+		}
+	}
 	while (1)
 		wait_for_irq();
 #else
+	{
+		int res;
+		wait_ns(100000000);
+/*		res = efuse_write_row_no_ecc(0, 0x70000000000700ULL, 0);
+		printf("row 0: %d\n", res);*/
+/*		res = efuse_write_row_no_ecc(1, 0x70ULL, 0);
+		printf("row 1: %d\n", res);*/
+/*		res = efuse_write_row_no_ecc(3, 0x7777777777777777ULL, 0);
+		printf("row 3: %d\n", res);*/
+/*		res = efuse_write_row_with_ecc_lock(8, 0x54CD1E9D6A7EA3F4ULL);
+		printf("row 8: %d\n", res);
+		res = efuse_write_row_with_ecc_lock(9, 0xA837D47FE2A7AA59ULL);
+		printf("row 9: %d\n", res);
+		res = efuse_write_row_with_ecc_lock(10, 0x401BDC5EC61A029BULL);
+		printf("row 10: %d\n", res);
+		res = efuse_write_row_with_ecc_lock(11, 0xF3BCD57080284634ULL);
+		printf("row 11: %d\n", res);
+
+		res = efuse_write_row_with_ecc_lock(42, 0x000adeadbeef000aULL);
+		printf("row 42: %d\n", res);
+		res = efuse_write_row_with_ecc_lock(43, 0x5ba8dd32dead000aULL);
+		printf("row 43: %d\n", res);*/
+		int i;
+		for (i = 0; i < 44; ++i) {
+			u64 val;
+			int lock;
+			res = efuse_read_row_no_ecc(i, &val, &lock);
+			printf("row %d (%d) %08x%08x %i\n", i, res, (u32) (val >> 32), (u32) val, lock);
+		}
+	}
 
 	init_ddr();
 	ebg_init();
