@@ -19,7 +19,7 @@ struct mox_builder_data {
 	u32 otp_hash[8];
 };
 
-struct mox_builder_data __from_mox_builder mbd = {
+volatile struct mox_builder_data __from_mox_builder mbd = {
 	0x05050505, 0xdeaddead, 0,
 	0xdeadbeef, 0xbeefdead, 0xb7b7b7b7,
 	{ 0, 0, 0, 0, 0, 0, 0, 0 }
@@ -116,16 +116,16 @@ static void do_deploy(void)
 	for (i = 1; i < 17; ++i)
 		printf("%08x", pubkey[i]);
 
-	printf("\nSN: %08x\n", mbd.serial_number);
-	printf("time: %08x\n", mbd.manufacturing_time);
-	printf("bv: %d\n", mbd.board_version);
+/*	printf("\nSN: %08x\n", mbd.serial_number);
+	printf("time: %08x %08x\n", mbd.op, mbd.manufacturing_time);
+	printf("bv: %u\n", mbd.board_version);
 	printf("mac addr: %02x:%02x:%02x:%02x:%02x:%02x\n",
 	       (mbd.mac_addr_high >> 8) & 0xff,
 	       (mbd.mac_addr_high >> 0) & 0xff,
 	       (mbd.mac_addr_low >> 24) & 0xff,
 	       (mbd.mac_addr_low >> 16) & 0xff,
 	       (mbd.mac_addr_low >>  8) & 0xff,
-	       (mbd.mac_addr_low >>  0) & 0xff);
+	       (mbd.mac_addr_low >>  0) & 0xff);*/
 
 	return;
 fail:

@@ -68,6 +68,8 @@ int uart_init(unsigned int baudrate)
 	/* No Parity, 1 Stop */
 	writel(0, UART0_CTRL);
 
+	wait_ns(100000);
+
 	return 0;
 }
 
@@ -77,7 +79,7 @@ void uart_putc(void *p, char c)
 		uart_putc(NULL, '\r');
 
 	while (readl(UART0_STATUS) & BIT(11))
-		;
+		wait_ns(20000);
 
 	writel(c, UART0_TX);
 

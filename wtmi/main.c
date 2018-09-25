@@ -131,7 +131,7 @@ void main(void)
 		printf("row 0: %d\n", res);
 		res = efuse_write_row_no_ecc(1, 0x70ULL, 0);
 		printf("row 1: %d\n", res);
-		res = efuse_write_row_no_ecc(3, 0x7000ULL, 0);
+		res = efuse_write_row_no_ecc(3, 0x7ULL, 0);
 		printf("row 3: %d\n", res);
 		res = efuse_write_row_no_ecc(8, 0x54CD1E9D6A7EA3F4ULL, 0);
 		printf("row 8: %d\n", res);
@@ -159,7 +159,7 @@ void main(void)
 		printf("row 0: %d\n", res);*/
 /*		res = efuse_write_row_no_ecc(1, 0x70ULL, 0);
 		printf("row 1: %d\n", res);*/
-/*		res = efuse_write_row_no_ecc(3, 0x7777777777777777ULL, 0);
+/*		res = efuse_write_row_no_ecc(3, 0x7ULL, 0);
 		printf("row 3: %d\n", res);*/
 /*		res = efuse_write_row_with_ecc_lock(8, 0x54CD1E9D6A7EA3F4ULL);
 		printf("row 8: %d\n", res);
