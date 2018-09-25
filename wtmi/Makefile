@@ -44,7 +44,7 @@ endif
 ifeq ($(DEPLOY), 1)
 	CSRC = $(filter-out ddr.c,$(wildcard *.c))
 else
-	CSRC = $(wildcard *.c ddr/*.c)
+	CSRC = $(filter-out deploy.c,$(wildcard *.c ddr/*.c))
 endif
 ASRC = $(wildcard *.S)
 

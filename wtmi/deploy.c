@@ -71,26 +71,34 @@ static int get_ram_size(void)
 	return -1;
 }
 
-static void do_deploy(void)
+static int row_write_if_not_locked(int row, u64 val)
 {
-	int ram_size, i, res, lock;
-	u32 pubkey[17];
+	int res, lock;
+
+	res = efuse_read_row_no_ecc(row, NULL, &lock);
+	if (res < 0)
+		return res;
+
+	if (lock)
+		return 0;
+
+	return efuse_write_row_with_ecc_lock(row, val);
+}
+
+static int write_sn_time(void)
+{
 	u64 val;
 
-	ram_size = get_ram_size();
-
-	if (ram_size != 1024 && ram_size != 512)
-		goto fail;
-
-	printf("RAM%c", ram_size == 1024 ? '1' : '0');
-
-#if 0
 	val = mbd.manufacturing_time;
 	val <<= 32;
 	val |= mbd.serial_number;
-	res = efuse_write_row_with_ecc_lock(43, val);
-	if (res < 0)
-		goto fail;
+
+	return row_write_if_not_locked(43, val);
+}
+
+static int write_ram_bver_mac(int ram_size)
+{
+	u64 val;
 
 	val = (ram_size == 1024 ? 1 : 0);
 	val <<= 8;
@@ -99,20 +107,103 @@ static void do_deploy(void)
 	val |= mbd.mac_addr_high & 0xffff;
 	val <<= 32;
 	val |= mbd.mac_addr_low;
-	res = efuse_write_row_with_ecc_lock(42, val);
-	if (res < 0)
-		goto fail;
-#endif
+	return row_write_if_not_locked(42, val);
+}
+
+static int generate_and_write_ecdsa_key(void)
+{
+	int res, lock;
 
 	res = efuse_read_row_no_ecc(30, NULL, &lock);
 	if (res < 0)
+		return res;
+
+	if (lock)
+		return 0;
+
+	return ecdsa_generate_efuse_private_key();
+}
+
+static int write_security_info(void)
+{
+	int i, res, lock;
+	u64 val;
+
+	for (i = 0; i < 8; ++i) {
+		if (mbd.otp_hash[i])
+			break;
+	}
+
+	/* if otp_hash is all zeros, do not secure the board */
+	if (i == 8)
+		return 0;
+
+	res = efuse_read_row_no_ecc(0, NULL, &lock);
+	if (res < 0)
+		return res;
+
+	if (lock)
+		return 0;
+
+	/* if these fail, we are screwed anyway */
+
+	for (i = 0; i < 8; i += 2) {
+		val = mbd.otp_hash[i + 1];
+		val <<= 32;
+		val |= mbd.otp_hash[i];
+
+		efuse_write_row_with_ecc_lock(8 + i / 2, val);
+	}
+
+	efuse_write_row_with_ecc_lock(0, 0x70000070000700ULL);
+	efuse_write_row_with_ecc_lock(1, 0x70ULL);
+	efuse_write_row_with_ecc_lock(2, 0x70770000ULL);
+	efuse_write_row_with_ecc_lock(3, 0x7ULL);
+
+	return 0;
+}
+
+static void do_deploy(void)
+{
+	int ram_size, i, res;
+	u32 pubkey[17];
+	u64 val;
+
+	ram_size = get_ram_size();
+
+	if (ram_size != 1024 && ram_size != 512)
 		goto fail;
 
-	if (!lock) {
-		res = ecdsa_generate_efuse_private_key();
-		if (res < 0)
-			goto fail;
-	}
+	/* write SN and time */
+	if (write_sn_time() < 0)
+		goto fail;
+
+	/* write RAM size, board version, MAC address */
+	if (write_ram_bver_mac(ram_size) < 0)
+		goto fail;
+
+	/* generate ECDSA key if not yet generated */
+	if (generate_and_write_ecdsa_key() < 0)
+		goto fail;
+
+	if (write_security_info() < 0)
+		goto fail;
+
+	/* send RAM info */
+	printf("RAM%c", ram_size == 1024 ? '1' : '0');
+
+	/* read SN and time and send back */
+	if (efuse_read_row(43, &val, NULL) < 0)
+		goto fail;
+
+	printf("SERN%08x", (u32) val);
+
+	/* read board version, MAC address and send back */
+	if (efuse_read_row(42, &val, NULL) < 0)
+		goto fail;
+
+	printf("BVER%02XMACA%04x%08x", (u32) ((val >> 48) & 0xff),
+	       (u32) ((val >> 32) & 0xffff), (u32) val);
 
 	res = ecdsa_get_efuse_public_key(pubkey);
 	if (res < 0)
@@ -121,17 +212,6 @@ static void do_deploy(void)
 	printf("PUBK%06x", pubkey[0]);
 	for (i = 1; i < 17; ++i)
 		printf("%08x", pubkey[i]);
-
-/*	printf("\nSN: %08x\n", mbd.serial_number);
-	printf("time: %08x %08x\n", mbd.op, mbd.manufacturing_time);
-	printf("bv: %u\n", mbd.board_version);
-	printf("mac addr: %02x:%02x:%02x:%02x:%02x:%02x\n",
-	       (mbd.mac_addr_high >> 8) & 0xff,
-	       (mbd.mac_addr_high >> 0) & 0xff,
-	       (mbd.mac_addr_low >> 24) & 0xff,
-	       (mbd.mac_addr_low >> 16) & 0xff,
-	       (mbd.mac_addr_low >>  8) & 0xff,
-	       (mbd.mac_addr_low >>  0) & 0xff);*/
 
 	return;
 fail:

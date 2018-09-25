@@ -42,6 +42,9 @@ enum mbox_cmd {
 	MBOX_CMD_BOARD_INFO,
 	MBOX_CMD_ECDSA_PUB_KEY,
 	MBOX_CMD_ECDSA_SIGN,
+
+	MBOX_CMD_OTP_READ,
+	MBOX_CMD_OTP_WRITE
 };
 
 typedef u32 (*mbox_cmd_handler_t)(u32 *in_args, u32 *out_args);

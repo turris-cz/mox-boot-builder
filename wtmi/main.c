@@ -88,6 +88,44 @@ static u32 cmd_ecdsa_pub_key(u32 *args, u32 *out_args)
 	return MBOX_STS(0, pub[0], SUCCESS);
 }
 
+static u32 cmd_otp_read(u32 *args, u32 *out_args)
+{
+	int lock, res;
+	u64 val;
+
+	if (args[0] > 43)
+		return MBOX_STS(0, EACCES, FAIL);
+
+	res = efuse_read_row_no_ecc(args[0], &val, &lock);
+	if (res < 0)
+		return MBOX_STS(0, -res, FAIL);
+
+	out_args[0] = val;
+	out_args[1] = val >> 32;
+	out_args[2] = lock;
+
+	return MBOX_STS(0, 0, SUCCESS);
+}
+
+static u32 cmd_otp_write(u32 *args, u32 *out_args)
+{
+	int res;
+	u64 val;
+
+	if (args[0] > 43)
+		return MBOX_STS(0, EACCES, FAIL);
+
+	val = args[2];
+	val <<= 32;
+	val |= args[1];
+
+	res = efuse_write_row_no_ecc(args[0], val, args[3]);
+	if (res < 0)
+		return MBOX_STS(0, -res, FAIL);
+
+	return MBOX_STS(0, 0, SUCCESS);
+}
+
 static void init_ddr(void)
 {
 	int res, size;
@@ -102,6 +140,7 @@ static void init_ddr(void)
 		size = 512;
 	}
 
+	printf("%i ram\n", size);
 	ddr_main(CLK_PRESET_CPU1000_DDR800, 16, 12, 1, size);
 
 	wait_ns(1000000);
@@ -124,59 +163,15 @@ void main(void)
 #ifdef DEPLOY
 	ebg_init();
 	deploy();
-	if (0) {
-		int res;
-		wait_ns(100000000);
-		res = efuse_write_row_no_ecc(0, 0x70000000000700ULL, 0);
-		printf("row 0: %d\n", res);
-		res = efuse_write_row_no_ecc(1, 0x70ULL, 0);
-		printf("row 1: %d\n", res);
-		res = efuse_write_row_no_ecc(3, 0x7ULL, 0);
-		printf("row 3: %d\n", res);
-		res = efuse_write_row_no_ecc(8, 0x54CD1E9D6A7EA3F4ULL, 0);
-		printf("row 8: %d\n", res);
-		res = efuse_write_row_no_ecc(9, 0xA837D47FE2A7AA59ULL, 0);
-		printf("row 9: %d\n", res);
-		res = efuse_write_row_no_ecc(10, 0x401BDC5EC61A029BULL, 0);
-		printf("row 10: %d\n", res);
-		res = efuse_write_row_no_ecc(11, 0xF3BCD57080284634ULL, 0);
-		printf("row 11: %d\n", res);
-		int i;
-		for (i = 0; i < 44; ++i) {
-			u64 val;
-			int lock;
-			res = efuse_read_row_no_ecc(i, &val, &lock);
-			printf("row %d (%d) %08x%08x %i\n", i, res, (u32) (val >> 32), (u32) val, lock);
-		}
-	}
 
 	/* warm reset */
 	wait_ns(10000000);
 	writel(0x1d1e, 0xc0013840);
 #else /* !DEPLOY */
 	{
-		int res;
+		int res, i;
 		wait_ns(100000000);
-/*		res = efuse_write_row_no_ecc(0, 0x70000000000700ULL, 0);
-		printf("row 0: %d\n", res);*/
-/*		res = efuse_write_row_no_ecc(1, 0x70ULL, 0);
-		printf("row 1: %d\n", res);*/
-/*		res = efuse_write_row_no_ecc(3, 0x7ULL, 0);
-		printf("row 3: %d\n", res);*/
-/*		res = efuse_write_row_with_ecc_lock(8, 0x54CD1E9D6A7EA3F4ULL);
-		printf("row 8: %d\n", res);
-		res = efuse_write_row_with_ecc_lock(9, 0xA837D47FE2A7AA59ULL);
-		printf("row 9: %d\n", res);
-		res = efuse_write_row_with_ecc_lock(10, 0x401BDC5EC61A029BULL);
-		printf("row 10: %d\n", res);
-		res = efuse_write_row_with_ecc_lock(11, 0xF3BCD57080284634ULL);
-		printf("row 11: %d\n", res);
 
-		res = efuse_write_row_with_ecc_lock(42, 0x000adeadbeef000aULL);
-		printf("row 42: %d\n", res);
-		res = efuse_write_row_with_ecc_lock(43, 0x5ba8dd32dead000aULL);
-		printf("row 43: %d\n", res);*/
-		int i;
 		for (i = 0; i < 44; ++i) {
 			u64 val;
 			int lock;
@@ -193,6 +188,8 @@ void main(void)
 	mbox_register_cmd(MBOX_CMD_GET_RANDOM, cmd_get_random);
 	mbox_register_cmd(MBOX_CMD_BOARD_INFO, cmd_board_info);
 	mbox_register_cmd(MBOX_CMD_ECDSA_PUB_KEY, cmd_ecdsa_pub_key);
+	mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
+	mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);
 	enable_irq();
 
 	start_ap();
