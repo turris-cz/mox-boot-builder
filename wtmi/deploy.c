@@ -4,6 +4,7 @@
 #include "clock.h"
 #include "crypto.h"
 #include "efuse.h"
+#include "uart.h"
 #include "printf.h"
 
 #define __from_mox_builder __attribute__((section(".from_mox_builder")))
@@ -131,21 +132,21 @@ fail:
 	printf("FAIL");
 }
 
-void print_row_bits(u64 val, int lock)
+static void deploy_putc(void *p, char c)
 {
 	int i;
+	u8 t = (u8) c;
 
-	printf("%c ", lock ? 'U' : '?');
-	for (i = 63; i >= 0; --i) {
-		printf("%c", ((val >> i) & 1) ? 'U' : '?');
-		if (i == 32)
-			printf(" ");
+	for (i = 0; i < 8; ++i) {
+		uart_putc(p, (char) ((t & 1) ? 0xff : 0x00));
+		t >>= 1;
 	}
-	printf("\n");
 }
 
 void deploy(void)
 {
+	init_printf(NULL, deploy_putc);
+
 	if (mbd.op == 0) {
 		/* read OTP */
 		int i, res, lock;
@@ -156,7 +157,9 @@ void deploy(void)
 			res = efuse_read_row_no_ecc(i, &val, &lock);
 			if (res < 0)
 				goto fail;
-			print_row_bits(val, lock);
+
+			printf("%d %08x%08x\n", lock ? 1 : 0,
+			       (u32) (val >> 32), (u32) val);
 		}
 	} else if (mbd.op == 1) {
 		/* deploy */
