@@ -37,8 +37,15 @@ CPPFLAGS =
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
 LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -Xlinker "--build-id=none"
 
+ifeq ($(DEPLOY), 1)
+	CPPFLAGS += -DDEPLOY=1
+endif
 
-CSRC = $(wildcard *.c ddr/*.c)
+ifeq ($(DEPLOY), 1)
+	CSRC = $(filter-out ddr.c,$(wildcard *.c))
+else
+	CSRC = $(wildcard *.c ddr/*.c)
+endif
 ASRC = $(wildcard *.S)
 
 COBJ   = $(CSRC:.c=.o)

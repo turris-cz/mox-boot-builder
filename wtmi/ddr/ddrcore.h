@@ -56,12 +56,6 @@
 #define FLAG_REGS_DUMP_DDR_PHY  BIT(2)
 #define FLAG_REGS_DUMP_ALL      0xFFFFFFFF
 
-enum ddr_type {
-	DDR3  = 0,
-	DDR4,
-	DDR_TYPE_MAX,
-};
-
 struct ddr_cs_data {
 	unsigned int group_num;
 	unsigned int bank_num;
@@ -97,11 +91,6 @@ struct ddr_init_result {
 			unsigned int cs1_b0; /* 0x11A4 */
 			unsigned int cs1_b1; /* 0x11A8 */
 		} ddr3; /* qs_gating */
-
-		struct {
-			unsigned int vref_read; /* only for DDR4 0x1038 */
-			unsigned int vref_write; /* only for DDR4 0x30C */
-		} ddr4;
 	};
 };
 
@@ -119,7 +108,6 @@ struct ddr_init_para {
 	struct ddr_win cs_wins[MAX_CS_NUM];
 };
 
-int set_ddr_type(enum ddr_type type);
 int set_ddr_topology_parameters(struct ddr_topology top_map);
 int init_ddr(struct ddr_init_para init_para,
 	     struct ddr_init_result *result);

@@ -130,7 +130,7 @@ static int sys_check_warm_boot(void)
 	return 0;
 }
 
-int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_BIN, int CS_NUM, int DEV_CAP)
+int ddr_main(enum clk_preset WTMI_CLOCK, int BUS_WIDTH, int SPEED_BIN, int CS_NUM, int DEV_CAP)
 {
 	struct ddr_topology map;
 	struct ddr_init_para ddr_para;
@@ -177,7 +177,6 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_
 	set_clock_preset(WTMI_CLOCK);
 	init_avs(get_cpu_clock());
 
-	set_ddr_type(DDR_TYPE);
 	set_ddr_topology_parameters(map);
 
 	ddr_para.log_level  = LOG_LEVEL_NONE;

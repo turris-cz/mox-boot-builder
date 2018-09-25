@@ -469,7 +469,7 @@ int efuse_write_secure_buffer(u32 *priv)
 	int i, res;
 	u64 val;
 
-	for (i = 6; i < 8; ++i) {
+	for (i = 0; i < 8; ++i) {
 		val = priv[i * 2 + 1];
 		val <<= 32;
 		val |= priv[i * 2];

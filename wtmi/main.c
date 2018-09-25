@@ -102,7 +102,7 @@ static void init_ddr(void)
 		size = 512;
 	}
 
-	ddr_main(CLK_PRESET_CPU1000_DDR800, 0, 16, 12, 1, size);
+	ddr_main(CLK_PRESET_CPU1000_DDR800, 16, 12, 1, size);
 
 	wait_ns(1000000);
 }
@@ -121,7 +121,7 @@ void main(void)
 
 	init_printf(NULL, uart_putc);
 
-#if 1
+#ifdef DEPLOY
 	ebg_init();
 	deploy();
 	if (0) {
@@ -149,9 +149,11 @@ void main(void)
 			printf("row %d (%d) %08x%08x %i\n", i, res, (u32) (val >> 32), (u32) val, lock);
 		}
 	}
-	while (1)
-		wait_for_irq();
-#else
+
+	/* warm reset */
+	wait_ns(10000000);
+	writel(0x1d1e, 0xc0013840);
+#else /* !DEPLOY */
 	{
 		int res;
 		wait_ns(100000000);
@@ -199,5 +201,5 @@ void main(void)
 		wait_for_irq();
 		mbox_process_commands();
 	}
-#endif
+#endif /* !DEPLOY */
 }

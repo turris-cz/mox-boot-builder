@@ -73,7 +73,7 @@ static int get_ram_size(void)
 
 static void do_deploy(void)
 {
-	int ram_size, i, res;
+	int ram_size, i, res, lock;
 	u32 pubkey[17];
 	u64 val;
 
@@ -102,11 +102,17 @@ static void do_deploy(void)
 	res = efuse_write_row_with_ecc_lock(42, val);
 	if (res < 0)
 		goto fail;
+#endif
 
-	res = ecdsa_generate_efuse_private_key();
+	res = efuse_read_row_no_ecc(30, NULL, &lock);
 	if (res < 0)
 		goto fail;
-#endif
+
+	if (!lock) {
+		res = ecdsa_generate_efuse_private_key();
+		if (res < 0)
+			goto fail;
+	}
 
 	res = ecdsa_get_efuse_public_key(pubkey);
 	if (res < 0)

@@ -40,7 +40,6 @@
 *---------------------------------------------------------------------------*/
 
 #include "ddr.h"
-#include "ddr_support.h"
 
 #define aprintf printf
 
@@ -147,39 +146,34 @@ void reset_dll_phy(void)
 {
 	// reset PHY DLL. Dll_reset_timer ([31:24] of PHY Control Register 8, Offset 0x41C/0xC1C) is set to 0x10, reset DLL for 128*32=4096 MCLK cycles.
 	// updates DLL master. Block read/MMR for 4096 MCLK cycles to guarantee DLL lock. Either wait 4096 MCLK (memPll/4) cycles, or check DLL lock status
-	ll_write32(PHY_CONTROL_9, 0x20000000);	//DLL reset
+	writel(0x20000000, PHY_CONTROL_9);	//DLL reset
 	//TODO: optimize the delays for specific CPU frequency
 	wait_ns(640);							//delay(512nCK);Assuming 800MHz CPU frequency
 	// update Dll delay_l. When Dll_update_timer ([20:16] of PHY Control Register 8, Offset 0x41C/0xC1C) is 0x11, assert DLL_UPDATE_EN pin for 0x11*16 = 272 MCLK cycles.
 	// copy DLL master to DLL slave. Slave controls the actual delay_l. Both DLL bypass and DLL needs 'update'.
-	ll_write32(PHY_CONTROL_9, 0x40000000);	//Update  DLL
+	writel(0x40000000, PHY_CONTROL_9);	//Update  DLL
 	//TODO: optimize the delays for specific CPU frequency
-	wait_ns(640);                   		//delay(512nCK);Assuming 800MHz CPU frequency
-	ll_write32(PHY_CONTROL_9, 0x0);			//Finish DLL update
+	wait_ns(640);		   		//delay(512nCK);Assuming 800MHz CPU frequency
+	writel(0x0, PHY_CONTROL_9);			//Finish DLL update
 	//TODO: optimize the delays for specific CPU frequency
-	wait_ns(640);                   		//delay(512nCK);Assuming 800MHz CPU frequency
+	wait_ns(640);		   		//delay(512nCK);Assuming 800MHz CPU frequency
 }
 
 static void set_DLL(unsigned short dll_phsel, unsigned short dll_phsel1)
 {
-	replace_val((PHY_DLL_CONTROL_BASE + 0), dll_phsel, 16, 0x003F0000);
-	replace_val((PHY_DLL_CONTROL_BASE + 0), dll_phsel1, 24, 0x3F000000);
+	u32 i;
 
-	replace_val((PHY_DLL_CONTROL_BASE + 4), dll_phsel, 16, 0x003F0000);
-	replace_val((PHY_DLL_CONTROL_BASE + 4), dll_phsel1, 24, 0x3F000000);
-
-	replace_val((PHY_DLL_CONTROL_BASE + 8), dll_phsel, 16, 0x003F0000);
-	replace_val((PHY_DLL_CONTROL_BASE + 8), dll_phsel1, 24, 0x3F000000);
-
-	replace_val((PHY_DLL_CONTROL_BASE + 12), dll_phsel, 16, 0x003F0000);
-	replace_val((PHY_DLL_CONTROL_BASE + 12), dll_phsel1, 24, 0x3F000000);
+	for (i = 0; i < 16; i += 4) {
+		setbitsl((PHY_DLL_CONTROL_BASE + i), dll_phsel << 16, 0x003F0000);
+		setbitsl((PHY_DLL_CONTROL_BASE + i), dll_phsel1 << 24, 0x3F000000);
+	}
 
 	reset_dll_phy();
 }
 
 static void set_dll_phsel(unsigned short offset, unsigned short bit_offset, unsigned int value)
 {
-	replace_val((PHY_DLL_CONTROL_BASE + offset), value, bit_offset, (0x3F << bit_offset));
+	setbitsl(PHY_DLL_CONTROL_BASE + offset, value << bit_offset, 0x3F << bit_offset);
 	reset_dll_phy();
 }
 
@@ -192,35 +186,35 @@ unsigned short DLL_fine_tune(unsigned int ratio, struct ddr_init_para init_para,
 	unsigned int regval;
 	unsigned int cs;
 
-	ll_write32(PHY_CONTROL_9, 0x0);
+	writel(0x0, PHY_CONTROL_9);
 
 	//Automatically update PHY DLL with interval time set in Dll_auto_update_interval ([15:8] of PHY Control Register 13, Offset 0x248)
-	regval = ll_read32(PHY_CONTROL_8);
+	regval = readl(PHY_CONTROL_8);
 
 	//turn off Dll_auto_manual_update & Dll_auto_update_en
 	// DLL_auto_update_en has a known bug. Don't use.
 	regval &= ~0xC;
 	// change Dll_reset_timer to 128*32 cycles
 	regval |= 0x80000000;
-	ll_write32(PHY_CONTROL_8, regval);  // Write R41C
+	writel(regval, PHY_CONTROL_8);  // Write R41C
 
-	for(i=0; i<sizeof(offset)/sizeof(offset[0]); ++i)
+	for (i = 0; i < sizeof(offset) / sizeof(offset[0]); ++i)
 	{
-		for(cs=0; cs<num_of_cs; cs++)
+		for (cs = 0; cs < num_of_cs; cs++)
 		{
 			left[cs] = medium[cs];
 			right[cs] = medium[cs];
-			do{
-				if(left[cs]>DLL_PHSEL_START)
-					left[cs]-=DLL_PHSEL_STEP;
+			do {
+				if (left[cs]>DLL_PHSEL_START)
+					left[cs] -= DLL_PHSEL_STEP;
 				set_dll_phsel(offset[i], bit_offset[i], left[cs]);
-			}while(!DDR_WR_Test(init_para.cs_wins[cs].base, 100*2) && left[cs]>DLL_PHSEL_START);
+			} while (!DDR_WR_Test(init_para.cs_wins[cs].base, 100*2) && left[cs]>DLL_PHSEL_START);
 
-			do{
-				if(right[cs]<DLL_PHSEL_END)
-					right[cs]+=DLL_PHSEL_STEP;
+			do {
+				if (right[cs]<DLL_PHSEL_END)
+					right[cs] += DLL_PHSEL_STEP;
 				set_dll_phsel(offset[i],  bit_offset[i], right[cs]);
-			}while(!DDR_WR_Test(init_para.cs_wins[cs].base, 100*2) && right[cs]<DLL_PHSEL_END);
+			} while (!DDR_WR_Test(init_para.cs_wins[cs].base, 100*2) && right[cs]<DLL_PHSEL_END);
 
 			m[cs] = left[cs] + (right[cs] -left[cs])/ratio;
 			//debug(" CS%d:  DLL 0x%8x[%2d:%2d]: [%x,%x,%x]\n",cs,
@@ -229,105 +223,106 @@ unsigned short DLL_fine_tune(unsigned int ratio, struct ddr_init_para init_para,
 		}  		
 
 		//pick the window common to all CS, if none exists default to CS0
-		l=left[0]; r=right[0];
-		for(cs=1;cs<num_of_cs; cs++)
+		l = left[0];
+		r = right[0];
+		for (cs = 1;cs < num_of_cs; cs++)
 		{
-			if( (left[cs] > l) && (left[cs] < r) )
+			if ( (left[cs] > l) && (left[cs] < r) )
 				l = left[cs];
-			if( (right[cs] < r) && (right[cs] > l) )
+			if ( (right[cs] < r) && (right[cs] > l) )
 				r = right[cs];
 		}
 
 		med = l + (r - l)/ratio;
-		if(log_en)
+		if (log_en)
 			debug("   DLL 0x%8x[%2d:%2d]: [%x,%x,%x]\n",
 				PHY_DLL_CONTROL_BASE+offset[i], bit_offset[i]+5, bit_offset[i], l, r, med);
 		set_dll_phsel(offset[i], bit_offset[i], med);
 	}
-	if(log_en)
+	if (log_en)
 		debug(" DLL: pass  ");
 	return 1;	//DLL passed
 }
 
 static unsigned int mpr_read_Test(unsigned int start, unsigned int ddr_size)
 {
-        volatile unsigned int *l_waddr;
-        unsigned int l_rdata, l_pattern_ddr4;
+	volatile unsigned int *l_waddr;
+	unsigned int l_rdata, l_pattern_ddr4;
 
-        l_pattern_ddr4 = (unsigned int)0xFFFF0000;
+	l_pattern_ddr4 = (unsigned int)0xFFFF0000;
 
-        for (l_waddr = (volatile unsigned int*)start; l_waddr < (volatile unsigned int*)(start + ddr_size); l_waddr++)
-        {
-                l_rdata = *l_waddr;
+	for (l_waddr = (volatile unsigned int*)start; l_waddr < (volatile unsigned int*)(start + ddr_size); l_waddr++)
+	{
+		l_rdata = *l_waddr;
 
-                //debug("\nRead data 0x%08X : 0x%08x Pattern: 0x%08x", l_waddr, l_rdata, l_pattern_ddr4);
-                if (l_rdata != l_pattern_ddr4)
-                {
-                        return 1;               //1 => fail
-                }
-        }
-        return 0;
+		//debug("\nRead data 0x%08X : 0x%08x Pattern: 0x%08x", l_waddr, l_rdata, l_pattern_ddr4);
+		if (l_rdata != l_pattern_ddr4)
+		{
+			return 1;	       //1 => fail
+		}
+	}
+	return 0;
 }
 
 unsigned int short_DLL_tune(unsigned int ratio, unsigned int cs_base, unsigned int log_en, unsigned int mpr_en, unsigned short *ret_m)
 {
-        unsigned short left, right, i;
+	unsigned short left, right, i;
 
 	//step 1. use medium of DLL_PHSEL_START and DLL_PHSEL_END as base settings
-        unsigned short medium;
-        unsigned int regval, res;
+	unsigned short medium;
+	unsigned int regval, res;
 
-	ll_write32(PHY_CONTROL_9, 0x0);
+	writel(0x0, PHY_CONTROL_9);
 
 	//Automatically update PHY DLL with interval time set in Dll_auto_update_interval ([15:8] of PHY Control Register 13, Offset 0x248)
-        regval = ll_read32(PHY_CONTROL_8);
+	regval = readl(PHY_CONTROL_8);
 
-        //turn off Dll_auto_manual_update & Dll_auto_update_en
-        // DLL_auto_update_en has a known bug. Don't use.
-        regval &= ~0xC;
-        // change Dll_reset_timer to 128*32 cycles
-        regval |= 0x80000000;
-        ll_write32(PHY_CONTROL_8, regval);  // Write R41C
+	//turn off Dll_auto_manual_update & Dll_auto_update_en
+	// DLL_auto_update_en has a known bug. Don't use.
+	regval &= ~0xC;
+	// change Dll_reset_timer to 128*32 cycles
+	regval |= 0x80000000;
+	writel(regval, PHY_CONTROL_8);  // Write R41C
 
 	//enable mpr mode
-	if(mpr_en)
+	if (mpr_en)
 	{
-		ll_write32(CH0_DRAM_Config_3, (ll_read32(CH0_DRAM_Config_3) | 0x00000040));
-		ll_write32(USER_COMMAND_2, 0x13000800);
+		writel(readl(CH0_DRAM_Config_3) | 0x00000040, CH0_DRAM_Config_3);
+		writel(0x13000800, USER_COMMAND_2);
 	}
-        left = DLL_PHSEL_END;
-        right = DLL_PHSEL_START;
-        for(i=DLL_PHSEL_START; i<=DLL_PHSEL_END; ++i){
-                set_DLL(i, i);
-                wait_ns(100);
-		if(mpr_en)
+	left = DLL_PHSEL_END;
+	right = DLL_PHSEL_START;
+	for (i = DLL_PHSEL_START; i <= DLL_PHSEL_END; ++i) {
+		set_DLL(i, i);
+		wait_ns(100);
+		if (mpr_en)
 			res = mpr_read_Test(cs_base, 100*2);
 		else
 			res = DDR_WR_Test(cs_base, 32);
 
-		if(!res) {
-			if( i<left) left = i;
-			if( i>right) right = i;
+		if (!res) {
+			if ( i<left) left = i;
+			if ( i>right) right = i;
 		}
 	}
-	if(left>right){
-                if(log_en)
-                        debug(" DLL: fail  ");
-                return 0;
-        }else{
-                medium = left + ((right-left)/ratio);
-                set_DLL(medium, medium);
-        }
+	if (left > right) {
+		if (log_en)
+			debug(" DLL: fail  ");
+		return 0;
+	} else {
+		medium = left + ((right - left) / ratio);
+		set_DLL(medium, medium);
+	}
 	*ret_m = medium;
 
 	//disable mpr mode
-	if(mpr_en)
+	if (mpr_en)
 	{
-		ll_write32(CH0_DRAM_Config_3, (ll_read32(CH0_DRAM_Config_3) & (~0x00000040)));
-		ll_write32(USER_COMMAND_2, 0x13000800);
+		writel(readl(CH0_DRAM_Config_3) & ~0x00000040, CH0_DRAM_Config_3);
+		writel(0x13000800, USER_COMMAND_2);
 	}
-	
-        return 1;
+
+	return 1;
 }
 
 unsigned int DLL_tuning(unsigned int ratio, unsigned int num_of_cs, struct ddr_init_para init_para, unsigned int short_DLL, unsigned int mpr_mode)
@@ -335,20 +330,20 @@ unsigned int DLL_tuning(unsigned int ratio, unsigned int num_of_cs, struct ddr_i
 	unsigned int cs = 0, res = 1;
 	unsigned short optimal[MAX_CS_NUM], medium[MAX_CS_NUM];
 
-	if(init_para.log_level)
+	if (init_para.log_level)
 		debug("\nDLL TUNING\n==============\n");
 
-	for (cs=0; cs<num_of_cs; cs++)
+	for (cs = 0; cs < num_of_cs; cs++)
 	{
 		optimal[cs] = short_DLL_tune(ratio, init_para.cs_wins[cs].base, init_para.log_level, mpr_mode, &medium[cs]);
 		res &= optimal[cs];
 	}
 
-	if(short_DLL)
+	if (short_DLL)
 		return res;		//DLL tuning P/F for vref trainings
 	else
 	{
-		if(res)
+		if (res)
 			DLL_fine_tune(ratio, init_para, num_of_cs, init_para.log_level, medium);
 		else
 			return 0;	//DLL tuning FAIL

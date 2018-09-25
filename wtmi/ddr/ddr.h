@@ -90,18 +90,13 @@
 #define PHY_CONTROL_9				0xC0001020
 
 unsigned int DLL_tuning(unsigned int ratio, unsigned int num_of_cs, struct ddr_init_para init_para, unsigned int short_DLL, unsigned int mpr_mode);
-void mc6_init_timing_selfrefresh(enum ddr_type type, unsigned int speed);
+void mc6_init_timing_selfrefresh(unsigned int speed);
 void set_clear_trm(int set, unsigned int val);
 void self_refresh_entry(void);
 void self_refresh_exit(void);
 void self_refresh_test(int verify, unsigned int base_addr, unsigned int size);
-void send_mr_commands(enum ddr_type type);
+void send_mr_commands(void);
 int qs_gating(unsigned int base_addr, unsigned int cs, unsigned int log_en, struct ddr_init_result *result);
-unsigned int vref_read_training(int num_of_cs, struct ddr_init_para init_para);
-unsigned int vref_write_training(int num_of_cs, struct ddr_init_para init_para);
-int vdac_set(unsigned int vref_range, unsigned int vref_ctrl);
-int vref_set(unsigned int range, unsigned int VREF_training_value_DQ);
-void en_dis_write_vref(unsigned int enable);
 
 void phyinit_sequence_sync2(volatile unsigned short ld_phase,
 		volatile  unsigned short wrst_sel, volatile  unsigned short wckg_dly,
