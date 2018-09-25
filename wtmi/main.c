@@ -140,7 +140,6 @@ static void init_ddr(void)
 		size = 512;
 	}
 
-	printf("%i ram\n", size);
 	ddr_main(CLK_PRESET_CPU1000_DDR800, 16, 12, 1, size);
 
 	wait_ns(1000000);
@@ -168,18 +167,6 @@ void main(void)
 	wait_ns(10000000);
 	writel(0x1d1e, 0xc0013840);
 #else /* !DEPLOY */
-	{
-		int res, i;
-		wait_ns(100000000);
-
-		for (i = 0; i < 44; ++i) {
-			u64 val;
-			int lock;
-			res = efuse_read_row_no_ecc(i, &val, &lock);
-			printf("row %d (%d) %08x%08x %i\n", i, res, (u32) (val >> 32), (u32) val, lock);
-		}
-	}
-
 	init_ddr();
 	ebg_init();
 	enable_systick();
