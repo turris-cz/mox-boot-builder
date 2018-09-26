@@ -19,6 +19,7 @@ void __irq systick_handler(void)
 	ebg_systick();
 }
 
+#ifndef DEPLOY
 static u32 cmd_get_random(u32 *args, u32 *out_args)
 {
 	int res;
@@ -143,6 +144,7 @@ static void init_ddr(void)
 
 	wait_ns(1000000);
 }
+#endif /* !DEPLOY */
 
 void main(void)
 {
