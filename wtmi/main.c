@@ -46,8 +46,7 @@ static u32 cmd_board_info(u32 *args, u32 *out_args)
 		return MBOX_STS(0, ENODATA, FAIL);
 
 	/*
-	 * 0 = serial number
-	 * 1 = manufacturing timestamp
+	 * 0-1 = serial number
 	 * 2 = board version
 	 * 3 = RAM in MiB
 	 * 4-5 = MAC address of eth0

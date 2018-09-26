@@ -11,8 +11,8 @@
 
 struct mox_builder_data {
 	u32 op;
-	u32 serial_number;
-	u32 manufacturing_time;
+	u32 serial_number_low;
+	u32 serial_number_high;
 	u32 mac_addr_low;
 	u32 mac_addr_high;
 	u32 board_version;
@@ -85,13 +85,13 @@ static int row_write_if_not_locked(int row, u64 val)
 	return efuse_write_row_with_ecc_lock(row, val);
 }
 
-static int write_sn_time(void)
+static int write_sn(void)
 {
 	u64 val;
 
-	val = mbd.manufacturing_time;
+	val = mbd.serial_number_high;
 	val <<= 32;
-	val |= mbd.serial_number;
+	val |= mbd.serial_number_low;
 
 	return row_write_if_not_locked(43, val);
 }
@@ -175,7 +175,7 @@ static void do_deploy(void)
 		goto fail;
 
 	/* write SN and time */
-	if (write_sn_time() < 0)
+	if (write_sn() < 0)
 		goto fail;
 
 	/* write RAM size, board version, MAC address */
@@ -196,7 +196,7 @@ static void do_deploy(void)
 	if (efuse_read_row(43, &val, NULL) < 0)
 		goto fail;
 
-	printf("SERN%08x", (u32) val);
+	printf("SERN%08x%08x", (u32) (val >> 32), (u32) val);
 
 	/* read board version, MAC address and send back */
 	if (efuse_read_row(42, &val, NULL) < 0)
