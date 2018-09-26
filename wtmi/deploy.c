@@ -182,12 +182,14 @@ static void do_deploy(void)
 	if (write_ram_bver_mac(ram_size) < 0)
 		goto fail;
 
+#if 0
 	/* generate ECDSA key if not yet generated */
 	if (generate_and_write_ecdsa_key() < 0)
 		goto fail;
 
 	if (write_security_info() < 0)
 		goto fail;
+#endif
 
 	/* send RAM info */
 	printf("RAM%c", ram_size == 1024 ? '1' : '0');
@@ -196,6 +198,7 @@ static void do_deploy(void)
 	if (efuse_read_row(43, &val, NULL) < 0)
 		goto fail;
 
+	val=mbd.serial_number_high;val<<=32;val|=mbd.serial_number_low;
 	printf("SERN%08x%08x", (u32) (val >> 32), (u32) val);
 
 	/* read board version, MAC address and send back */
