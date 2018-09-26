@@ -198,7 +198,6 @@ static void do_deploy(void)
 	if (efuse_read_row(43, &val, NULL) < 0)
 		goto fail;
 
-	val=mbd.serial_number_high;val<<=32;val|=mbd.serial_number_low;
 	printf("SERN%08x%08x", (u32) (val >> 32), (u32) val);
 
 	/* read board version, MAC address and send back */
