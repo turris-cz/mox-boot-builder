@@ -4,19 +4,19 @@ CROSS_COMPILE	:= aarch64-unknown-linux-gnu-
 
 BUILD_PLAT = build/a3700/release
 
-all: flash-image.bin unsecure-flash-image.bin
+all: trusted-flash-image.bin untrusted-flash-image.bin
 
-flash-image.bin: secure-image.bin u-boot.bin
-	cat secure-image.bin u-boot.bin >$@
+trusted-flash-image.bin: trusted-secure-firmware.bin u-boot.bin
+	cat trusted-secure-firmware.bin u-boot.bin >$@
 
-unsecure-flash-image.bin: unsecure-image.bin u-boot.bin
-	cat unsecure-image.bin u-boot.bin >$@
+untrusted-flash-image.bin: untrusted-secure-firmware.bin u-boot.bin
+	cat untrusted-secure-firmware.bin u-boot.bin >$@
 
-secure-image.bin: mox-imager/mox-imager wtmi_h.bin $(ECDSA_PRIV_KEY)
-	mox-imager/mox-imager --create-secure-image -k $(ECDSA_PRIV_KEY) -o $@ wtmi_h.bin
+trusted-secure-firmware.bin: mox-imager/mox-imager wtmi_h.bin $(ECDSA_PRIV_KEY)
+	mox-imager/mox-imager --create-trusted-image -k $(ECDSA_PRIV_KEY) -o $@ wtmi_h.bin
 
-unsecure-image.bin: mox-imager/mox-imager wtmi_h.bin
-	mox-imager/mox-imager --create-unsecure-image -o $@ wtmi_h.bin
+untrusted-secure-firmware.bin: mox-imager/mox-imager wtmi_h.bin
+	mox-imager/mox-imager --create-untrusted-image -o $@ wtmi_h.bin
 
 wtmi_h.bin:
 	make -C wtmi clean
@@ -55,4 +55,6 @@ clean:
 	make -C u-boot clean
 	make -C wtmi clean
 	make -C mox-imager clean
-	rm -rf atf-marvell/build unsecure-image.bin secure-image.bin wtmi_h.bin u-boot.bin flash-image.bin unsecure-flash-image.bin
+	rm -rf atf-marvell/build untrusted-secure-firmware.bin trusted-secure-firmware.bin \
+		untrusted-flash-image.bin trusted-flash-image.bin \
+		wtmi_h.bin u-boot.bin
