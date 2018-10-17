@@ -509,6 +509,9 @@ int ecdsa_get_efuse_public_key(u32 *compressed_pub)
 	if (res < 0)
 		return res;
 
+	if (bn_is_zero(pub.x))
+		return -ENODATA;
+
 	for (i = 0; i < 17; ++i)
 		compressed_pub[i] = pub.x[16 - i];
 
