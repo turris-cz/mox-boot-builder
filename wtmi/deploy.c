@@ -171,24 +171,26 @@ static void do_deploy(void)
 
 	ram_size = get_ram_size();
 
+#define die(...) do { printf(__VA_ARGS__); return; } while (0)
+
 	if (ram_size != 1024 && ram_size != 512)
-		goto fail;
+		die("FAIL_DETERMIN_RAM");
 
 	/* write SN and time */
 	if (write_sn() < 0)
-		goto fail;
+		die("FAIL_WR_SERIAL_NR");
 
 	/* write RAM size, board version, MAC address */
 	if (write_ram_bver_mac(ram_size) < 0)
-		goto fail;
+		die("FAIL_WR_RAM_V_MAC");
 
-#if 0
 	/* generate ECDSA key if not yet generated */
 	if (generate_and_write_ecdsa_key() < 0)
-		goto fail;
+		die("FAIL_WR_ECDSA_KEY");
 
+#if 0
 	if (write_security_info() < 0)
-		goto fail;
+		die("FAIL_WR_SECURITY ");
 #endif
 
 	/* send RAM info */
@@ -196,28 +198,29 @@ static void do_deploy(void)
 
 	/* read SN and time and send back */
 	if (efuse_read_row(43, &val, NULL) < 0)
-		goto fail;
+		die("FAIL_RD_SERIAL_NR");
 
 	printf("SERN%08x%08x", (u32) (val >> 32), (u32) val);
 
 	/* read board version, MAC address and send back */
 	if (efuse_read_row(42, &val, NULL) < 0)
-		goto fail;
+		die("FAIL_RD_RAM_V_MAC");
+
+	if ((((val >> 56) & 1) + 1) * 512 != ram_size)
+		die("FAIL_BAD_RAM_WRTN");
 
 	printf("BVER%02XMACA%04x%08x", (u32) ((val >> 48) & 0xff),
 	       (u32) ((val >> 32) & 0xffff), (u32) val);
 
 	res = ecdsa_get_efuse_public_key(pubkey);
 	if (res < 0)
-		goto fail;
+		die("FAIL_RD_ECDSA_KEY ");
 
 	printf("PUBK%06x", pubkey[0]);
 	for (i = 1; i < 17; ++i)
 		printf("%08x", pubkey[i]);
 
 	return;
-fail:
-	printf("FAIL");
 }
 
 static void deploy_putc(void *p, char c)
