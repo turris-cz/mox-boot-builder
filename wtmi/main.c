@@ -11,6 +11,8 @@
 #include "ddr.h"
 #include "deploy.h"
 
+#define AP_RAM		0x60000000
+
 volatile int jiffies;
 
 void __irq systick_handler(void)
@@ -86,6 +88,33 @@ static u32 cmd_ecdsa_pub_key(u32 *args, u32 *out_args)
 		out_args[i] = pub[i + 1];
 
 	return MBOX_STS(0, pub[0], SUCCESS);
+}
+
+static u32 cmd_ecdsa_sign(u32 *args, u32 *out_args)
+{
+	ec_sig_t sig;
+	u32 msg[17];
+	int res, i;
+
+	/* check if src and dst addresses are correctly aligned */
+	if (args[0] & 3 || args[1] & 3 || args[2] & 3)
+		return MBOX_STS(0, 22, FAIL);
+
+	/* read src message from AP RAM */
+	for (i = 0; i < 17; ++i)
+		msg[16 - i] = readl(AP_RAM + args[0] + 4 * i);
+
+	res = ecdsa_sign(&sig, msg);
+	if (res < 0)
+		return MBOX_STS(0, -res, FAIL);
+
+	/* write signature to AP RAM */
+	for (i = 0; i < 17; ++i) {
+		writel(sig.r[16 - i], AP_RAM + args[1] + 4 * i);
+		writel(sig.s[16 - i], AP_RAM + args[2] + 4 * i);
+	}
+
+	return MBOX_STS(0, 0, SUCCESS);
 }
 
 static u32 cmd_otp_read(u32 *args, u32 *out_args)
@@ -176,6 +205,7 @@ void main(void)
 	mbox_register_cmd(MBOX_CMD_GET_RANDOM, cmd_get_random);
 	mbox_register_cmd(MBOX_CMD_BOARD_INFO, cmd_board_info);
 	mbox_register_cmd(MBOX_CMD_ECDSA_PUB_KEY, cmd_ecdsa_pub_key);
+	mbox_register_cmd(MBOX_CMD_ECDSA_SIGN, cmd_ecdsa_sign);
 	mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
 	mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);
 	enable_irq();
