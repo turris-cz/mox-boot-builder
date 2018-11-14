@@ -26,7 +26,15 @@ static u32 cmd_get_random(u32 *args, u32 *out_args)
 {
 	int res;
 
-	res = ebg_rand(out_args, MBOX_MAX_ARGS * sizeof(u32));
+	if (args[0] == 1) {
+		if (args[1] & 3 || !args[2] || args[2] & 3)
+			return MBOX_STS(0, EINVAL, FAIL);
+
+		ebg_rand_sync((void *) (AP_RAM + args[1]), args[2]);
+		res = 0xfffff;
+	} else {
+		res = ebg_rand(out_args, MBOX_MAX_ARGS * sizeof(u32));
+	}
 
 	return MBOX_STS(0, res, SUCCESS);
 }

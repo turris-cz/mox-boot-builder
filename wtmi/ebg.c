@@ -19,7 +19,7 @@ static int ebg_next(int wait, u16 *res)
 
 	if (wait) {
 		while (!((val = readl(EBG_ENTROPY)) & BIT(31)))
-			wait_ns(51300);
+			wait_ns(70);
 	} else {
 		val = readl(EBG_ENTROPY);
 		if (!(val & BIT(31)))
@@ -36,6 +36,7 @@ static int ebg_next(int wait, u16 *res)
 
 void ebg_init(void)
 {
+	u16 x;
 	int i;
 
 	reg = readl(EBG_CTRL);
@@ -60,6 +61,12 @@ void ebg_init(void)
 
 	/* throw away first 16 values */
 	for (i = 0; i < 16; ++i)
+		ebg_next(1, NULL);
+
+	/* now throw away another random number of values */
+	ebg_next(1, &x);
+	x &= 0x1f;
+	for (i = 0; i < x; ++i)
 		ebg_next(1, NULL);
 }
 
