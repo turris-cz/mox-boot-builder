@@ -104,7 +104,8 @@ void ebg_rand_sync(void *buffer, int size)
 	}
 
 	if (size == 1) {
-		buffer -= 1;
-		ebg_next(1, (u16 *) buffer);
+		u16 x;
+		ebg_next(1, &x);
+		*(u8 *) buffer = x & 0xff;
 	}
 }
