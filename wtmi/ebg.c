@@ -3,7 +3,8 @@
 #include "io.h"
 #include "clock.h"
 #include "ebg.h"
-#include "mbox.h"
+#include "crypto.h"
+#include "crypto_hash.h"
 #include "string.h"
 
 #define EBG_CTRL	0x40002c00
@@ -19,7 +20,7 @@ static int ebg_next(int wait, u16 *res)
 
 	if (wait) {
 		while (!((val = readl(EBG_ENTROPY)) & BIT(31)))
-			wait_ns(70);
+			wait_ns(10);
 	} else {
 		val = readl(EBG_ENTROPY);
 		if (!(val & BIT(31)))
@@ -57,6 +58,7 @@ void ebg_init(void)
 	reg |= 0x03104840;
 	writel(reg, EBG_CTRL);
 
+	wait_ns(100000);
 	writel(reg | 0x1000, EBG_CTRL);
 
 	/* throw away first 16 values */
@@ -107,5 +109,66 @@ void ebg_rand_sync(void *buffer, int size)
 		u16 x;
 		ebg_next(1, &x);
 		*(u8 *) buffer = x & 0xff;
+	}
+}
+
+static inline void xor(u32 *d, const u32 *s)
+{
+	int i;
+
+	for (i = 0; i < 16; ++i)
+		*d++ ^= *s++;
+}
+
+static void paranoid_rand_64(u32 *buffer)
+{
+	static u32 ebgbuf[128] __attribute__((aligned(16)));
+	static u32 dgst[16];
+	static int c;
+	int i;
+
+	ebg_rand_sync(ebgbuf, sizeof(ebgbuf));
+	hw_sha512(ebgbuf, sizeof(ebgbuf), dgst);
+
+	for (i = 0; i < 128; i += 16) {
+		if (c)
+			xor(dgst, ebgbuf + i);
+		else
+			c ^= bn_add(dgst, ebgbuf + i, 16);
+		c ^= (dgst[0] >> (i >> 4)) & 1;
+	}
+
+	for (i = 0; i < 16; ++i)
+		buffer[i] = dgst[i];
+}
+
+void paranoid_rand(void *buffer, int size)
+{
+	u32 tmp[16];
+	u32 addr = (u32) buffer;
+
+	if (size < 4) {
+		paranoid_rand_64(tmp);
+		memcpy(buffer, tmp, size);
+		return;
+	}
+
+	if (addr & 3) {
+		int s = 4 - (addr & 3);
+		paranoid_rand_64(tmp);
+		memcpy(buffer, tmp, s);
+		buffer += s;
+		size -= s;
+	}
+
+	while (size >= 64) {
+		paranoid_rand_64(buffer);
+		buffer += 64;
+		size -= 64;
+	}
+
+	if (size > 0) {
+		paranoid_rand_64(tmp);
+		memcpy(buffer, tmp, size);
 	}
 }
