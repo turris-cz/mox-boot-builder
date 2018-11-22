@@ -6,6 +6,7 @@
 #include "crypto.h"
 #include "crypto_hash.h"
 #include "string.h"
+#include "engine.h"
 
 #define EBG_CTRL	0x40002c00
 #define EBG_ENTROPY	0x40002c04
@@ -39,6 +40,10 @@ void ebg_init(void)
 {
 	u16 x;
 	int i;
+
+	engine_clk_disable(Engine_EBG);
+	engine_clk_enable(Engine_EBG);
+	engine_reset(Engine_EBG);
 
 	reg = readl(EBG_CTRL);
 	reg &= 0x901f;
