@@ -203,6 +203,20 @@ static void bn_modulo(u32 *dst, const u32 *mod)
 	}
 }
 
+int bn_add(u32 *dst, const u32 *src, int len)
+{
+	int i, c1, c2, carry;
+
+	carry = 0;
+	for (i = 0; i < len; ++i) {
+		c1 = __builtin_uadd_overflow(dst[i], carry, &dst[i]);
+		c2 = __builtin_uadd_overflow(dst[i], src[i], &dst[i]);
+		carry = c1 || c2;
+	}
+
+	return carry;
+}
+
 static void bn_addmod(u32 *dst, const u32 *src, const u32 *mod)
 {
 	int i, c1, c2, carry;

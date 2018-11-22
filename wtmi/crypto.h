@@ -27,6 +27,7 @@ typedef struct {
 	u32 order[17];
 } ec_info_t;
 
+extern int bn_add(u32 *dst, const u32 *src, int len);
 extern int ecdsa_sign(ec_sig_t *sig, const u32 *z);
 extern int ecdsa_verify(const ec_point_t *pub, const ec_sig_t *sig,
 			const u32 *z);
