@@ -9,6 +9,8 @@
 #define NVIC_SET_PENDING	0xe000e200
 #define NVIC_CLR_PENDING	0xe000e280
 #define NVIC_ACTIVE		0xe000e300
+#define NVIC_PRIORITY		0xe000e400
+#define SCB_AIRCR		0xe000ed0c
 
 #define __irq			__attribute__((interrupt))
 
@@ -75,6 +77,21 @@ static inline void nvic_set_pending(int irq)
 static inline void nvic_clr_pending(int irq)
 {
 	_nvic_set(NVIC_CLR_PENDING, irq);
+}
+
+static inline void nvic_set_priority(int irq, u8 priority)
+{
+	u32 reg, addr;
+	int pos;
+
+	priority <<= 1;
+
+	addr = NVIC_PRIORITY + (irq & ~3);
+	pos = (irq & 3) << 3;
+
+	reg = readl(addr) & ~(0xff << pos);
+	reg |= priority << pos;
+	writel(reg, addr);
 }
 
 static inline int nvic_is_active(int irq)
