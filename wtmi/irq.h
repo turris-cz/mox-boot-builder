@@ -46,7 +46,7 @@ static inline void enable_irq(void)
 
 static inline void disable_irq(void)
 {
-	asm("cpsie d");
+	asm("cpsid i");
 }
 
 static inline void _nvic_set(u32 base, int irq)
