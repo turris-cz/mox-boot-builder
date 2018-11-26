@@ -1,4 +1,5 @@
 #include "types.h"
+#include "clock.h"
 #include "io.h"
 #include "irq.h"
 #include "mbox.h"
@@ -8,6 +9,7 @@
 #define MBOX_IN_CMD		0x40000040
 #define MBOX_OUT_STATUS		0x40000080
 #define MBOX_OUT_ARG(n)		(0x40000084 + (n) * 4)
+#define MBOX_FIFO_STATUS	0x400000c4
 
 #define SECURE_STATUS		0x40000104
 #define AXPROT_CONTROL		0x400001a0
@@ -16,7 +18,7 @@
 #define SP_INT_MASK		0x4000021c
 #define SP_CONTROL		0x40000220
 
-#define CMD_QUEUE_SIZE		16
+#define CMD_QUEUE_SIZE		8
 
 static mbox_cmd_handler_t cmd_handlers[16];
 
@@ -35,6 +37,7 @@ void mbox_process_commands(void)
 		u32 status, out_args[MBOX_MAX_ARGS];
 
 		req = &cmd_queue[cmd_queue_first];
+
 		status = cmd_handlers[req->cmd](req->args, out_args);
 		if (MBOX_STS_CMD(status) == 0)
 			status |= req->cmd;
@@ -42,8 +45,9 @@ void mbox_process_commands(void)
 		if (MBOX_STS_ERROR(status) != MBOX_STS_LATER)
 			mbox_send(status, out_args);
 
-		--cmd_queue_fill;
+		/* TODO: this should be atomic */
 		cmd_queue_first = (cmd_queue_first + 1) % CMD_QUEUE_SIZE;
+		--cmd_queue_fill;
 	}
 }
 
@@ -67,11 +71,12 @@ void mbox_irq_handler(int irq)
 		cmd_request_t *req;
 
 		req = &cmd_queue[(cmd_queue_first + cmd_queue_fill) % CMD_QUEUE_SIZE];
-		++cmd_queue_fill;
 
 		req->cmd = cmd;
 		for (i = 0; i < MBOX_MAX_ARGS; ++i)
 			req->args[i] = readl(MBOX_IN_ARG(i));
+
+		++cmd_queue_fill;
 	} else {
 		mbox_send(MBOX_STS(cmd, 0, BADCMD), NULL);
 	}
@@ -86,7 +91,10 @@ void mbox_init(void)
 {
 	setbitsl(SP_INT_MASK, 0, CMD_REG_OCCUPIED_RESET_BIT);
 
+	writel(BIT(8), MBOX_FIFO_STATUS);
+
 	register_irq_handler(IRQn_SP, mbox_irq_handler);
+	nvic_set_priority(IRQn_SP, 16);
 	nvic_enable(IRQn_SP);
 }
 
@@ -103,7 +111,7 @@ void mbox_send(u32 status, u32 *args)
 	int i;
 
 	while (readl(HOST_INT_SET) & HOST_INT_CMD_COMPLETE_BIT)
-		printf("w\n");
+		wait_ns(100000);
 
 	if (args) {
 		for (i = 0; i < MBOX_MAX_ARGS; i++)
