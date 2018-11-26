@@ -24,12 +24,24 @@ void __irq systick_handler(void)
 }
 
 #ifndef DEPLOY
+static int ram_size;
+
+static int check_ap_addr(u32 addr, u32 len, u32 align)
+{
+	if (addr % align)
+		return 0;
+	else if (addr > (ram_size << 20) || (addr + len - 1) > (ram_size << 20))
+		return 0;
+	else
+		return 1;
+}
+
 static u32 cmd_get_random(u32 *args, u32 *out_args)
 {
 	int res;
 
 	if (args[0] == 1) {
-		if (args[1] & 3 || !args[2])
+		if (!check_ap_addr(args[1], args[2], 4))
 			return MBOX_STS(0, EINVAL, FAIL);
 
 		ebg_rand_sync((void *) (AP_RAM + args[1]), args[2]);
@@ -167,19 +179,19 @@ static u32 cmd_otp_write(u32 *args, u32 *out_args)
 
 static void init_ddr(void)
 {
-	int res, size;
+	int res;
 	u64 val;
 
 	res = efuse_read_row(42, &val, NULL);
 	if (res < 0) {
-		size = 512;
+		ram_size = 512;
 	} else if ((val >> 56) & 1) {
-		size = 1024;
+		ram_size = 1024;
 	} else {
-		size = 512;
+		ram_size = 512;
 	}
 
-	ddr_main(CLK_PRESET_CPU1000_DDR800, 16, 12, 1, size);
+	ddr_main(CLK_PRESET_CPU1000_DDR800, 16, 12, 1, ram_size);
 
 	wait_ns(1000000);
 }
