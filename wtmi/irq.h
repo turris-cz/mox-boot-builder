@@ -99,6 +99,22 @@ static inline int nvic_is_active(int irq)
 	return (readl(NVIC_ACTIVE + 4 * (irq >> 5)) >> (irq & 0x1f)) & 1;
 }
 
+static inline void save_ctx(void)
+{
+	u32 t;
+	asm("mrs %0, msp\n\t"
+	    "stmdb %0!, {r4-r11}\n\t"
+	    "msr msp, %0" : "=r" (t));
+}
+
+static inline void load_ctx(void)
+{
+	u32 t;
+	asm("mrs %0, msp\n\t"
+	    "ldmfd %0!, {r4-r11}\n\t"
+	    "msr msp, %0" : "=r" (t));
+}
+
 static inline int exception_number(void)
 {
 	int res;

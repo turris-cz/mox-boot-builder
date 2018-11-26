@@ -31,7 +31,7 @@ void register_irq_handler(int irq, irq_handler_t handler)
 	irq_handlers[irq] = handler;
 }
 
-void __irq external_irq(void)
+static void do_external_irq(void)
 {
 	int irq;
 
@@ -39,4 +39,11 @@ void __irq external_irq(void)
 
 	if (irq_handlers[irq])
 		irq_handlers[irq](irq);
+}
+
+void __irq external_irq(void)
+{
+	save_ctx();
+	do_external_irq();
+	load_ctx();
 }

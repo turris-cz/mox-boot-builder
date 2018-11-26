@@ -13,12 +13,14 @@
 
 #define AP_RAM		0x60000000
 
-volatile int jiffies;
+volatile u64 jiffies;
 
 void __irq systick_handler(void)
 {
+	save_ctx();
 	++jiffies;
 	ebg_systick();
+	load_ctx();
 }
 
 #ifndef DEPLOY
