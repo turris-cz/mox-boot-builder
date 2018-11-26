@@ -5,6 +5,7 @@
 #define EACCES		13
 #define EINVAL		22
 #define ENODATA		61
+#define EOPNOTSUPP	95
 #define ETIMEDOUT	110
 
 #endif /* _ERRNO_H_ */

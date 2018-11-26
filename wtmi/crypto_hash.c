@@ -100,7 +100,6 @@ static void hash_final(u32 *digest, int d)
 	}
 }
 
-#if TEST_HASH
 void hw_md5(const void *msg, u32 size, u32 *digest)
 {
 	hash_init(HASH_CONF_ALG_MD5, size);
@@ -135,7 +134,6 @@ void hw_sha384(const void *msg, u32 size, u32 *digest)
 	hash_update(msg, size, 1);
 	hash_final(digest, 12);
 }
-#endif /* TEST_HASH */
 
 void hw_sha512(const void *msg, u32 size, u32 *digest)
 {
@@ -181,10 +179,10 @@ void test_hash(void)
 		0x29d32e7e, 0xf989ca74, 0xb3c09291, 0x70294d68, 0xc12fce64,
 		0x93554c88
 	};
-	u32 msg[1024] __attribute__((aligned(16)));
+	static u32 msg[1024] __attribute__((aligned(16)));
 	u32 dig[16];
-
 	int i;
+
 	for(i = 0; i < sizeof(msg) / sizeof(*msg); ++i)
 		msg[i] = i + 0x1234beef;
 

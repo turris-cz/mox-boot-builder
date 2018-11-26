@@ -8,6 +8,7 @@
 #include "clock.h"
 #include "irq.h"
 #include "crypto.h"
+#include "crypto_hash.h"
 #include "ddr.h"
 #include "deploy.h"
 
@@ -112,19 +113,73 @@ static u32 cmd_ecdsa_pub_key(u32 *args, u32 *out_args)
 	return MBOX_STS(0, pub[0], SUCCESS);
 }
 
-static u32 cmd_ecdsa_sign(u32 *args, u32 *out_args)
+/*
+ * args[0] = 1, 2, 3, 4, 5, 6 for MD5, SHA1, SHA224, SHA256, SHA384 and SHA512
+ * args[1] = address of input, aligned to 4 bytes
+ * args[2] = input length
+ */
+static u32 cmd_hash(u32 *args, u32 *out_args)
+{
+	hw_hash_fnc_t fn;
+
+	switch (args[0]) {
+	case 0x1:
+		fn = hw_md5;
+		break;
+	case 0x2:
+		fn = hw_sha1;
+		break;
+	case 0x3:
+		fn = hw_sha224;
+		break;
+	case 0x4:
+		fn = hw_sha256;
+		break;
+	case 0x5:
+		fn = hw_sha384;
+		break;
+	case 0x6:
+		fn = hw_sha512;
+		break;
+	default:
+		return MBOX_STS(0, EOPNOTSUPP, FAIL);
+	}
+
+	if (!check_ap_addr(args[1], args[2], 4))
+		return MBOX_STS(0, EINVAL, FAIL);
+
+	fn((void *) (AP_RAM + args[1]), args[2], out_args);
+
+	return MBOX_STS(0, 0, SUCCESS);
+}
+
+/*
+ * For ECDSA521
+ *   args[0] = 0x1
+ *   args[1] = address of input, 521 bits (17 words, little endian, msb first)
+ *   args[2] = address of output signature R
+ *   args[3] = address of output signature S
+ *
+ *   addresses must be aligned to 4 bytes
+ */
+static u32 cmd_sign(u32 *args, u32 *out_args)
 {
 	ec_sig_t sig;
 	u32 msg[17];
 	int res, i;
 
+	if (args[0] != 0x1)
+		return MBOX_STS(0, EOPNOTSUPP, FAIL);
+
 	/* check if src and dst addresses are correctly aligned */
-	if (args[0] & 3 || args[1] & 3 || args[2] & 3)
-		return MBOX_STS(0, 22, FAIL);
+	if (!check_ap_addr(args[1], 68, 4) ||
+	    !check_ap_addr(args[2], 68, 4) ||
+	    !check_ap_addr(args[3], 68, 4))
+		return MBOX_STS(0, EINVAL, FAIL);
 
 	/* read src message from AP RAM */
 	for (i = 0; i < 17; ++i)
-		msg[16 - i] = readl(AP_RAM + args[0] + 4 * i);
+		msg[16 - i] = readl(AP_RAM + args[1] + 4 * i);
 
 	res = ecdsa_sign(&sig, msg);
 	if (res < 0)
@@ -132,11 +187,16 @@ static u32 cmd_ecdsa_sign(u32 *args, u32 *out_args)
 
 	/* write signature to AP RAM */
 	for (i = 0; i < 17; ++i) {
-		writel(sig.r[16 - i], AP_RAM + args[1] + 4 * i);
-		writel(sig.s[16 - i], AP_RAM + args[2] + 4 * i);
+		writel(sig.r[16 - i], AP_RAM + args[2] + 4 * i);
+		writel(sig.s[16 - i], AP_RAM + args[3] + 4 * i);
 	}
 
 	return MBOX_STS(0, 0, SUCCESS);
+}
+
+static u32 cmd_verify(u32 *args, u32 *out_args)
+{
+	return MBOX_STS(0, EOPNOTSUPP, SUCCESS);
 }
 
 static u32 cmd_otp_read(u32 *args, u32 *out_args)
@@ -227,7 +287,9 @@ void main(void)
 	mbox_register_cmd(MBOX_CMD_GET_RANDOM, cmd_get_random);
 	mbox_register_cmd(MBOX_CMD_BOARD_INFO, cmd_board_info);
 	mbox_register_cmd(MBOX_CMD_ECDSA_PUB_KEY, cmd_ecdsa_pub_key);
-	mbox_register_cmd(MBOX_CMD_ECDSA_SIGN, cmd_ecdsa_sign);
+	mbox_register_cmd(MBOX_CMD_HASH, cmd_hash);
+	mbox_register_cmd(MBOX_CMD_SIGN, cmd_sign);
+	mbox_register_cmd(MBOX_CMD_VERIFY, cmd_verify);
 	mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
 	mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);
 	enable_irq();
