@@ -297,7 +297,10 @@ void main(void)
 	start_ap();
 
 	while (1) {
-		wait_for_irq();
+		disable_irq();
+		if (!mbox_has_cmd())
+			wait_for_irq();
+		enable_irq();
 		mbox_process_commands();
 	}
 #endif /* !DEPLOY */
