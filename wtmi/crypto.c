@@ -441,36 +441,36 @@ int ecdsa_sign(ec_sig_t *sig, const u32 *z)
 		return -EINVAL;
 
 	do {
-		do
-			bn_random(k, secp521r1.order, 521);
-		while (bn_is_zero(k));
+		do {
+			do
+				bn_random(k, secp521r1.order, 521);
+			while (bn_is_zero(k));
 
-		ecp_secp521r1_point_mul(&p, &secp521r1.base, k);
+			ecp_secp521r1_point_mul(&p, &secp521r1.base, k);
 
-		bn_copy(sig->r, p.x);
-		bn_modulo(sig->r, secp521r1.order);
-	} while (bn_is_zero(sig->r));
+			bn_copy(sig->r, p.x);
+			bn_modulo(sig->r, secp521r1.order);
+		} while (bn_is_zero(sig->r));
 
-	res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, NULL, sig->r, NULL,
-		       &secp521r1, 1);
-	if (res < 0)
-		return res;
+		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, NULL, sig->r, NULL,
+			       &secp521r1, 1);
+		if (res < 0)
+			return res;
 
-	res = zmodp_op(ZMODP_CONF_OP_INV, k, k, NULL, NULL, &secp521r1, 0);
-	if (res < 0)
-		return res;
+		res = zmodp_op(ZMODP_CONF_OP_INV, k, k, NULL, NULL, &secp521r1,
+			       0);
+		if (res < 0)
+			return res;
 
-	bn_addmod(sig->s, z, secp521r1.order);
+		bn_addmod(sig->s, z, secp521r1.order);
 
-	res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, sig->s, k, NULL, &secp521r1,
-		       0);
-	if (res < 0)
-		return res;
+		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, sig->s, k, NULL,
+			       &secp521r1, 0);
+		if (res < 0)
+			return res;
+	} while (bn_is_zero(sig->s));
 
 	bn_from_u32(k, 0);
-
-	if (bn_is_zero(sig->s))
-		return -EIO;
 
 	return 0;
 }
