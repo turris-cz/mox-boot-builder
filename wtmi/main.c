@@ -45,7 +45,7 @@ static u32 cmd_get_random(u32 *args, u32 *out_args)
 		if (!check_ap_addr(args[1], args[2], 4))
 			return MBOX_STS(0, EINVAL, FAIL);
 
-		ebg_rand_sync((void *) (AP_RAM + args[1]), args[2]);
+		paranoid_rand((void *) (AP_RAM + args[1]), args[2]);
 		res = 0xfffff;
 	} else {
 		res = ebg_rand(out_args, MBOX_MAX_ARGS * sizeof(u32));
