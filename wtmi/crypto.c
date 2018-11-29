@@ -55,19 +55,19 @@
 #define ECP_CONF_OP_ZERO	(0x5 << 2)
 #define ECP_CONF_OP_MASK	(0x7 << 2)
 #define ECP_CONF_KEY_FROM_OTP	BIT(5)
-#define ECP_CTRL	0x40001404
-#define ECP_CMD		0x40001408
-#define ECP_INT		0x4000140c
-#define ECP_STATUS	0x40001410
-#define ECP_INTMASK	0x40001414
-#define ECP_PARAM_A	((u32 *) 0x40001418)
-#define ECP_PARAM_B	((u32 *) 0x4000145c)
-#define ECP_OP1_X	((u32 *) 0x400014a0)
-#define ECP_OP1_Y	((u32 *) 0x400014e4)
-#define ECP_OP2_X	((u32 *) 0x40001528)
-#define ECP_OP2_Y	((u32 *) 0x4000156c)
-#define ECP_RES_X	((u32 *) 0x400015b0)
-#define ECP_RES_Y	((u32 *) 0x400015f4)
+#define ECP_CTRL		0x40001404
+#define ECP_CMD			0x40001408
+#define ECP_INT			0x4000140c
+#define ECP_STATUS		0x40001410
+#define ECP_INTMASK		0x40001414
+#define ECP_PARAM_A		((u32 *) 0x40001418)
+#define ECP_PARAM_B		((u32 *) 0x4000145c)
+#define ECP_OP1_X		((u32 *) 0x400014a0)
+#define ECP_OP1_Y		((u32 *) 0x400014e4)
+#define ECP_OP2_X		((u32 *) 0x40001528)
+#define ECP_OP2_Y		((u32 *) 0x4000156c)
+#define ECP_RES_X		((u32 *) 0x400015b0)
+#define ECP_RES_Y		((u32 *) 0x400015f4)
 
 static const ec_info_t secp521r1 = {
 	.bits = 521,
