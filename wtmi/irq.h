@@ -37,7 +37,7 @@ typedef void (*irq_handler_t)(int);
 
 extern void register_irq_handler(int irq, irq_handler_t handler);
 extern void enable_systick(void);
-extern void enable_systick(void);
+extern void disable_systick(void);
 
 static inline void enable_irq(void)
 {
