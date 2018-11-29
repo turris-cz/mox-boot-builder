@@ -51,12 +51,17 @@ void mbox_process_commands(void)
 	}
 }
 
+int mbox_has_cmd(void)
+{
+	return !!(readl(SP_CONTROL) & CMD_REG_OCCUPIED_BIT);
+}
+
 void mbox_irq_handler(int irq)
 {
 	int i;
 	u32 cmd;
 
-	if (!(readl(SP_CONTROL) & CMD_REG_OCCUPIED_BIT))
+	if (!mbox_has_cmd())
 		return;
 
 	if (cmd_queue_fill == CMD_QUEUE_SIZE) {
