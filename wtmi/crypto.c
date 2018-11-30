@@ -18,13 +18,21 @@
 #define ZMODP_CONF_OP_INV	0x3
 #define ZMODP_CONF_OP_PRE	0x4
 #define ZMODP_CONF_OP_MASK	0x7
+#define ZMODP_CONF_SZ(b) ({			\
+	int __t = 25 - __builtin_clz((b) - 1);	\
+	if (__t < 0)				\
+		__t = 0;			\
+	__t <<= 3;				\
+	__t; })
 #define ZMODP_CONF_SZ_128	(0x0 << 3)
 #define ZMODP_CONF_SZ_256	(0x1 << 3)
 #define ZMODP_CONF_SZ_512	(0x2 << 3)
 #define ZMODP_CONF_SZ_1024	(0x3 << 3)
 #define ZMODP_CONF_SZ_2048	(0x4 << 3)
 #define ZMODP_CONF_SZ_MASK	(0x7 << 3)
+#define ZMODP_CONF_SZ_SHIFT	3
 #define ZMODP_CONF_COEFS(x)	(((x) & 0x7f) << 6)
+#define ZMODP_CONF_COEFS_MASK	(0x7f << 6)
 #define ZMODP_CONF_SECURE	BIT(13)
 #define ZMODP_CONF_X_FROM_OTP	BIT(15)
 #define ZMODP_CTRL		0x40002004
@@ -58,6 +66,11 @@
 #define ECP_CTRL		0x40001404
 #define ECP_CMD			0x40001408
 #define ECP_INT			0x4000140c
+#define ECP_INT_DONE		BIT(0)
+#define ECP_INT_INVALID		BIT(1)
+#define ECP_INT_ZERO_KEY	BIT(2)
+#define ECP_INT_ZERO_OUTPUT	BIT(3)
+#define ECP_INT_CAL_ZERO_INV	BIT(4)
 #define ECP_STATUS		0x40001410
 #define ECP_INTMASK		0x40001414
 #define ECP_PARAM_A		((u32 *) 0x40001418)
@@ -71,19 +84,15 @@
 
 static const ec_info_t secp521r1 = {
 	.bits = 521,
-	.p = {
-		0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-		0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-		0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-		0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-		0x000001ff
-	},
-	.r = {
-		0x61c64ca7, 0x1163115a, 0x4374a642, 0x18354a56,
-		0x0791d9dc, 0x5d4dd6d3, 0xd3402705, 0x4fb35b72,
-		0xb7756e3a, 0xcff3d142, 0xa8e567bc, 0x5bcc6d61,
-		0x492d0d45, 0x2d8e03d1, 0x8c44383d, 0x5b5a3afe,
-		0x0000019a
+	.prime = {
+		.p = {
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0x000001ff
+		},
+		.r = { 0, 0x4000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 	},
 	.curve = {
 		.a = {
@@ -118,11 +127,20 @@ static const ec_info_t secp521r1 = {
 		}
 	},
 	.order = {
-		0x91386409, 0xbb6fb71e, 0x899c47ae, 0x3bb5c9b8,
-		0xf709a5d0, 0x7fcc0148, 0xbf2f966b, 0x51868783,
-		0xfffffffa, 0xffffffff, 0xffffffff, 0xffffffff,
-		0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
-		0x000001ff,
+		.p = {
+			0x91386409, 0xbb6fb71e, 0x899c47ae, 0x3bb5c9b8,
+			0xf709a5d0, 0x7fcc0148, 0xbf2f966b, 0x51868783,
+			0xfffffffa, 0xffffffff, 0xffffffff, 0xffffffff,
+			0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
+			0x000001ff,
+		},
+		.r = {
+			0x61c64ca7, 0x1163115a, 0x4374a642, 0x18354a56,
+			0x0791d9dc, 0x5d4dd6d3, 0xd3402705, 0x4fb35b72,
+			0xb7756e3a, 0xcff3d142, 0xa8e567bc, 0x5bcc6d61,
+			0x492d0d45, 0x2d8e03d1, 0x8c44383d, 0x5b5a3afe,
+			0x0000019a
+		},
 	}
 };
 
@@ -260,8 +278,8 @@ static void ecp_secp521r1_init(void)
 	bn_copy(ECP_PARAM_B, secp521r1.curve.b);
 }
 
-static void ecp_secp521r1_add(ec_point_t *r, const ec_point_t *a,
-			      const ec_point_t *b)
+static int ecp_secp521r1_add(ec_point_t *r, const ec_point_t *a,
+			     const ec_point_t *b)
 {
 	ecp_secp521r1_init();
 	bn_copy(ECP_OP1_X, a->x);
@@ -270,13 +288,20 @@ static void ecp_secp521r1_add(ec_point_t *r, const ec_point_t *a,
 	bn_copy(ECP_OP2_Y, b->y);
 	writel(ECP_CONF_FLD_521 | ECP_CONF_OP_ADD, ECP_CONF);
 	writel(0x1, ECP_CMD);
-	ecp_wait();
-	bn_copy(r->x, ECP_RES_X);
-	bn_copy(r->y, ECP_RES_Y);
+
+	if (ecp_wait() & (ECP_INT_ZERO_OUTPUT | ECP_INT_CAL_ZERO_INV))
+		return -EDOM;
+
+	if (r) {
+		bn_copy(r->x, ECP_RES_X);
+		bn_copy(r->y, ECP_RES_Y);
+	}
+
+	return 0;
 }
 
-static void ecp_secp521r1_point_mul(ec_point_t *r, const ec_point_t *a,
-				    const u32 *scalar)
+static int ecp_secp521r1_point_mul(ec_point_t *r, const ec_point_t *a,
+				   const u32 *scalar)
 {
 	ecp_secp521r1_init();
 	bn_copy(ECP_OP1_X, a->x);
@@ -285,9 +310,16 @@ static void ecp_secp521r1_point_mul(ec_point_t *r, const ec_point_t *a,
 	bn_copy(ECP_OP2_Y, scalar);
 	writel(ECP_CONF_FLD_521 | ECP_CONF_OP_MUL, ECP_CONF);
 	writel(0x1, ECP_CMD);
-	ecp_wait();
-	bn_copy(r->x, ECP_RES_X);
-	bn_copy(r->y, ECP_RES_Y);
+
+	if (ecp_wait() & (ECP_INT_ZERO_OUTPUT | ECP_INT_CAL_ZERO_INV))
+		return -EDOM;
+
+	if (r) {
+		bn_copy(r->x, ECP_RES_X);
+		bn_copy(r->y, ECP_RES_Y);
+	}
+
+	return 0;
 }
 
 static int ecp_secp521r1_point_mul_by_otp(ec_point_t *r, const ec_point_t *a)
@@ -306,9 +338,14 @@ static int ecp_secp521r1_point_mul_by_otp(ec_point_t *r, const ec_point_t *a)
 	writel(ECP_CONF_FLD_521 | ECP_CONF_OP_MUL | ECP_CONF_KEY_FROM_OTP,
 	       ECP_CONF);
 	writel(0x1, ECP_CMD);
-	ecp_wait();
-	bn_copy(r->x, ECP_RES_X);
-	bn_copy(r->y, ECP_RES_Y);
+
+	if (ecp_wait() & (ECP_INT_ZERO_OUTPUT | ECP_INT_CAL_ZERO_INV))
+		return -EDOM;
+
+	if (r) {
+		bn_copy(r->x, ECP_RES_X);
+		bn_copy(r->y, ECP_RES_Y);
+	}
 
 	return 0;
 }
@@ -332,36 +369,41 @@ void zmodp_zeroize(void)
 	zmodp_wait();
 }
 
+static int zmodp_longs, zmodp_pad;
+
+static int zmodp_set_size(int bits)
+{
+	if (bits > 2048)
+		return -EINVAL;
+
+	zmodp_longs = (bits + 31) / 32;
+
+	if (bits < 128)
+		bits = 128;
+
+	zmodp_pad = 1 << (27 - __builtin_clz(bits - 1));
+
+	setbitsl(ZMODP_CONF,
+		 ZMODP_CONF_SZ(bits) | ZMODP_CONF_COEFS(zmodp_longs),
+		 ZMODP_CONF_SZ_MASK | ZMODP_CONF_COEFS_MASK);
+
+	return 0;
+}
+
+static const prime_t *zmodp_prime;
+
+static void zmodp_set_prime(const prime_t *prime)
+{
+	zmodp_prime = prime;
+}
+
 static inline int zmodp_op(u32 op, u32 *res, const u32 *x, const u32 *y,
-			   const u32 *exp, const ec_info_t *inf,
 			   int x_from_otp)
 {
-	int i, longs, pad;
+	int i;
 	u32 reg;
 
-	longs = (inf->bits + 31) / 32;
-
-	reg = ZMODP_CONF_SECURE | (op & ZMODP_CONF_OP_MASK) |
-	      ZMODP_CONF_COEFS(longs);
-	if (inf->bits <= 128) {
-		reg |= ZMODP_CONF_SZ_128;
-		pad = 4;
-	} else if (inf->bits <= 256) {
-		reg |= ZMODP_CONF_SZ_256;
-		pad = 8;
-	} else if (inf->bits <= 512) {
-		reg |= ZMODP_CONF_SZ_512;
-		pad = 16;
-	} else if (inf->bits <= 1024) {
-		reg |= ZMODP_CONF_SZ_1024;
-		pad = 32;
-	} else if (inf->bits <= 2048) {
-		reg |= ZMODP_CONF_SZ_2048;
-		pad = 64;
-	} else {
-		return -EINVAL;
-	}
-
+	reg = ZMODP_CONF_SECURE | (op & ZMODP_CONF_OP_MASK);
 	if (x_from_otp) {
 		int res;
 
@@ -377,41 +419,72 @@ static inline int zmodp_op(u32 op, u32 *res, const u32 *x, const u32 *y,
 
 	writel(0x260, AIB_CTRL);
 	setbitsl(SP_CTRL, 0x10, 0x30);
-	writel(reg, ZMODP_CONF);
+	setbitsl(ZMODP_CONF, reg,
+		 ZMODP_CONF_SECURE | ZMODP_CONF_OP_MASK |
+		 ZMODP_CONF_X_FROM_OTP);
 
 #define copy_words(dst, src)				\
 	do {						\
-		for (i = 0; i < longs; ++i)		\
+		for (i = 0; i < zmodp_longs; ++i)	\
 			writel((src)[i], (dst));	\
-		for (; i < pad; ++i)			\
+		for (; i < zmodp_pad; ++i)		\
 			writel(0, (dst));		\
 	} while (0)
 
-	copy_words(ZMODP_MODULI, inf->order);
+	copy_words(ZMODP_MODULI, zmodp_prime->p);
 
 	if (op != ZMODP_CONF_OP_PRE) {
 		if (!x_from_otp)
 			copy_words(ZMODP_X(i), x);
-		if (op == ZMODP_CONF_OP_EXP || op == ZMODP_CONF_OP_INV)
-			copy_words(ZMODP_Y, inf->r);
-		else
+
+		if (op == ZMODP_CONF_OP_EXP || op == ZMODP_CONF_OP_INV) {
+			copy_words(ZMODP_Y, zmodp_prime->r);
+		} else {
+			copy_words(ZMODP_X1(i), zmodp_prime->r);
 			copy_words(ZMODP_Y, y);
-		if (op == ZMODP_CONF_OP_MUL)
-			copy_words(ZMODP_X1(i), inf->r);
-		else if (op == ZMODP_CONF_OP_EXP)
-			copy_words(ZMODP_EXP(i), exp);
+		}
+
+		if (op == ZMODP_CONF_OP_EXP)
+			copy_words(ZMODP_EXP(i), y);
 	}
 #undef copy_words
 
 	writel(ZMODP_CMD_START, ZMODP_CMD);
 	zmodp_wait();
 
-	for (i = 0; i < longs; ++i)
+	for (i = 0; i < zmodp_longs; ++i)
 		res[i] = readl(ZMODP_Z);
-	for (; i < pad; ++i)
+	for (; i < zmodp_pad; ++i)
 		readl(ZMODP_Z);
 
 	return 0;
+}
+
+static int ecp_secp521r1_point_valid(const ec_point_t *p)
+{
+	int res;
+	u32 r[17], t[17];
+
+	zmodp_set_size(521);
+	zmodp_set_prime(&secp521r1.prime);
+
+	bn_from_u32(t, 3);
+	res = zmodp_op(ZMODP_CONF_OP_EXP, r, p->x, t, 0);
+	if (res < 0)
+		return res;
+
+	res = zmodp_op(ZMODP_CONF_OP_MUL, t, p->x, secp521r1.curve.a, 0);
+	if (res < 0)
+		return res;
+
+	bn_addmod(r, t, secp521r1.prime.p);
+	bn_addmod(r, secp521r1.curve.b, secp521r1.prime.p);
+
+	res = zmodp_op(ZMODP_CONF_OP_MUL, t, p->y, p->y, 0);
+	if (res < 0)
+		return res;
+
+	return !bn_cmp(r, t);
 }
 
 int ecdsa_generate_efuse_private_key(void)
@@ -420,7 +493,7 @@ int ecdsa_generate_efuse_private_key(void)
 	u32 priv[17];
 
 	do
-		bn_random(priv, secp521r1.order, 521);
+		bn_random(priv, secp521r1.order.p, 521);
 	while (bn_is_zero(priv));
 
 	res = efuse_write_secure_buffer(priv);
@@ -437,35 +510,35 @@ int ecdsa_sign(ec_sig_t *sig, const u32 *z)
 	u32 k[17];
 
 	/* is message too long */
-	if (z[16] >= 0x1ff)
+	if (z[16] > 0x1ff)
 		return -EINVAL;
+
+	zmodp_set_size(secp521r1.bits);
+	zmodp_set_prime(&secp521r1.order);
 
 	do {
 		do {
 			do
-				bn_random(k, secp521r1.order, 521);
+				bn_random(k, secp521r1.order.p, 521);
 			while (bn_is_zero(k));
 
 			ecp_secp521r1_point_mul(&p, &secp521r1.base, k);
 
 			bn_copy(sig->r, p.x);
-			bn_modulo(sig->r, secp521r1.order);
+			bn_modulo(sig->r, secp521r1.order.p);
 		} while (bn_is_zero(sig->r));
 
-		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, NULL, sig->r, NULL,
-			       &secp521r1, 1);
+		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, NULL, sig->r, 1);
 		if (res < 0)
 			return res;
 
-		res = zmodp_op(ZMODP_CONF_OP_INV, k, k, NULL, NULL, &secp521r1,
-			       0);
+		res = zmodp_op(ZMODP_CONF_OP_INV, k, k, NULL, 0);
 		if (res < 0)
 			return res;
 
-		bn_addmod(sig->s, z, secp521r1.order);
+		bn_addmod(sig->s, z, secp521r1.order.p);
 
-		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, sig->s, k, NULL,
-			       &secp521r1, 0);
+		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, sig->s, k, 0);
 		if (res < 0)
 			return res;
 	} while (bn_is_zero(sig->s));
@@ -477,7 +550,7 @@ int ecdsa_sign(ec_sig_t *sig, const u32 *z)
 
 static inline int ecdsa_valid_scalar(const u32 *x)
 {
-	return !bn_is_zero(x) && bn_cmp(x, secp521r1.order) < 0;
+	return !bn_is_zero(x) && bn_cmp(x, secp521r1.order.p) < 0;
 }
 
 int ecdsa_verify(const ec_point_t *pub, const ec_sig_t *sig, const u32 *z)
@@ -487,29 +560,42 @@ int ecdsa_verify(const ec_point_t *pub, const ec_sig_t *sig, const u32 *z)
 	ec_point_t a, b;
 
 	/* is message too long */
-	if (z[16] >= 0x1ff)
-		return -EINVAL;
+	if (z[16] > 0x1ff)
+		return 0;
+
+	/* does the point lie on the curve? */
+	if (!ecp_secp521r1_point_valid(pub))
+		return 0;
+
+	if (!ecp_secp521r1_point_mul(NULL, pub, secp521r1.order.p))
+		return 0;
 
 	if (!ecdsa_valid_scalar(sig->r) || !ecdsa_valid_scalar(sig->s))
 		return 0;
 
-	res = zmodp_op(ZMODP_CONF_OP_INV, w, sig->s, NULL, NULL, &secp521r1, 0);
+	zmodp_set_size(secp521r1.bits);
+	zmodp_set_prime(&secp521r1.order);
+
+	res = zmodp_op(ZMODP_CONF_OP_INV, w, sig->s, NULL, 0);
 	if (res < 0)
-		return res;
+		return 0;
 
-	res = zmodp_op(ZMODP_CONF_OP_MUL, u, z, w, NULL, &secp521r1, 0);
+	res = zmodp_op(ZMODP_CONF_OP_MUL, u, z, w, 0);
 	if (res < 0)
-		return res;
+		return 0;
 
-	ecp_secp521r1_point_mul(&a, &secp521r1.base, u);
+	if (ecp_secp521r1_point_mul(&a, &secp521r1.base, u) < 0)
+		return 0;
 
-	res = zmodp_op(ZMODP_CONF_OP_MUL, u, sig->r, w, NULL, &secp521r1, 0);
+	res = zmodp_op(ZMODP_CONF_OP_MUL, u, sig->r, w, 0);
 	if (res < 0)
-		return res;
+		return 0;
 
-	ecp_secp521r1_point_mul(&b, pub, u);
+	if (ecp_secp521r1_point_mul(&b, pub, u) < 0)
+		return 0;
 
-	ecp_secp521r1_add(&a, &a, &b);
+	if (ecp_secp521r1_add(&a, &a, &b) < 0)
+		return 0;
 
 	return bn_cmp(a.x, sig->r) == 0;
 }
@@ -535,13 +621,13 @@ int ecdsa_get_efuse_public_key(u32 *compressed_pub)
 }
 
 #if 0
-void test_zmodp(void)
+void test_ecp(void)
 {
 	ec_point_t pub;
 	ec_sig_t sig;
 	u32 z[17];
 
-	bn_random(z, secp521r1.order, 521);
+	bn_random(z, secp521r1.order.p, 521);
 
 	printf("Message:\n");
 	bn_print(z);
