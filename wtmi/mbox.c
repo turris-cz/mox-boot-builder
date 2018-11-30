@@ -45,9 +45,10 @@ void mbox_process_commands(void)
 		if (MBOX_STS_ERROR(status) != MBOX_STS_LATER)
 			mbox_send(status, out_args);
 
-		/* TODO: this should be atomic */
+		disable_irq();
 		cmd_queue_first = (cmd_queue_first + 1) % CMD_QUEUE_SIZE;
 		--cmd_queue_fill;
+		enable_irq();
 	}
 }
 
