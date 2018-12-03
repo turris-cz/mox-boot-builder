@@ -61,7 +61,7 @@ all: tools $(COBJ) $(AOBJ)
 
 %.o: %.c
 	$(ECHO) "  CC    $<"
-	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -o $@ $(subst .o,.c,$@)
+	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -frandom-seed=$< -o $@ $(subst .o,.c,$@)
 
 %.o: %.S
 	$(ECHO) "  AS    $<"
