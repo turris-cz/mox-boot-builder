@@ -278,6 +278,14 @@ static void ecp_secp521r1_init(void)
 	bn_copy(ECP_PARAM_B, secp521r1.curve.b);
 }
 
+static void ecp_clear_operands(void)
+{
+	bn_from_u32(ECP_OP1_X, 0);
+	bn_from_u32(ECP_OP1_Y, 0);
+	bn_from_u32(ECP_OP2_X, 0);
+	bn_from_u32(ECP_OP2_Y, 0);
+}
+
 static int ecp_secp521r1_add(ec_point_t *r, const ec_point_t *a,
 			     const ec_point_t *b)
 {
@@ -397,14 +405,19 @@ static void zmodp_set_prime(const prime_t *prime)
 	zmodp_prime = prime;
 }
 
+enum zmodp_flags {
+	X_FROM_OTP = BIT(0),
+	CLEAR_X = BIT(1)
+};
+
 static inline int zmodp_op(u32 op, u32 *res, const u32 *x, const u32 *y,
-			   int x_from_otp)
+			   enum zmodp_flags flags)
 {
 	int i;
 	u32 reg;
 
 	reg = ZMODP_CONF_SECURE | (op & ZMODP_CONF_OP_MASK);
-	if (x_from_otp) {
+	if (flags & X_FROM_OTP) {
 		int res;
 
 		if (op != ZMODP_CONF_OP_MUL && op != ZMODP_CONF_OP_MONT)
@@ -434,7 +447,7 @@ static inline int zmodp_op(u32 op, u32 *res, const u32 *x, const u32 *y,
 	copy_words(ZMODP_MODULI, zmodp_prime->p);
 
 	if (op != ZMODP_CONF_OP_PRE) {
-		if (!x_from_otp)
+		if (!(flags & X_FROM_OTP))
 			copy_words(ZMODP_X(i), x);
 
 		if (op == ZMODP_CONF_OP_EXP || op == ZMODP_CONF_OP_INV) {
@@ -451,6 +464,11 @@ static inline int zmodp_op(u32 op, u32 *res, const u32 *x, const u32 *y,
 
 	writel(ZMODP_CMD_START, ZMODP_CMD);
 	zmodp_wait();
+
+	if (flags & CLEAR_X) {
+		for (i = 0; i < zmodp_longs; ++i)
+			writel(0, ZMODP_X(i));
+	}
 
 	for (i = 0; i < zmodp_longs; ++i)
 		res[i] = readl(ZMODP_Z);
@@ -523,22 +541,24 @@ int ecdsa_sign(ec_sig_t *sig, const u32 *z)
 			while (bn_is_zero(k));
 
 			ecp_secp521r1_point_mul(&p, &secp521r1.base, k);
+			ecp_clear_operands();
 
 			bn_copy(sig->r, p.x);
 			bn_modulo(sig->r, secp521r1.order.p);
 		} while (bn_is_zero(sig->r));
 
-		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, NULL, sig->r, 1);
+		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, NULL, sig->r,
+			       X_FROM_OTP);
 		if (res < 0)
 			return res;
 
-		res = zmodp_op(ZMODP_CONF_OP_INV, k, k, NULL, 0);
+		res = zmodp_op(ZMODP_CONF_OP_INV, k, k, NULL, CLEAR_X);
 		if (res < 0)
 			return res;
 
 		bn_addmod(sig->s, z, secp521r1.order.p);
 
-		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, sig->s, k, 0);
+		res = zmodp_op(ZMODP_CONF_OP_MUL, sig->s, k, sig->s, CLEAR_X);
 		if (res < 0)
 			return res;
 	} while (bn_is_zero(sig->s));
