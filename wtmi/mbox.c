@@ -35,6 +35,11 @@ void mbox_process_commands(void)
 	while (cmd_queue_fill > 0) {
 		cmd_request_t *req;
 		u32 status, out_args[MBOX_MAX_ARGS];
+		int i;
+
+		/* out_args can contain sensitive stack values, rewrite them */
+		for (i = 0; i < MBOX_MAX_ARGS; ++i)
+			out_args[i] = 0;
 
 		req = &cmd_queue[cmd_queue_first];
 
