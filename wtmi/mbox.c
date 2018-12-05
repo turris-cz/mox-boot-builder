@@ -121,8 +121,21 @@ void mbox_send(u32 status, u32 *args)
 {
 	int i;
 
-	while (readl(HOST_INT_SET) & HOST_INT_CMD_COMPLETE_BIT)
+	/*
+	 * If AP did not read previous message yet, we must wait til it does.
+	 * The opreation of reading this state and sending the message has
+	 * to be atomic, since mbox_send can also be called from
+	 * mbox_irq_handler. Thus we disable_irq in such a way as follows.
+	 */
+	while (1) {
+		disable_irq();
+		if (readl(HOST_INT_SET) & HOST_INT_CMD_COMPLETE_BIT)
+			enable_irq();
+		else
+			break;
+
 		wait_ns(100000);
+	}
 
 	if (args) {
 		for (i = 0; i < MBOX_MAX_ARGS; i++)
@@ -133,6 +146,8 @@ void mbox_send(u32 status, u32 *args)
 
 	setbitsl(HOST_INT_SET, HOST_INT_CMD_COMPLETE_BIT,
 		 HOST_INT_CMD_COMPLETE_BIT);
+
+	enable_irq();
 }
 
 void start_ap(void)
