@@ -58,6 +58,14 @@ static int check_test_data(int mb, u32 pattern)
 
 static int get_ram_size(void)
 {
+	/*
+	 * Sometimes AP RAM behaves weirdly on first read.
+	 * This is probably something to do with how the AP RAM is
+	 * connected to secure processor.
+	 * We do one read on AP RAM to overcome this.
+	 */
+	readl(AP_RAM);
+
 	write_test_data(3, PATTERN_1);
 	write_test_data(515, PATTERN_2);
 
