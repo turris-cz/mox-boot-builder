@@ -31,4 +31,4 @@ Produced images:
 			mtd write u-boot.bin u-boot
 		flash via U-Boot:
 			sf probe
-			sf update $addr 0x15000 $size
+			sf update $addr 0x20000 $size
