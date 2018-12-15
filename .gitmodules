@@ -1,10 +1,9 @@
 [submodule "mox-imager"]
 	path = mox-imager
 	url = git@gitlab.labs.nic.cz:turris/mox-imager.git
-[submodule "atf-marvell"]
-	path = atf-marvell
-	url = https://github.com/MarvellEmbeddedProcessors/atf-marvell
-	branch = atf-v1.5-armada-18.09
 [submodule "u-boot"]
 	path = u-boot
 	url = git@gitlab.labs.nic.cz:turris/mox-u-boot.git
+[submodule "arm-trusted-firmware"]
+	path = arm-trusted-firmware
+	url = https://github.com/ARM-software/arm-trusted-firmware/
