@@ -125,15 +125,28 @@ static inline void xor(u32 *d, const u32 *s)
 		*d++ ^= *s++;
 }
 
+/*
+ * This function collects 512 bytes from the Entropy Bit Generator, appends to
+ * it the digest computed in the previous call to this function (if there was no
+ * previous call it appends zeros), and hashes the resultin 576 bytes with
+ * sha512. The resulting digest will be used in the next call, and is also
+ * combined with the output of EBG to generate the result.
+ *              call 0               call 1
+ * prev digest  0000                 H(ebg1|0000)
+ * EBG output   ebg1                 ebg2                         ...
+ * cur digest   H(ebg1|0000)         H(ebg2|H(ebg1|0000))
+ * result       C(ebg1,H(ebg1|0000)) C(ebg2,H(ebg2|H(ebg1|0000)))
+ */
 static void paranoid_rand_64(u32 *buffer)
 {
-	static u32 ebgbuf[128] __attribute__((aligned(16)));
+	static u32 ebgbuf[128 + 16] __attribute__((aligned(16)));
 	static u32 dgst[16];
 	static int c;
 	int i;
 
-	ebg_rand_sync(ebgbuf, sizeof(ebgbuf));
+	ebg_rand_sync(ebgbuf, sizeof(ebgbuf) - sizeof(dgst));
 	hw_sha512(ebgbuf, sizeof(ebgbuf), dgst);
+	memcpy(&ebgbuf[128], dgst, sizeof(dgst));
 
 	for (i = 0; i < 128; i += 16) {
 		if (c)
