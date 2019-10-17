@@ -32,83 +32,61 @@
 ***************************************************************************
 */
 
-#include "errno.h"
-#include "types.h"
-#include "io.h"
-#include "uart.h"
-#include "clock.h"
+#include "../io.h"
+#include "../clock.h"
+#include "../printf.h"
 
-#define UART_CLOCK_FREQ		25804800
+#define BIT0	BIT(0)
+#define BIT1	BIT(1)
+#define BIT2	BIT(2)
+#define BIT3	BIT(3)
+#define BIT4	BIT(4)
+#define BIT5	BIT(5)
+#define BIT6	BIT(6)
+#define BIT7	BIT(7)
+#define BIT8	BIT(8)
+#define BIT9	BIT(9)
+#define BIT10	BIT(10)
+#define BIT11	BIT(11)
+#define BIT12	BIT(12)
+#define BIT13	BIT(13)
+#define BIT14	BIT(14)
+#define BIT15	BIT(15)
+#define BIT16	BIT(16)
+#define BIT17	BIT(17)
+#define BIT18	BIT(18)
+#define BIT19	BIT(19)
+#define BIT20	BIT(20)
+#define BIT21	BIT(21)
+#define BIT22	BIT(22)
+#define BIT23	BIT(23)
+#define BIT24	BIT(24)
+#define BIT25	BIT(25)
+#define BIT26	BIT(26)
+#define BIT27	BIT(27)
+#define BIT28	BIT(28)
+#define BIT29	BIT(29)
+#define BIT30	BIT(30)
+#define BIT31	BIT(31)
 
-#define NB_PINCTRL		0xc0013830
-
-const struct uart_info uart1_info = {
-	.rx	= 0xc0012000,
-	.tx	= 0xc0012004,
-	.ctrl	= 0xc0012008,
-	.status	= 0xc001200c,
-	.rx_ready_bit = BIT(4),
-	.baud	= 0xc0012010,
-	.possr	= 0xc0012014,
-};
-
-const struct uart_info uart2_info = {
-	.rx	= 0xc0012218,
-	.tx	= 0xc001221c,
-	.ctrl	= 0xc0012204,
-	.status	= 0xc001220c,
-	.rx_ready_bit = BIT(14),
-	.baud	= 0xc0012210,
-	.possr	= 0xc0012214,
-};
-
-int uart_init(const struct uart_info *info, unsigned int baudrate)
+static inline unsigned int ll_read32(unsigned int addr)
 {
-	/* set baudrate */
-	writel((UART_CLOCK_FREQ / baudrate / 16), info->baud);
-	/* set Programmable Oversampling Stack to 0, UART defaults to 16X scheme */
-	writel(0, info->possr);
-
-	/* reset FIFOs */
-	writel(BIT(14) | BIT(15), info->ctrl);
-
-	wait_ns(1000);
-
-	/* No Parity, 1 Stop */
-	writel(0, info->ctrl);
-
-	wait_ns(100000);
-
-	/* uart2 pinctrl enable */
-	if (info == &uart2_info)
-		setbitsl(NB_PINCTRL, BIT(19), BIT(19) | BIT(13) | BIT(14));
-
-	return 0;
+	return readl(addr);
 }
 
-void uart_putc(void *p, char c)
+static inline void ll_write32(unsigned int addr, unsigned int data)
 {
-	const struct uart_info *info = p;
-
-	if (c == '\n')
-		uart_putc(p, '\r');
-
-	while (readl(info->status) & BIT(11))
-		wait_ns(20000);
-
-	writel(c, info->tx);
-
-	return;
+	writel(data, addr);
 }
 
-int uart_getc(const struct uart_info *info)
+#define LogMsg(log_level, log_module, fmt, ...) debug((fmt), ##__VA_ARGS__)
+
+static inline void replace_val(unsigned int addr, unsigned int data, unsigned int offset, unsigned int mask)
 {
-	static u32 x;
-	if (x % 100 == 0 && info == &uart2_info)
-		setbitsl(NB_PINCTRL, BIT(19), BIT(19) | BIT(13) | BIT(14));
-	++x;
-	if (readl(info->status) & info->rx_ready_bit)
-		return readl(info->rx) & 0xff;
-	else
-		return -EAGAIN;
+	setbitsl(addr, data << offset, mask);
+}
+
+enum training { PHYINIT_SYNC2=0, INIT_TIMING=1, TERM=2, QS_GATE=3, VREF_READ=4, VREF_WRITE=5, DLL_TUNE=6};
+static inline void logs_training_regs(enum training type)
+{
 }

@@ -11,8 +11,7 @@
 #include "crypto_hash.h"
 #include "ddr.h"
 #include "deploy.h"
-
-#define AP_RAM		0x60000000
+#include "debug.h"
 
 volatile u64 jiffies;
 
@@ -257,6 +256,19 @@ static void init_ddr(void)
 }
 #endif /* !DEPLOY */
 
+static u32 cmd_reset(u32 *args, u32 *out_args)
+{
+	volatile u32 *regs = (volatile u32 *)(AP_RAM + 0x11000000);
+	u32 i;
+
+	if (args[0] < 200) {
+		for (i = 0; i < args[0] * 2; i += 2)
+			printf("0x%08x%08x\n", regs[i+1], regs[i]);
+	}
+
+	return MBOX_STS(0, 0, SUCCESS);
+}
+
 void main(void)
 {
 	int res;
@@ -265,11 +277,11 @@ void main(void)
 	if (res < 0)
 		return;
 
-	res = uart_init(115200);
+	res = uart_init(get_debug_uart(), 115200);
 	if (res < 0)
 		return;
 
-	init_printf(NULL, uart_putc);
+	init_printf((void *)get_debug_uart(), uart_putc);
 
 #ifdef DEPLOY
 	ebg_init();
@@ -293,9 +305,12 @@ void main(void)
 	/*mbox_register_cmd(MBOX_CMD_VERIFY, cmd_verify);
 	mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
 	mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);*/
+	mbox_register_cmd(0xf, cmd_reset);
 	enable_irq();
 
-	start_ap();
+	debug_init();
+
+	//start_ap();
 
 	while (1) {
 		disable_irq();
@@ -303,6 +318,7 @@ void main(void)
 			wait_for_irq();
 		enable_irq();
 		mbox_process_commands();
+		debug_process();
 	}
 #endif /* !DEPLOY */
 }

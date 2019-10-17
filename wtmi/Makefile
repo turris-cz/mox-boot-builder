@@ -46,6 +46,14 @@ ifeq ($(DEPLOY), 1)
 else
 	CSRC = $(filter-out deploy.c,$(wildcard *.c ddr/*.c))
 endif
+
+DEBUG_UART2 = 1
+ifeq ($(DEBUG_UART2), 1)
+	CPPFLAGS += -DDEBUG_UART2=1
+else
+	CSRC := $(filter-out debug.c,$(CSRC))
+endif
+
 ASRC = $(wildcard *.S)
 
 COBJ   = $(CSRC:.c=.o)
@@ -69,9 +77,15 @@ all: tools $(COBJ) $(AOBJ)
 
 -include $(COBJ:.o=.d)
 
+a53_helper/a53_helper.c: a53_helper/a53_helper.ld a53_helper/a53_helper.ld
+	$(MAKE) -C a53_helper
+
+debug.c: a53_helper/a53_helper.c
+
 clean:
 	$(ECHO) "  CLEAN"
 	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) deploy.d deploy.o wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin
+	@$(MAKE) -C a53_helper clean
 
 tools:
 	@if [ -z "$(shell which $(CC))" ]; then $(ECHO) "$(CC) not found"; exit 1; fi;

@@ -2,6 +2,7 @@
 #define _ERRNO_H_
 
 #define EIO		5
+#define EAGAIN		11
 #define EACCES		13
 #define EINVAL		22
 #define EDOM		33
