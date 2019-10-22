@@ -160,5 +160,5 @@ void start_ap_at(u32 addr)
 
 void start_ap(void)
 {
-	start_ap_at(0x04100000);
+	start_ap_at(ATF_ENTRY_ADDRESS);
 }

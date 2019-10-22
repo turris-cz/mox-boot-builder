@@ -56,6 +56,9 @@ extern void mbox_register_cmd(u16 cmd, mbox_cmd_handler_t handler);
 extern int mbox_has_cmd(void);
 extern void mbox_process_commands(void);
 extern void mbox_send(u32 status, u32 *args);
+
+#define ATF_ENTRY_ADDRESS		0x04100000
+
 extern void start_ap_at(u32 addr);
 extern void start_ap(void);
 
