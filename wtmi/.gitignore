@@ -1,5 +1,6 @@
 *.d
 *.o
+*.patch
 wtmi.bin
 wtmi_h.bin
 wtmi.dis
