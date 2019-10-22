@@ -177,6 +177,7 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int BUS_WIDTH, int SPEED_BIN, int CS_NU
 	set_clock_preset(WTMI_CLOCK);
 	init_avs(get_cpu_clock());
 
+	set_ddr_type(DDR3);
 	set_ddr_topology_parameters(map);
 
 	ddr_para.log_level  = LOG_LEVEL_NONE;
