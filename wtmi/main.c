@@ -263,11 +263,11 @@ void main(void)
 	if (res < 0)
 		return;
 
-	res = uart_init(115200);
+	res = uart_init(&uart1_info, 115200);
 	if (res < 0)
 		return;
 
-	init_printf(NULL, uart_putc);
+	init_printf((void *)&uart1_info, uart_putc);
 
 #ifdef DEPLOY
 	ebg_init();

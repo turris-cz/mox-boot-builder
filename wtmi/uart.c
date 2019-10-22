@@ -32,56 +32,83 @@
 ***************************************************************************
 */
 
+#include "errno.h"
 #include "types.h"
 #include "io.h"
 #include "uart.h"
 #include "clock.h"
 
-#define UART0_TX		0xc0012004
-#define UART0_CTRL		0xc0012008
-#define UART0_STATUS		0xc001200c
-#define UART0_BAUD		0xc0012010
-#define UART0_POSSR		0xc0012014
-
 #define UART_CLOCK_FREQ		25804800
 
-static void uart_set_baudrate(unsigned int baudrate)
-{
-	/*
-	 * calculate divider.
-	 * baudrate = clock / 16 / divider
-	 */
-	writel((UART_CLOCK_FREQ / baudrate / 16), UART0_BAUD);
-	/* set Programmable Oversampling Stack to 0, UART defaults to 16X scheme */
-	writel(0, UART0_POSSR);
-}
+#define NB_PINCTRL		0xc0013830
 
-int uart_init(unsigned int baudrate)
+const struct uart_info uart1_info = {
+	.rx	= 0xc0012000,
+	.tx	= 0xc0012004,
+	.ctrl	= 0xc0012008,
+	.status	= 0xc001200c,
+	.rx_ready_bit = BIT(4),
+	.baud	= 0xc0012010,
+	.possr	= 0xc0012014,
+};
+
+const struct uart_info uart2_info = {
+	.rx	= 0xc0012218,
+	.tx	= 0xc001221c,
+	.ctrl	= 0xc0012204,
+	.status	= 0xc001220c,
+	.rx_ready_bit = BIT(14),
+	.baud	= 0xc0012210,
+	.possr	= 0xc0012214,
+};
+
+int uart_init(const struct uart_info *info, unsigned int baudrate)
 {
-	uart_set_baudrate(baudrate);
+	/* set baudrate */
+	writel((UART_CLOCK_FREQ / baudrate / 16), info->baud);
+	/* set Programmable Oversampling Stack to 0, UART defaults to 16X scheme */
+	writel(0, info->possr);
 
 	/* reset FIFOs */
-	writel(BIT(14) | BIT(15), UART0_CTRL);
+	writel(BIT(14) | BIT(15), info->ctrl);
 
 	wait_ns(1000);
 
 	/* No Parity, 1 Stop */
-	writel(0, UART0_CTRL);
+	writel(0, info->ctrl);
 
 	wait_ns(100000);
+
+	/* uart2 pinctrl enable */
+	if (info == &uart2_info)
+		setbitsl(NB_PINCTRL, BIT(19), BIT(19) | BIT(13) | BIT(14));
 
 	return 0;
 }
 
 void uart_putc(void *p, char c)
 {
-	if (c == '\n')
-		uart_putc(NULL, '\r');
+	const struct uart_info *info = p;
 
-	while (readl(UART0_STATUS) & BIT(11))
+	if (c == '\n')
+		uart_putc(p, '\r');
+
+	while (readl(info->status) & BIT(11))
 		wait_ns(20000);
 
-	writel(c, UART0_TX);
+	writel(c, info->tx);
 
 	return;
+}
+
+int uart_getc(const struct uart_info *info)
+{
+	static u32 x;
+	if (x % 100 == 0 && info == &uart2_info)
+		setbitsl(NB_PINCTRL, BIT(19), BIT(19) | BIT(13) | BIT(14));
+	++x;
+	if (readl(info->status) & info->rx_ready_bit)
+		return readl(info->rx) & 0xff;
+	else
+		return -EAGAIN;
 }

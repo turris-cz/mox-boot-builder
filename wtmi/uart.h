@@ -35,7 +35,20 @@
 #ifndef __UART_H
 #define __UART_H
 
-int uart_init(unsigned int baudrate);
+struct uart_info {
+	u32 rx;
+	u32 tx;
+	u32 ctrl;
+	u32 status;
+	u32 rx_ready_bit;
+	u32 baud;
+	u32 possr;
+};
+
+extern const struct uart_info uart1_info, uart2_info;
+
+int uart_init(const struct uart_info *info, unsigned int baudrate);
 void uart_putc(void *p, char c);
+int uart_getc(const struct uart_info *info);
 
 #endif /* __UART_H */
