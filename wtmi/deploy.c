@@ -244,7 +244,7 @@ static void deploy_putc(void *p, char c)
 
 void deploy(void)
 {
-	init_printf(NULL, deploy_putc);
+	init_printf((void *)&uart1_info, deploy_putc);
 
 	if (mbd.op == 0) {
 		/* read OTP */
