@@ -130,6 +130,88 @@ void spi_nor_read(const struct spi *spi, void *dst, u32 pos, u32 len)
 
 DECL_DEBUG_CMD(cmd_spi)
 {
+	struct spi spidev;
+	u32 rlen, wlen;
+	const char *wptr_hex;
+
+	spidev.cpol = spidev.cpha = 0;
+
+	if (argc < 3)
+		goto usage;
+
+	if (argv[1][0] < '0' || argv[1][0] > '3') {
+		puts("Only values 0-3 supported for chip-select!\n");
+		return;
+	}
+
+	spidev.cs = argv[1][0] - '0';
+
+	if (argv[1][1] != '\0') {
+		if (argv[1][1] != '.')
+			goto usage;
+
+		if (argv[1][2] < '0' || argv[1][2] > '3') {
+			puts("Only values 0-3 supported for mode!\n");
+			return;
+		}
+
+		spidev.cpha = !!((argv[1][2] - '0') & BIT(0));
+		spidev.cpol = !!((argv[1][2] - '0') & BIT(1));
+	}
+
+	if (number(argv[2], &rlen))
+		return;
+
+	if (!rlen)
+		return;
+
+	wlen = argc > 3 ? strlen(argv[3]) : 0;
+	wptr_hex = argc > 3 ? argv[3] : NULL;
+
+	if (wlen && wlen != rlen * 2) {
+		puts("Data argument has wrong length\n");
+		return;
+	}
+
+	spi_cs_activate(&spidev);
+
+	while (rlen) {
+		u8 r, w;
+
+		if (wlen) {
+			u32 lw;
+			char tmp[3];
+
+			tmp[0] = *wptr_hex++;
+			tmp[1] = *wptr_hex++;
+			tmp[2] = '\0';
+
+			if (number(tmp, &lw))
+				w = 0;
+			else
+				w = lw;
+		} else {
+			w = 0;
+		}
+
+		spi_xfer(&r, &w, 1);
+
+		printf("%02x", r);
+		--rlen;
+	}
+
+	spi_cs_deactivate(&spidev);
+	putc('\n');
+
+	return;
+usage:
+	puts("usage: spi <cs>[.<mode>] <hex_len> [hex_data_out]\n");
+}
+
+DEBUG_CMD("spi", "SPI utility", cmd_spi);
+
+DECL_DEBUG_CMD(cmd_sf)
+{
 	spi_init(&nordev);
 
 	if (argc < 2)
@@ -178,8 +260,8 @@ DECL_DEBUG_CMD(cmd_spi)
 
 	return;
 usage:
-	puts("usage: spi id\n");
-	puts("       spi read addr position length\n");
+	puts("usage: sf id\n");
+	puts("       sf read addr position length\n");
 }
 
-DEBUG_CMD("spi", "SPI flash", cmd_spi);
+DEBUG_CMD("sf", "SPI flash", cmd_sf);
