@@ -12,8 +12,6 @@
 #include "ddr.h"
 #include "deploy.h"
 
-#define AP_RAM		0x60000000
-
 volatile u64 jiffies;
 
 void __irq systick_handler(void)

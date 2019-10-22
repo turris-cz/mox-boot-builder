@@ -3,7 +3,17 @@
 
 #include "types.h"
 
+#define AP_RAM		0x60000000
 #define BIT(n)		(1UL << (n))
+
+static inline u8 readb(u32 addr)
+{
+	u8 val;
+	asm volatile("ldrb %0, %1"
+		     : "=r" (val)
+		     : "Q" (*(volatile u8 *)addr));
+	return val;
+}
 
 static inline u16 readw(u32 addr)
 {
@@ -21,6 +31,12 @@ static inline u32 readl(u32 addr)
 		     : "=r" (val)
 		     : "Qo" (*(volatile u32 *)addr));
 	return val;
+}
+
+static inline void writeb(u8 val, u32 addr)
+{
+	asm volatile("strb %1, %0"
+		     : : "Q" (*(volatile u8 *)addr), "r" (val));
 }
 
 static inline void writew(u16 val, u32 addr)
