@@ -50,6 +50,17 @@ static inline int strcmp(const char *p1, const char *p2)
 	return *p1 - *p2;
 }
 
+static inline int strncmp(const char *p1, const char *p2, u32 n)
+{
+	while (n && *p1 == *p2) {
+		if (*p1 == '\0')
+			return 0;
+		++p1, ++p2, --n;
+	}
+
+	return n ? (*p1 - *p2) : 0;
+}
+
 static inline u32 strlen(const char *s)
 {
 	u32 res = 0;
