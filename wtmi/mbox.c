@@ -150,10 +150,15 @@ void mbox_send(u32 status, u32 *args)
 	enable_irq();
 }
 
-void start_ap(void)
+void start_ap_at(u32 addr)
 {
-	writel(0x04100000, MBOX_OUT_ARG(0));
+	writel(addr, MBOX_OUT_ARG(0));
 	writel(0x1003, MBOX_OUT_STATUS);
 	setbitsl(HOST_INT_SET, HOST_INT_CMD_COMPLETE_BIT,
 		 HOST_INT_CMD_COMPLETE_BIT);
+}
+
+void start_ap(void)
+{
+	start_ap_at(0x04100000);
 }
