@@ -12,7 +12,6 @@ extern void hw_sha224(const void *msg, u32 size, u32 *digest);
 extern void hw_sha256(const void *msg, u32 size, u32 *digest);
 extern void hw_sha384(const void *msg, u32 size, u32 *digest);
 extern void hw_sha512(const void *msg, u32 size, u32 *digest);
-extern void test_hash(void);
 
 enum {
 	HASH_NA = 0,

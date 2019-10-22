@@ -5,9 +5,8 @@
 #include "clock.h"
 #include "crypto_hash.h"
 #include "crypto_dma.h"
+#include "string.h"
 #include "debug.h"
-
-#define TEST_HASH	0
 
 #define AIB_CTRL	0x40000c00
 #define SP_CTRL		0x40001c00
@@ -143,7 +142,7 @@ void hw_sha512(const void *msg, u32 size, u32 *digest)
 	hash_final(digest, 16);
 }
 
-DECL_DEBUG_CMD(cmd_hash)
+DECL_DEBUG_CMD(cmd_hash_specific)
 {
 	u32 digest[16];
 	u32 addr, len;
@@ -170,17 +169,16 @@ DECL_DEBUG_CMD(cmd_hash)
 
 	return;
 usage:
-	printf("usage: %s addr len\n", argv[0]);
+	printf("usage: %s <addr> <len>\n", argv[0]);
 }
 
-DEBUG_CMD("md5", "MD5 hash", cmd_hash);
-DEBUG_CMD("sha1", "SHA1 hash", cmd_hash);
-DEBUG_CMD("sha224", "SHA224 hash", cmd_hash);
-DEBUG_CMD("sha256", "SHA256 hash", cmd_hash);
-DEBUG_CMD("sha384", "SHA384 hash", cmd_hash);
-DEBUG_CMD("sha512", "SHA512 hash", cmd_hash);
+DEBUG_CMD("md5", "MD5 hash", cmd_hash_specific);
+DEBUG_CMD("sha1", "SHA1 hash", cmd_hash_specific);
+DEBUG_CMD("sha224", "SHA224 hash", cmd_hash_specific);
+DEBUG_CMD("sha256", "SHA256 hash", cmd_hash_specific);
+DEBUG_CMD("sha384", "SHA384 hash", cmd_hash_specific);
+DEBUG_CMD("sha512", "SHA512 hash", cmd_hash_specific);
 
-#if TEST_HASH
 static int digestcmp(const u32 *x, const u32 *y, int l)
 {
 	while (l--)
@@ -190,7 +188,7 @@ static int digestcmp(const u32 *x, const u32 *y, int l)
 	return 0;
 }
 
-void test_hash(void)
+static void test_hash(void)
 {
 	static const u32 test_md5[4] = {
 		0x7ebe238b, 0x33767b42, 0xf3fcf55f, 0x23f4d754
@@ -242,4 +240,28 @@ void test_hash(void)
 	TEST(sha384, 12);
 	TEST(sha512, 16);
 }
-#endif /* TEST_HASH */
+
+DECL_DEBUG_CMD(cmd_hash)
+{
+	int id;
+
+	if (argc < 2)
+		goto usage;
+
+	if (!strcmp(argv[1], "test"))
+		return test_hash();
+
+	if (argc != 4)
+		goto usage;
+
+	id = hash_id(argv[1]);
+	if (id == HASH_NA)
+		goto usage;
+
+	return cmd_hash_specific(argc - 1, argv + 1);
+usage:
+	puts("usage: hash test\n");
+	puts("       hash <md5|sha1|sha224|sha256|sha384|sha512> <addr> <len>\n");
+}
+
+DEBUG_CMD("hash", "General hash command", cmd_hash);
