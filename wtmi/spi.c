@@ -2,6 +2,9 @@
 #include "io.h"
 #include "clock.h"
 #include "spi.h"
+#include "string.h"
+#include "printf.h"
+#include "debug.h"
 
 #define NB_PINCTRL		0xc0013830
 #define NB_TBG_SEL		0xc0013000
@@ -124,3 +127,59 @@ void spi_nor_read(const struct spi *spi, void *dst, u32 pos, u32 len)
 
 	spi_flash_cmd_rw(spi, op, sizeof(op), dst, NULL, len);
 }
+
+DECL_DEBUG_CMD(cmd_spi)
+{
+	spi_init(&nordev);
+
+	if (argc < 2)
+		goto usage;
+
+	if (!strcmp(argv[1], "id")) {
+		u8 id[6];
+		spi_nor_read_id(&nordev, id);
+		printf("ID: %02x %02x %02x %02x %02x %02x\n", id[0], id[1],
+		        id[2], id[3], id[4], id[5]);
+	} else if (!strcmp(argv[1], "read")) {
+		u32 addr, pos, len, total;
+
+		if (argc != 5)
+			goto usage;
+		if (number(argv[2], &addr))
+			goto usage;
+		if (number(argv[3], &pos))
+			goto usage;
+		if (number(argv[4], &len))
+			goto usage;
+
+		printf("Reading 0x%x bytes from SPI position 0x%x to address 0x%08x\n",
+		        len, pos, addr);
+
+		total = 0;
+		while (len) {
+			void *buf = (void *)addr;
+			u32 rd;
+
+			rd = len > 256 ? 256 : len;
+			spi_nor_read(&nordev, buf, pos, rd);
+			total += rd;
+			if (total % 0x10000 == 0)
+				printf("\r%x read", total);
+
+			len -= rd;
+			pos += rd;
+			addr += rd;
+		}
+		printf("\r%x read", total);
+		putc('\n');
+	} else {
+		goto usage;
+	}
+
+	return;
+usage:
+	puts("usage: spi id\n");
+	puts("       spi read addr position length\n");
+}
+
+DEBUG_CMD("spi", "SPI flash", cmd_spi);
