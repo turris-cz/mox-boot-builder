@@ -5,6 +5,7 @@
 #include "clock.h"
 #include "crypto_hash.h"
 #include "crypto_dma.h"
+#include "debug.h"
 
 #define TEST_HASH	0
 
@@ -141,6 +142,43 @@ void hw_sha512(const void *msg, u32 size, u32 *digest)
 	hash_update(msg, size, 1);
 	hash_final(digest, 16);
 }
+
+DECL_DEBUG_CMD(cmd_hash)
+{
+	u32 digest[16];
+	u32 addr, len;
+	int i, id, dlen;
+
+	if (argc != 3)
+		goto usage;
+
+	if (number(argv[1], &addr))
+		return;
+
+	if (number(argv[2], &len))
+		return;
+
+	id = hash_id(argv[0]);
+	if (id == HASH_NA)
+		goto usage;
+
+	dlen = hw_hash(id, (void *)addr, len, digest);
+
+	for (i = 0; i < dlen; ++i)
+		printf("%08x", __builtin_bswap32(digest[i]));
+	puts("\n\n");
+
+	return;
+usage:
+	printf("usage: %s addr len\n", argv[0]);
+}
+
+DEBUG_CMD("md5", "MD5 hash", cmd_hash);
+DEBUG_CMD("sha1", "SHA1 hash", cmd_hash);
+DEBUG_CMD("sha224", "SHA224 hash", cmd_hash);
+DEBUG_CMD("sha256", "SHA256 hash", cmd_hash);
+DEBUG_CMD("sha384", "SHA384 hash", cmd_hash);
+DEBUG_CMD("sha512", "SHA512 hash", cmd_hash);
 
 #if TEST_HASH
 static int digestcmp(const u32 *x, const u32 *y, int l)
