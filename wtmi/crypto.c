@@ -6,6 +6,7 @@
 #include "clock.h"
 #include "efuse.h"
 #include "crypto.h"
+#include "debug.h"
 
 #define AIB_CTRL	0x40000c00
 #define SP_CTRL		0x40001c00
@@ -640,8 +641,7 @@ int ecdsa_get_efuse_public_key(u32 *compressed_pub)
 	return 0;
 }
 
-#if 0
-void test_ecp(void)
+DECL_DEBUG_CMD(cmd_ecdsa)
 {
 	ec_point_t pub;
 	ec_sig_t sig;
@@ -667,4 +667,5 @@ void test_ecp(void)
 
 	printf("Verification status: %d\n", ecdsa_verify(&pub, &sig, z));
 }
-#endif
+
+DEBUG_CMD("ecdsa", "Test ECDSA cryptographic engine", cmd_ecdsa);
