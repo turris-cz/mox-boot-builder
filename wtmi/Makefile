@@ -46,6 +46,13 @@ ifeq ($(DEPLOY), 1)
 else
 	CSRC = $(filter-out deploy.c,$(wildcard *.c ddr/*.c))
 endif
+
+ifeq ($(DEBUG_UART2), 1)
+	CPPFLAGS += -DDEBUG_UART2=1
+else
+	CSRC := $(filter-out debug.c,$(CSRC))
+endif
+
 ASRC = $(wildcard *.S)
 
 COBJ   = $(CSRC:.c=.o)

@@ -37,6 +37,7 @@
 #include "io.h"
 #include "uart.h"
 #include "clock.h"
+#include "debug.h"
 
 #define UART_CLOCK_FREQ		25804800
 

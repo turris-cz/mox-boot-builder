@@ -14,6 +14,10 @@ SECTIONS
   }
   .rw : {
     KEEP(*(.from_mox_builder));
+    . = ALIGN(4);
+    debug_cmds_start = .;
+    KEEP(*(.debug_cmds));
+    debug_cmds_end = .;
     *(.data)
     *(.got*)
     *(.data.*)

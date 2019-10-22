@@ -11,6 +11,7 @@
 #include "crypto_hash.h"
 #include "ddr.h"
 #include "deploy.h"
+#include "debug.h"
 
 volatile u64 jiffies;
 
@@ -263,11 +264,11 @@ void main(void)
 	if (res < 0)
 		return;
 
-	res = uart_init(&uart1_info, 115200);
+	res = uart_init(get_debug_uart(), 115200);
 	if (res < 0)
 		return;
 
-	init_printf((void *)&uart1_info, uart_putc);
+	init_printf((void *)get_debug_uart(), uart_putc);
 
 #ifdef DEPLOY
 	ebg_init();
@@ -293,6 +294,7 @@ void main(void)
 	mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);*/
 	enable_irq();
 
+	debug_init();
 	start_ap();
 
 	while (1) {
@@ -301,6 +303,7 @@ void main(void)
 			wait_for_irq();
 		enable_irq();
 		mbox_process_commands();
+		debug_process();
 	}
 #endif /* !DEPLOY */
 }
