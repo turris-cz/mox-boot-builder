@@ -76,9 +76,15 @@ all: tools $(COBJ) $(AOBJ)
 
 -include $(COBJ:.o=.d)
 
+reload_helper/reload_helper.c: reload_helper/reload_helper.ld reload_helper/reload.c
+	$(MAKE) -C reload_helper
+
+reload.c: reload_helper/reload_helper.c
+
 clean:
 	$(ECHO) "  CLEAN"
 	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) deploy.d deploy.o wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin
+	@$(MAKE) -C reload_helper clean
 
 tools:
 	@if [ -z "$(shell which $(CC))" ]; then $(ECHO) "$(CC) not found"; exit 1; fi;
