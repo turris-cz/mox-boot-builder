@@ -173,6 +173,8 @@ usage:
 }
 
 DEBUG_CMD("md5", "MD5 hash", cmd_hash_specific);
+
+#if 0
 DEBUG_CMD("sha1", "SHA1 hash", cmd_hash_specific);
 DEBUG_CMD("sha224", "SHA224 hash", cmd_hash_specific);
 DEBUG_CMD("sha256", "SHA256 hash", cmd_hash_specific);
@@ -265,3 +267,4 @@ usage:
 }
 
 DEBUG_CMD("hash", "General hash command", cmd_hash);
+#endif

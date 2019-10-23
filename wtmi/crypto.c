@@ -641,6 +641,7 @@ int ecdsa_get_efuse_public_key(u32 *compressed_pub)
 	return 0;
 }
 
+#if 0
 DECL_DEBUG_CMD(cmd_ecdsa)
 {
 	ec_point_t pub;
@@ -669,3 +670,4 @@ DECL_DEBUG_CMD(cmd_ecdsa)
 }
 
 DEBUG_CMD("ecdsa", "Test ECDSA cryptographic engine", cmd_ecdsa);
+#endif
