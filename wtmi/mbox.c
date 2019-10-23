@@ -157,8 +157,3 @@ void start_ap_at(u32 addr)
 	setbitsl(HOST_INT_SET, HOST_INT_CMD_COMPLETE_BIT,
 		 HOST_INT_CMD_COMPLETE_BIT);
 }
-
-void start_ap(void)
-{
-	start_ap_at(ATF_ENTRY_ADDRESS);
-}

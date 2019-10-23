@@ -60,6 +60,9 @@ extern void mbox_send(u32 status, u32 *args);
 #define ATF_ENTRY_ADDRESS		0x04100000
 
 extern void start_ap_at(u32 addr);
-extern void start_ap(void);
+static inline void start_ap(void)
+{
+	start_ap_at(ATF_ENTRY_ADDRESS);
+}
 
 #endif /* _MBOX_H_ */
