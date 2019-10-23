@@ -3,6 +3,8 @@
 #include "clock.h"
 #include "mbox.h"
 #include "errno.h"
+#include "printf.h"
+#include "debug.h"
 
 #define EFUSE_CTRL		0x40003430
 #define EFUSE_RW		0x40003434
@@ -485,3 +487,44 @@ int efuse_write_secure_buffer(u32 *priv)
 
 	return res;
 }
+
+#if 0
+DECL_DEBUG_CMD(cmd_efuse)
+{
+	u32 row = 0;
+
+	if (argc < 2)
+		goto usage;
+
+	if (argc == 3 && decnumber(argv[2], &row))
+		return;
+
+	if (row >= 44) {
+		puts("Invalid row number\n");
+		return;
+	}
+
+	if (argv[1][0] == 'r') {
+		u64 val;
+		int lock, res, i;
+
+		for (i = (argc == 3 ? row : 0);
+		     i < (argc == 3 ? row + 1 : 44);
+		     ++i) {
+			res = efuse_read_row(i, &val, &lock);
+			printf("Row %d: %08x%08x%s%s\n", i, (u32)(val >> 32),
+			       (u32)(val & 0xffffffff), lock ? ", locked" : "",
+			       res == -EIO ? ", ECC error" :
+			       res == -EACCES ? ", masked" : "");
+		}
+	} else {
+		goto usage;
+	}
+
+	return;
+usage:
+	puts("usage: efuse read [row]\n");
+}
+
+DEBUG_CMD("efuse", "eFuse access", cmd_efuse);
+#endif
