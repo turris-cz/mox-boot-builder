@@ -17,9 +17,9 @@
 #define SEC_STATUS		0x40000104
 
 static const struct {
-	int row;
-	u32 pos;
-} ecc[44] = {
+	s8 row;
+	u8 pos;
+} __attribute__((packed)) ecc[44] = {
 	[ 0] = {  7, 1 },
 	[ 1] = {  7, 2 },
 	[ 2] = {  7, 3 },
