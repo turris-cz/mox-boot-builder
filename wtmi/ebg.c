@@ -6,7 +6,9 @@
 #include "crypto.h"
 #include "crypto_hash.h"
 #include "string.h"
+#include "printf.h"
 #include "engine.h"
+#include "debug.h"
 
 #define EBG_CTRL	0x40002c00
 #define EBG_ENTROPY	0x40002c04
@@ -190,3 +192,45 @@ void paranoid_rand(void *buffer, int size)
 		memcpy(buffer, tmp, size);
 	}
 }
+
+#if 0
+DECL_DEBUG_CMD(cmd_rand)
+{
+	u32 len = 0, i;
+
+	if (argc < 2)
+		goto usage;
+
+	if (argc == 3 && number(argv[2], &len))
+		return;
+
+	if (!strcmp(argv[1], "raw")) {
+		u16 val;
+
+		if (!len)
+			len = 1;
+
+		for (i = 0; i < len; ++i) {
+			ebg_next(1, &val);
+			printf("%04x", val);
+		}
+		putc('\n');
+	} else if (!strcmp(argv[1], "strong")) {
+		u32 tmp[16];
+
+		paranoid_rand_64(tmp);
+		for (i = 0; i < 16; ++i)
+			printf("%08x", __builtin_bswap32(tmp[i]));
+		putc('\n');
+	} else {
+		goto usage;
+	}
+
+	return;
+usage:
+	puts("usage: rand raw [n]\n");
+	puts("       rand strong\n");
+}
+
+DEBUG_CMD("rand", "TRNG testing utility", cmd_rand);
+#endif
