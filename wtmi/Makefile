@@ -76,14 +76,20 @@ all: tools $(COBJ) $(AOBJ)
 
 -include $(COBJ:.o=.d)
 
+a53_helper/a53_helper.c: a53_helper/a53_helper.ld a53_helper/main.c
+	$(MAKE) -C a53_helper
+
 reload_helper/reload_helper.c: reload_helper/reload_helper.ld reload_helper/reload.c
 	$(MAKE) -C reload_helper
+
+debug.c: a53_helper/a53_helper.c
 
 reload.c: reload_helper/reload_helper.c
 
 clean:
 	$(ECHO) "  CLEAN"
 	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) deploy.d deploy.o wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin
+	@$(MAKE) -C a53_helper clean
 	@$(MAKE) -C reload_helper clean
 
 tools:
