@@ -294,6 +294,7 @@ void main(void)
 		enable_irq();
 		mbox_process_commands();
 		debug_process();
+		ebg_process();
 	}
 #endif /* !DEPLOY */
 }

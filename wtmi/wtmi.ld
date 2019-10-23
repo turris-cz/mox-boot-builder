@@ -26,4 +26,11 @@ SECTIONS
   }
   . = 0x1FFFF000;
   stack_top = .;
+  . = 0x20000000;
+  ebg_buffer = .;
+  . = 0x20001000;
+  paranoid_rand_buffer = .;
+  . = 0x20002000;
+  paranoid_rand_dgst = .;
+  . = 0x20002040;
 }

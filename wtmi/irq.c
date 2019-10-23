@@ -1,6 +1,5 @@
 #include "types.h"
 #include "clock.h"
-#include "ebg.h"
 #include "irq.h"
 
 #define SYSTICK_CTRL	0xe000e010
@@ -31,7 +30,6 @@ void __irq systick_handler(void)
 {
 	save_ctx();
 	++jiffies;
-	ebg_systick();
 	load_ctx();
 }
 

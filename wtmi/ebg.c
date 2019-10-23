@@ -13,8 +13,25 @@
 #define EBG_CTRL	0x40002c00
 #define EBG_ENTROPY	0x40002c04
 
-static u16 ebg_buffer[512];
-static int ebg_fill;
+typedef struct {
+	u8 *data;
+	const u32 size;
+	u32 len, pos;
+} cbuf_t;
+
+extern u8 ebg_buffer[4096];
+extern u8 paranoid_rand_buffer[4096];
+
+static cbuf_t ebg_cbuf = {
+	.data = ebg_buffer,
+	.size = sizeof(ebg_buffer),
+};
+
+static cbuf_t paranoid_rand_cbuf = {
+	.data = paranoid_rand_buffer,
+	.size = sizeof(paranoid_rand_buffer),
+};
+
 static u32 reg;
 
 static int ebg_next(int wait, u16 *res)
@@ -79,44 +96,107 @@ void ebg_init(void)
 		ebg_next(1, NULL);
 }
 
-void ebg_systick(void) {
+static u32 cbuf_pull(cbuf_t *cbuf, void *dest, u32 len)
+{
+	u32 res;
+
+	len = res = MIN(cbuf->len, len);
+
+	if (cbuf->pos + len > cbuf->size) {
+		u32 tail = cbuf->size - cbuf->pos;
+
+		memcpy(dest, &cbuf->data[cbuf->pos], tail);
+		dest += tail;
+		len -= tail;
+		cbuf->len -= tail;
+		cbuf->pos = 0;
+	}
+
+	memcpy(dest, &cbuf->data[cbuf->pos], len);
+	cbuf->len -= len;
+	cbuf->pos = (cbuf->pos + cbuf->len) % cbuf->size;
+
+	return res;
+}
+
+static inline u32 cbuf_free_space(const cbuf_t *cbuf)
+{
+	return cbuf->size - cbuf->len;
+}
+
+static u32 cbuf_push(cbuf_t *cbuf, const void *src, u32 len)
+{
+	u32 res;
+	u8 *dest;
+
+	len = res = MIN(cbuf_free_space(cbuf), len);
+	dest = &cbuf->data[cbuf->pos];
+
+	if (cbuf->pos + len > cbuf->size) {
+		u32 tail = cbuf->size - cbuf->pos;
+
+		memcpy(dest, src, tail);
+		src += tail;
+		len -= tail;
+		cbuf->len += tail;
+		dest = &cbuf->data[0];
+	}
+
+	memcpy(dest, src, len);
+	cbuf->len += len;
+
+	return res;
+}
+
+static const void *paranoid_rand_64(void);
+
+void ebg_process(void) {
 	u16 val;
 
-	if (ebg_fill >= 512)
+	if (ebg_cbuf.len > ebg_cbuf.size - 2)
 		return;
 
 	if (ebg_next(0, &val) < 0)
 		return;
 
-	ebg_buffer[ebg_fill++] = val;
+	cbuf_push(&ebg_cbuf, &val, 2);
+
+	if (ebg_cbuf.len >= 512 && cbuf_free_space(&paranoid_rand_cbuf) >= 64)
+		cbuf_push(&paranoid_rand_cbuf, paranoid_rand_64(), 64);
 }
 
-int ebg_rand(void *buffer, int size)
+void ebg_rand_sync(void *buffer, u32 size)
 {
-	int has = ebg_fill * sizeof(u16);
+	u32 pull;
+	u16 val;
 
-	if (has < size)
-		size = has;
+	pull = cbuf_pull(&ebg_cbuf, buffer, size);
+	buffer += pull;
+	size -= pull;
 
-	ebg_fill -= (size + 1) / 2;
-	memcpy(buffer, (void *) ebg_buffer + has - size, size);
+	if (size && (((u32)buffer) & 1)) {
+		ebg_next(1, &val);
+		*(u8 *)buffer = val & 0xff;
+		++buffer;
+		--size;
+	}
 
-	return size;
-}
-
-void ebg_rand_sync(void *buffer, int size)
-{
-	while (size >= 2) {
-		ebg_next(1, (u16 *) buffer);
-		size -= 2;
+	while (size > 1) {
+		ebg_next(1, &val);
+		*(u16 *)buffer = val;
 		buffer += 2;
+		size -= 2;
 	}
 
-	if (size == 1) {
-		u16 x;
-		ebg_next(1, &x);
-		*(u8 *) buffer = x & 0xff;
+	if (size) {
+		ebg_next(1, &val);
+		*(u8 *)buffer = val & 0xff;
 	}
+}
+
+u32 ebg_rand(void *buffer, u32 size)
+{
+	return cbuf_pull(&ebg_cbuf, buffer, MIN(ebg_cbuf.len, size));
 }
 
 static inline void xor(u32 *d, const u32 *s)
@@ -139,10 +219,11 @@ static inline void xor(u32 *d, const u32 *s)
  * cur digest   H(ebg1|0000)         H(ebg2|H(ebg1|0000))
  * result       C(ebg1,H(ebg1|0000)) C(ebg2,H(ebg2|H(ebg1|0000)))
  */
-static void paranoid_rand_64(u32 *buffer)
+static const void *paranoid_rand_64(void)
 {
 	static u32 ebgbuf[128 + 16] __attribute__((aligned(16)));
-	static u32 dgst[16];
+	extern u32 paranoid_rand_dgst[16];
+	u32 *dgst = paranoid_rand_dgst;
 	static int c;
 	int i;
 
@@ -158,45 +239,34 @@ static void paranoid_rand_64(u32 *buffer)
 		c ^= (dgst[0] >> (i >> 4)) & 1;
 	}
 
-	for (i = 0; i < 16; ++i)
-		buffer[i] = dgst[i];
+	return dgst;
 }
 
-void paranoid_rand(void *buffer, int size)
+void paranoid_rand(void *buffer, u32 size)
 {
-	u32 tmp[16];
-	u32 addr = (u32) buffer;
+	u32 pull;
 
-	if (size < 4) {
-		paranoid_rand_64(tmp);
-		memcpy(buffer, tmp, size);
-		return;
-	}
-
-	if (addr & 3) {
-		int s = 4 - (addr & 3);
-		paranoid_rand_64(tmp);
-		memcpy(buffer, tmp, s);
-		buffer += s;
-		size -= s;
-	}
+	pull = cbuf_pull(&paranoid_rand_cbuf, buffer, size);
+	buffer += pull;
+	size -= pull;
 
 	while (size >= 64) {
-		paranoid_rand_64(buffer);
+		memcpy(buffer, paranoid_rand_64(), 64);
 		buffer += 64;
 		size -= 64;
 	}
 
-	if (size > 0) {
-		paranoid_rand_64(tmp);
-		memcpy(buffer, tmp, size);
+	if (size) {
+		const void *dgst = paranoid_rand_64();
+		memcpy(buffer, dgst, size);
+		cbuf_push(&paranoid_rand_cbuf, dgst + size, 64 - size);
 	}
 }
 
 #if 0
 DECL_DEBUG_CMD(cmd_rand)
 {
-	u32 len = 0, i;
+	u32 len = 0, i, val;
 
 	if (argc < 2)
 		goto usage;
@@ -204,24 +274,25 @@ DECL_DEBUG_CMD(cmd_rand)
 	if (argc == 3 && number(argv[2], &len))
 		return;
 
+	if (!len)
+		len = 1;
+
 	if (!strcmp(argv[1], "raw")) {
-		u16 val;
-
-		if (!len)
-			len = 1;
-
 		for (i = 0; i < len; ++i) {
-			ebg_next(1, &val);
-			printf("%04x", val);
+			ebg_rand_sync(&val, sizeof(val));
+			printf("%08x\n", val);
 		}
-		putc('\n');
 	} else if (!strcmp(argv[1], "strong")) {
-		u32 tmp[16];
-
-		paranoid_rand_64(tmp);
-		for (i = 0; i < 16; ++i)
-			printf("%08x", __builtin_bswap32(tmp[i]));
-		putc('\n');
+		for (i = 0; i < len; ++i) {
+			paranoid_rand(&val, sizeof(val));
+			printf("%08x\n", val);
+		}
+	} else if (!strcmp(argv[1], "state")) {
+		printf("EBG buffer: %u/%u filled, start at %u\n", ebg_cbuf.len,
+		       ebg_cbuf.size, ebg_cbuf.pos);
+		printf("Paranoid rand buffer: %u/%u filled, start at %u\n",
+		       paranoid_rand_cbuf.len, paranoid_rand_cbuf.size,
+		       paranoid_rand_cbuf.pos);
 	} else {
 		goto usage;
 	}
@@ -229,7 +300,8 @@ DECL_DEBUG_CMD(cmd_rand)
 	return;
 usage:
 	puts("usage: rand raw [n]\n");
-	puts("       rand strong\n");
+	puts("       rand strong [n]\n");
+	puts("       rand state\n");
 }
 
 DEBUG_CMD("rand", "TRNG testing utility", cmd_rand);
