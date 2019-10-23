@@ -24,7 +24,6 @@ SECTIONS
     *(.bss)
     *(COMMON)
   }
-  . = ALIGN(8);
-  . = . + 0x2000; /* 8kB of stack memory */
+  . = 0x1FFFF000;
   stack_top = .;
 }
