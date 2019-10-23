@@ -1,5 +1,6 @@
 #include "types.h"
 #include "clock.h"
+#include "ebg.h"
 #include "irq.h"
 
 #define SYSTICK_CTRL	0xe000e010
@@ -22,6 +23,16 @@ void enable_systick(void)
 void disable_systick(void)
 {
 	setbitsl(SYSTICK_CTRL, 0x0, 0x3);
+}
+
+volatile u32 jiffies;
+
+void __irq systick_handler(void)
+{
+	save_ctx();
+	++jiffies;
+	ebg_systick();
+	load_ctx();
 }
 
 static irq_handler_t irq_handlers[16];

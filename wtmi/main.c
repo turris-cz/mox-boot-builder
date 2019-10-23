@@ -13,16 +13,6 @@
 #include "deploy.h"
 #include "debug.h"
 
-volatile u64 jiffies;
-
-void __irq systick_handler(void)
-{
-	save_ctx();
-	++jiffies;
-	ebg_systick();
-	load_ctx();
-}
-
 #ifndef DEPLOY
 static int ram_size;
 
