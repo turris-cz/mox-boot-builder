@@ -94,3 +94,6 @@ clean:
 
 tools:
 	@if [ -z "$(shell which $(CC))" ]; then $(ECHO) "$(CC) not found"; exit 1; fi;
+
+disasm:
+	$(OBJDUMP) -m arm -M force-thumb -b binary --adjust-vma=0x1fff0000 -D wtmi.bin
