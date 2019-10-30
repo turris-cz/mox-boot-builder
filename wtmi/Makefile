@@ -82,7 +82,7 @@ a53_helper/a53_helper.c: a53_helper/a53_helper.ld a53_helper/main.c
 reload_helper/reload_helper.c: reload_helper/reload_helper.ld reload_helper/reload.c
 	$(MAKE) -C reload_helper
 
-debug.c: a53_helper/a53_helper.c
+soc.c: a53_helper/a53_helper.c
 
 reload.c: reload_helper/reload_helper.c
 
