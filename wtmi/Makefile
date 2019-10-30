@@ -60,7 +60,7 @@ AOBJ   = $(ASRC:.S=.o)
 
 .SILENT:
 
-all: tools $(COBJ) $(AOBJ)
+all: $(COBJ) $(AOBJ)
 	$(ECHO) "  LD    $(MAKECMDGOALS)"
 	$(CC) $(LDFLAGS)  $(AOBJ)  $(COBJ) -o wtmi.elf
 	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
@@ -91,9 +91,6 @@ clean:
 	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) deploy.d deploy.o wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin
 	@$(MAKE) -C a53_helper clean
 	@$(MAKE) -C reload_helper clean
-
-tools:
-	@if [ -z "$(shell which $(CC))" ]; then $(ECHO) "$(CC) not found"; exit 1; fi;
 
 disasm:
 	$(OBJDUMP) -m arm -M force-thumb -b binary --adjust-vma=0x1fff0000 -D wtmi.bin
