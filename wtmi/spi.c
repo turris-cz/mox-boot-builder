@@ -224,9 +224,9 @@ DECL_DEBUG_CMD(cmd_sf)
 		printf("ID: %02x %02x %02x %02x %02x %02x\n", id[0], id[1],
 		        id[2], id[3], id[4], id[5]);
 	} else if (!strcmp(argv[1], "read")) {
-		u32 addr, pos, len, total;
+		u32 addr, pos, len, total, block = 256;
 
-		if (argc != 5)
+		if (argc < 5)
 			goto usage;
 		if (number(argv[2], &addr))
 			goto usage;
@@ -234,16 +234,18 @@ DECL_DEBUG_CMD(cmd_sf)
 			goto usage;
 		if (number(argv[4], &len))
 			goto usage;
+		if (argc > 5 && number(argv[5], &block))
+			goto usage;
 
-		printf("Reading 0x%x bytes from SPI position 0x%x to address 0x%08x\n",
-		        len, pos, addr);
+		printf("Reading 0x%x bytes from SPI position 0x%x to address 0x%08x, block size 0x%x\n",
+		        len, pos, addr, block);
 
 		total = 0;
 		while (len) {
 			void *buf = (void *)addr;
 			u32 rd;
 
-			rd = len > 256 ? 256 : len;
+			rd = len > block ? block : len;
 			spi_nor_read(&nordev, buf, pos, rd);
 			total += rd;
 			if (total % 0x10000 == 0)
@@ -262,7 +264,7 @@ DECL_DEBUG_CMD(cmd_sf)
 	return;
 usage:
 	puts("usage: sf id\n");
-	puts("       sf read addr position length\n");
+	puts("       sf read addr position length [block_size]\n");
 }
 
 DEBUG_CMD("sf", "SPI flash", cmd_sf);
