@@ -6,6 +6,10 @@ extern u32 stack_top;
 extern void main(void);
 extern void reset_handler(void);
 
+/* compressed wtmi does not implement this function */
+void __attribute((weak)) disable_systick(void)
+{}
+
 void __irq default_handler(void)
 {
 	disable_systick();
