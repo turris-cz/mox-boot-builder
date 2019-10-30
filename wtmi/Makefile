@@ -60,7 +60,9 @@ AOBJ   = $(ASRC:.S=.o)
 
 .SILENT:
 
-all: $(COBJ) $(AOBJ)
+all: wtmi.bin
+
+wtmi.bin: $(COBJ) $(AOBJ)
 	$(ECHO) "  LD    $(MAKECMDGOALS)"
 	$(CC) $(LDFLAGS)  $(AOBJ)  $(COBJ) -o wtmi.elf
 	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
@@ -88,7 +90,7 @@ reload.c: reload_helper/reload_helper.c
 
 clean:
 	$(ECHO) "  CLEAN"
-	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) deploy.d deploy.o wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin
+	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) deploy.d deploy.o debug.d debug.o wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin
 	@$(MAKE) -C a53_helper clean
 	@$(MAKE) -C reload_helper clean
 
