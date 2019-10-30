@@ -4,6 +4,12 @@ CROSS_COMPILE	:= aarch64-unknown-linux-gnu-
 
 BUILD_PLAT = build/a3700/release
 
+ifeq ($(COMPRESS_WTMI), 1)
+	WTMI_PATH := wtmi/compressed
+else
+	WTMI_PATH := wtmi
+endif
+
 all: trusted-flash-image.bin trusted-uart-image.bin untrusted-flash-image.bin
 
 trusted-flash-image.bin: trusted-secure-firmware.bin u-boot.bin
@@ -25,13 +31,14 @@ untrusted-secure-firmware.bin: mox-imager/mox-imager wtmi_h.bin
 	mox-imager/mox-imager --create-untrusted-image -o $@ wtmi_h.bin
 
 wtmi_h.bin:
-	make -C wtmi clean
-	make -C wtmi CROSS_CM3=$(CROSS_CM3)
+	echo $(WTMI_PATH)
+	make -C $(WTMI_PATH) clean
+	make -C $(WTMI_PATH) CROSS_CM3=$(CROSS_CM3)
 	echo -ne "IMTW" >wtmi_h.bin
-	cat wtmi/wtmi.bin >>wtmi_h.bin
+	cat $(WTMI_PATH)/wtmi.bin >>wtmi_h.bin
 
 mox-imager/mox-imager:
-	make -C wtmi clean
+	make -C wtmi/compressed clean
 	make -C mox-imager
 
 arm-trusted-firmware/$(BUILD_PLAT)/bl1.bin:
@@ -57,7 +64,7 @@ u-boot/u-boot.bin:
 
 clean:
 	make -C u-boot clean
-	make -C wtmi clean
+	make -C wtmi/compressed clean
 	make -C mox-imager clean
 	rm -rf arm-trusted-firmware/build untrusted-secure-firmware.bin trusted-secure-firmware.bin \
 		untrusted-flash-image.bin trusted-flash-image.bin \
