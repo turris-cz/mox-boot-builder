@@ -32,7 +32,7 @@ CPUOPTS  = -mthumb -mcpu=cortex-m3 -mlittle-endian
 LDSCRIPT = wtmi.ld
 INCLUDE  = -I.
 
-CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector $(INCLUDE) -O2 $(CPUOPTS)
+CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector $(INCLUDE) -Os $(CPUOPTS)
 CPPFLAGS =
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
 LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -Xlinker "--build-id=none"
