@@ -43,4 +43,6 @@ typedef char			byte;
 #define MIN(a, b)   ((a) < (b) ? (a) : (b))
 #define MAX(a, b)   ((a) > (b) ? (a) : (b))
 
+#define maybe_unused __attribute__((unused))
+
 #endif /* __TYPES_H */

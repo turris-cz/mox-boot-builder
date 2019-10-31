@@ -26,7 +26,7 @@ static int check_ap_addr(u32 addr, u32 len, u32 align)
 		return 1;
 }
 
-static u32 cmd_get_random(u32 *args, u32 *out_args)
+maybe_unused static u32 cmd_get_random(u32 *args, u32 *out_args)
 {
 	int res;
 
@@ -43,7 +43,7 @@ static u32 cmd_get_random(u32 *args, u32 *out_args)
 	return MBOX_STS(0, res, SUCCESS);
 }
 
-static u32 cmd_board_info(u32 *args, u32 *out_args)
+maybe_unused static u32 cmd_board_info(u32 *args, u32 *out_args)
 {
 	int res, lock;
 	u64 row42, row43;
@@ -81,7 +81,7 @@ static u32 cmd_board_info(u32 *args, u32 *out_args)
 	return MBOX_STS(0, 0, SUCCESS);
 }
 
-static u32 cmd_ecdsa_pub_key(u32 *args, u32 *out_args)
+maybe_unused static u32 cmd_ecdsa_pub_key(u32 *args, u32 *out_args)
 {
 	static int has_pub;
 	static u32 pub[17];
@@ -107,7 +107,7 @@ static u32 cmd_ecdsa_pub_key(u32 *args, u32 *out_args)
  * args[1] = address of input, aligned to 4 bytes
  * args[2] = input length
  */
-static u32 cmd_hash(u32 *args, u32 *out_args)
+maybe_unused static u32 cmd_hash(u32 *args, u32 *out_args)
 {
 	hw_hash_fnc_t fn;
 
@@ -151,7 +151,7 @@ static u32 cmd_hash(u32 *args, u32 *out_args)
  *
  *   addresses must be aligned to 4 bytes
  */
-static u32 cmd_sign(u32 *args, u32 *out_args)
+maybe_unused static u32 cmd_sign(u32 *args, u32 *out_args)
 {
 	ec_sig_t sig;
 	u32 msg[17];
@@ -183,12 +183,12 @@ static u32 cmd_sign(u32 *args, u32 *out_args)
 	return MBOX_STS(0, 0, SUCCESS);
 }
 
-static u32 cmd_verify(u32 *args, u32 *out_args)
+maybe_unused static u32 cmd_verify(u32 *args, u32 *out_args)
 {
 	return MBOX_STS(0, EOPNOTSUPP, SUCCESS);
 }
 
-static u32 cmd_otp_read(u32 *args, u32 *out_args)
+maybe_unused static u32 cmd_otp_read(u32 *args, u32 *out_args)
 {
 	int lock, res;
 	u64 val;
@@ -207,7 +207,7 @@ static u32 cmd_otp_read(u32 *args, u32 *out_args)
 	return MBOX_STS(0, 0, SUCCESS);
 }
 
-static u32 cmd_otp_write(u32 *args, u32 *out_args)
+maybe_unused static u32 cmd_otp_write(u32 *args, u32 *out_args)
 {
 	int res;
 	u64 val;
