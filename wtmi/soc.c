@@ -327,7 +327,7 @@ DECL_DEBUG_CMD(info)
 
 	printf("Uptime: %u seconds\n", jiffies / HZ);
 
-	printf("Led: %s\n", gpio_get_val(57) ? "off" : "on");
+	printf("Led: %s\n", gpio_get_val(LED_GPIO) ? "off" : "on");
 
 	reg = readl(0xc000d064);
 	printf("SOC Watchdog: %s\n", reg ? "active" : "inactive");

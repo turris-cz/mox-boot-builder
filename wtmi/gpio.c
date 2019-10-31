@@ -61,9 +61,9 @@ DECL_DEBUG_CMD(led)
 		goto usage;
 
 	if (!strcmp(argv[1], "on") || !strcmp(argv[1], "1")) {
-		gpio_set_val(57, 0);
+		gpio_set_val(LED_GPIO, 0);
 	} else if (!strcmp(argv[1], "off") || !strcmp(argv[1], "0")) {
-		gpio_set_val(57, 1);
+		gpio_set_val(LED_GPIO, 1);
 	} else {
 		goto usage;
 	}

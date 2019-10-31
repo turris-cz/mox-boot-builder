@@ -13,6 +13,8 @@
 #define GPIO_PIN_INPUT		0x10
 #define GPIO_PIN_OUTPUT		0x18
 
+#define LED_GPIO		57
+
 static inline int gpio_is_valid(int gpio)
 {
 	return (gpio >= 0 && gpio < NGPIOS);
