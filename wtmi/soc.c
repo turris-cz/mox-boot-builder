@@ -171,7 +171,9 @@ static void reset_soc_irqs(void)
 
 	write_range(0xc0008a30, 0xc0008a64, 0);
 	writel(0, 0xc1d00000);
+	writel(0xffff, 0xc1d00080);
 	write_range(0xc1d00084, 0xc1d000fc, 0);
+	writel(0xffff0000, 0xc1d00180);
 	write_range(0xc1d00184, 0xc1d001fc, 0xffffffff);
 	write_range(0xc1d00284, 0xc1d001fc, 0xffffffff);
 	write_range(0xc1d00384, 0xc1d001fc, 0xffffffff);
@@ -229,18 +231,44 @@ static void cpu_software_reset(void)
 	writel(0xa1b2c3d4, 0xc000d060);
 }
 
-static void reset_soc(void)
-{
-	/* swrst; kick h; reset; kick */
+#include "a53_helper/a53_helper.c"
 
+static void run_a53_helper(u32 addr)
+{
+	memcpy((void *)AP_RAM(addr), a53_helper_code, sizeof(a53_helper_code));
+	start_ap_at(addr);
+	wait_ns(100000);
+}
+
+void start_ap_workaround(void)
+{
+	u32 i;
+
+	start_ap();
+
+	for (i = 0; i < 1000; ++i) {
+		wait_ns(100000);
+		if (readl(0x64000400))
+			break;
+	}
+
+	if (i == 1000)
+		cpu_software_reset();
+}
+
+void reset_soc(void)
+{
 	cpu_software_reset();
 	write_reg_vals(reset_a53_regs);
 	reset_soc_irqs();
 	write_reg_vals(reset_wdt_and_counters_regs);
 	reset_peripherals();
-
-	load_image(OBMI_ID, (void *)AP_RAM(ATF_ENTRY_ADDRESS), NULL);
+	run_a53_helper(0x10000000);
 	cpu_software_reset();
+
+	/* check return value! */
+	load_image(OBMI_ID, (void *)AP_RAM(ATF_ENTRY_ADDRESS), NULL);
+	start_ap_workaround();
 }
 
 DECL_DEBUG_CMD(reset)
@@ -249,8 +277,6 @@ DECL_DEBUG_CMD(reset)
 }
 
 DEBUG_CMD("reset", "Reset SOC and peripherals", reset);
-
-#include "a53_helper/a53_helper.c"
 
 DECL_DEBUG_CMD(kick)
 {
@@ -265,6 +291,9 @@ DECL_DEBUG_CMD(kick)
 		} else if (number(argv[1], &addr)) {
 			goto usage;
 		}
+
+		if (load != None && argc > 2 && number(argv[2], &addr))
+			goto usage;
 	}
 
 	switch (load) {
