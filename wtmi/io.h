@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#define AP_RAM		0x60000000
+#define AP_RAM(a)	(0x60000000 + (a))
 #define BIT(n)		(1UL << (n))
 
 static inline u8 readb(u32 addr)

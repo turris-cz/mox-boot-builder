@@ -25,7 +25,6 @@ volatile struct mox_builder_data __from_mox_builder mbd = {
 	{ 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
-#define AP_RAM		0x60000000
 #define PATTERN_1	0x0acc55aa
 #define PATTERN_2	0xdeadbeef
 
@@ -36,7 +35,7 @@ static void write_test_data(int mb, u32 pattern)
 
 	dat = pattern;
 	for (i = 0; i < 32; ++i) {
-		writel(dat, (AP_RAM + (mb << 20)) + 4 * i);
+		writel(dat, AP_RAM(mb << 20) + 4 * i);
 		dat = (dat << 1) | (dat >> 31);
 	}
 }
@@ -48,7 +47,7 @@ static int check_test_data(int mb, u32 pattern)
 
 	dat = pattern;
 	for (i = 0; i < 32; ++i) {
-		if (readl((AP_RAM + (mb << 20)) + 4 * i) != dat)
+		if (readl(AP_RAM(mb << 20) + 4 * i) != dat)
 			return 0;
 		dat = (dat << 1) | (dat >> 31);
 	}
@@ -64,7 +63,7 @@ static int get_ram_size(void)
 	 * connected to secure processor.
 	 * We do one read on AP RAM to overcome this.
 	 */
-	readl(AP_RAM);
+	readl(AP_RAM(0));
 
 	write_test_data(3, PATTERN_1);
 	write_test_data(515, PATTERN_2);

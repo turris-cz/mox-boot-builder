@@ -34,7 +34,7 @@ static u32 cmd_get_random(u32 *args, u32 *out_args)
 		if (!check_ap_addr(args[1], args[2], 4))
 			return MBOX_STS(0, EINVAL, FAIL);
 
-		paranoid_rand((void *) (AP_RAM + args[1]), args[2]);
+		paranoid_rand((void *)AP_RAM(args[1]), args[2]);
 		res = 0xfffff;
 	} else {
 		res = ebg_rand(out_args, MBOX_MAX_ARGS * sizeof(u32));
@@ -137,7 +137,7 @@ static u32 cmd_hash(u32 *args, u32 *out_args)
 	if (!check_ap_addr(args[1], args[2], 4))
 		return MBOX_STS(0, EINVAL, FAIL);
 
-	fn((void *) (AP_RAM + args[1]), args[2], out_args);
+	fn((void *)AP_RAM(args[1]), args[2], out_args);
 
 	return MBOX_STS(0, 0, SUCCESS);
 }
@@ -168,7 +168,7 @@ static u32 cmd_sign(u32 *args, u32 *out_args)
 
 	/* read src message from AP RAM */
 	for (i = 0; i < 17; ++i)
-		msg[16 - i] = readl(AP_RAM + args[1] + 4 * i);
+		msg[16 - i] = readl(AP_RAM(args[1] + 4 * i));
 
 	res = ecdsa_sign(&sig, msg);
 	if (res < 0)
@@ -176,8 +176,8 @@ static u32 cmd_sign(u32 *args, u32 *out_args)
 
 	/* write signature to AP RAM */
 	for (i = 0; i < 17; ++i) {
-		writel(sig.r[16 - i], AP_RAM + args[2] + 4 * i);
-		writel(sig.s[16 - i], AP_RAM + args[3] + 4 * i);
+		writel(sig.r[16 - i], AP_RAM(args[2] + 4 * i));
+		writel(sig.s[16 - i], AP_RAM(args[3] + 4 * i));
 	}
 
 	return MBOX_STS(0, 0, SUCCESS);

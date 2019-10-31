@@ -239,7 +239,7 @@ static void reset_soc(void)
 	write_reg_vals(reset_wdt_and_counters_regs);
 	reset_peripherals();
 
-	load_image(OBMI_ID, (void *)(AP_RAM + ATF_ENTRY_ADDRESS), NULL);
+	load_image(OBMI_ID, (void *)AP_RAM(ATF_ENTRY_ADDRESS), NULL);
 	cpu_software_reset();
 }
 
@@ -269,12 +269,12 @@ DECL_DEBUG_CMD(kick)
 
 	switch (load) {
 	case Helper:
-		memcpy((void *)(AP_RAM + addr), a53_helper_code,
+		memcpy((void *)AP_RAM(addr), a53_helper_code,
 		       sizeof(a53_helper_code));
 		break;
 	case Uboot:
 		spi_init(&nordev);
-		spi_nor_read(&nordev, (void *)(AP_RAM + addr), 0x20000,
+		spi_nor_read(&nordev, (void *)AP_RAM(addr), 0x20000,
 			     0x160000);
 		break;
 	default:
