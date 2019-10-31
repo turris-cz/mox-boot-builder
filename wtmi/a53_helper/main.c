@@ -106,7 +106,7 @@ static inline void setbitsl(size_t addr, u32 val, u32 mask)
 #define RWTM_HOST_INT_RESET	0xd00b00c8
 #define RWTM_HOST_INT_MASK	0xd00b00cc
 
-static void delay(void)
+static void __attribute__((unused)) delay(void)
 {
 	int i;
 	for (i = 0; i < 100; ++i) {
