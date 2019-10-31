@@ -38,6 +38,20 @@ void *memmove(void *dest, const void *src, u32 n)
 	}
 }
 
+int memcmp(const void *_p1, const void *_p2, u32 n)
+{
+	const s8 *p1 = _p1, *p2 = _p2;
+	s8 d;
+
+	while (n--) {
+		d = *p1++ - *p2++;
+		if (d)
+			return d;
+	}
+
+	return 0;
+}
+
 int strcmp(const char *p1, const char *p2)
 {
 	while (*p1 == *p2) {
