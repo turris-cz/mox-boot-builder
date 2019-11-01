@@ -1,6 +1,5 @@
 #include "types.h"
 #include "string.h"
-#include "printf.h"
 #include "gpio.h"
 #include "debug.h"
 

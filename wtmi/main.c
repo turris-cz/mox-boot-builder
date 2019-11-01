@@ -1,6 +1,5 @@
 #include "errno.h"
 #include "types.h"
-#include "printf.h"
 #include "uart.h"
 #include "mbox.h"
 #include "efuse.h"
@@ -257,8 +256,6 @@ void main(void)
 	res = uart_init(get_debug_uart(), 115200);
 	if (res < 0)
 		return;
-
-	init_printf((void *)get_debug_uart(), uart_putc);
 
 #ifdef DEPLOY
 	ebg_init();

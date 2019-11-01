@@ -35,6 +35,8 @@
 #ifndef __UART_H
 #define __UART_H
 
+#include "stdio.h"
+
 struct uart_info {
 	u32 rx;
 	u32 tx;
@@ -47,8 +49,7 @@ struct uart_info {
 
 extern const struct uart_info uart1_info, uart2_info;
 
-int uart_init(const struct uart_info *info, unsigned int baudrate);
-void uart_putc(void *p, char c);
-int uart_getc(const struct uart_info *info);
+extern int uart_init(const struct uart_info *info, unsigned int baudrate);
+extern int uart_getc(const struct uart_info *info);
 
 #endif /* __UART_H */

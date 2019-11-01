@@ -37,6 +37,7 @@
 #include "io.h"
 #include "uart.h"
 #include "clock.h"
+#include "stdio.h"
 #include "debug.h"
 
 #define UART_CLOCK_FREQ		25804800
@@ -63,6 +64,12 @@ const struct uart_info uart2_info = {
 	.possr	= 0xc0012214,
 };
 
+int uart_putc(int _c, void *p);
+
+static FILE uart_stdout = {
+	.putc = uart_putc,
+};
+
 int uart_init(const struct uart_info *info, unsigned int baudrate)
 {
 	/* set baudrate */
@@ -84,22 +91,26 @@ int uart_init(const struct uart_info *info, unsigned int baudrate)
 	if (info == &uart2_info)
 		setbitsl(NB_PINCTRL, BIT(19), BIT(19) | BIT(13) | BIT(14));
 
+	uart_stdout.data = (void *)info;
+	stdout = &uart_stdout;
+
 	return 0;
 }
 
-void uart_putc(void *p, char c)
+int uart_putc(int _c, void *p)
 {
 	const struct uart_info *info = p;
+	unsigned char c = _c;
 
 	if (c == '\n')
-		uart_putc(p, '\r');
+		uart_putc('\r', p);
 
 	while (readl(info->status) & BIT(11))
 		wait_ns(20000);
 
 	writel(c, info->tx);
 
-	return;
+	return c;
 }
 
 int uart_getc(const struct uart_info *info)

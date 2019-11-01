@@ -7,7 +7,6 @@
 #include "string.h"
 #include "mdio.h"
 #include "gpio.h"
-#include "printf.h"
 #include "debug.h"
 #include "tim.h"
 

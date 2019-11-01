@@ -34,7 +34,7 @@
 
 #include "../io.h"
 #include "../clock.h"
-#include "../printf.h"
+#include "../stdio.h"
 
 #define BIT0	BIT(0)
 #define BIT1	BIT(1)

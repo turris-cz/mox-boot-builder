@@ -34,7 +34,7 @@
 
 #include "io.h"
 #include "clock.h"
-#include "printf.h"
+#include "stdio.h"
 #include "errno.h"
 
 #define NB_TBG_CFG		0xc0013200

@@ -1,7 +1,6 @@
 #include "types.h"
 #include "irq.h"
 #include "string.h"
-#include "printf.h"
 #include "debug.h"
 
 #define RELOAD_HELPER_ADDR	0x1fffff00

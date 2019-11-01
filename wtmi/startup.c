@@ -1,6 +1,5 @@
 #include "types.h"
 #include "irq.h"
-#include "printf.h"
 
 extern u32 stack_top;
 extern void main(void);

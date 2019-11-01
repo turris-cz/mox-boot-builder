@@ -5,7 +5,7 @@
 #include "tim.h"
 #include "efuse.h"
 #include "irq.h"
-#include "printf.h"
+#include "stdio.h"
 
 #define TIMH_ID		0x54494d48
 #define TIMN_ID		0x54494d4e

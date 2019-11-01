@@ -2,6 +2,7 @@
 #define _DEBUG_H_
 
 #include "uart.h"
+#include "stdio.h"
 
 #ifdef DEBUG_UART2
 
@@ -68,20 +69,9 @@ static inline int decnumber(const char *str, u32 *pres)
 	return _number(str, pres, 10);
 }
 
-static inline void putc(u8 c)
-{
-	uart_putc((void *)get_debug_uart(), c);
-}
-
 static inline int getc(void)
 {
 	return uart_getc(get_debug_uart());
-}
-
-static inline void puts(const char *s)
-{
-	while (*s)
-		putc(*s++);
 }
 
 #endif /* _DEBUG_H_ */

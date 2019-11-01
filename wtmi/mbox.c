@@ -3,7 +3,6 @@
 #include "io.h"
 #include "irq.h"
 #include "mbox.h"
-#include "printf.h"
 
 #define MBOX_IN_ARG(n)		(0x40000000 + (n) * 4)
 #define MBOX_IN_CMD		0x40000040

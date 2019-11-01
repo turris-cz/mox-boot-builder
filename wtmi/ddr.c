@@ -37,7 +37,7 @@
 #include "avs.h"
 #include "ddr/ddrcore.h"
 #include "string.h"
-#include "printf.h"
+#include "stdio.h"
 
 #define CM3_WIN_CONROL(win)		(0xc000c700 + ((win) << 4))
 #define CM3_WIN_BASE(win)		(0xc000c704 + ((win) << 4))
@@ -160,7 +160,7 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int BUS_WIDTH, int SPEED_BIN, int CS_NU
 
 	debug("\nDDR topology parameters:\n");
 	debug("========================\n");
-	debug("ddr type               DDR%d\n", DDR_TYPE+3);
+	debug("ddr type               DDR%d\n", 3);
 	debug("ddr speedbin           %d\n", SPEED_BIN);
 	debug("bus width              %d-bits\n", map.bus_width);
 	debug("cs num                 %d\n", map.cs_num);

@@ -34,7 +34,6 @@
 
 #include "io.h"
 #include "clock.h"
-#include "printf.h"
 #include "avs.h"
 
 static int otp_nb_read_parallel(u32 *data)

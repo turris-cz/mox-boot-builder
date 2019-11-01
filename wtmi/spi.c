@@ -3,7 +3,6 @@
 #include "clock.h"
 #include "spi.h"
 #include "string.h"
-#include "printf.h"
 #include "debug.h"
 
 #define NB_PINCTRL		0xc0013830

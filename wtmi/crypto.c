@@ -1,6 +1,5 @@
 #include "errno.h"
 #include "types.h"
-#include "printf.h"
 #include "ebg.h"
 #include "io.h"
 #include "clock.h"

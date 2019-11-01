@@ -2,7 +2,6 @@
 #include "uart.h"
 #include "io.h"
 #include "string.h"
-#include "printf.h"
 #include "debug.h"
 
 #define BETWEEN(x,l,h) ((l) <= (x) && (x) <= (h))
