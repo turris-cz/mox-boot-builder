@@ -38,6 +38,8 @@ typedef short			s16;
 typedef char			s8;
 typedef char			byte;
 
+typedef u32			size_t;
+
 #define	NULL			((void *)0)
 
 #define MIN(a, b)   ((a) < (b) ? (a) : (b))
