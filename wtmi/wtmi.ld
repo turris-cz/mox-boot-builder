@@ -37,4 +37,11 @@ SECTIONS
   . = . + 0x2000;
   next_timn_image = .;
   . = . + 0x2000;
+
+  /DISCARD/ : { *(.interp*) }
+  /DISCARD/ : { *(.dynsym) }
+  /DISCARD/ : { *(.dynstr*) }
+  /DISCARD/ : { *(.dynamic*) }
+  /DISCARD/ : { *(.gnu*) }
+  /DISCARD/ : { *(.rel*) }
 }

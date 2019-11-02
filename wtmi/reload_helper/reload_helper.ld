@@ -15,4 +15,11 @@ SECTIONS
     *(.bss)
     *(COMMON)
   }
+
+  /DISCARD/ : { *(.interp*) }
+  /DISCARD/ : { *(.dynsym) }
+  /DISCARD/ : { *(.dynstr*) }
+  /DISCARD/ : { *(.dynamic*) }
+  /DISCARD/ : { *(.gnu*) }
+  /DISCARD/ : { *(.rel*) }
 }

@@ -30,4 +30,11 @@ SECTIONS
   malloc_start = .;
   . = . + 0xc000;
   malloc_end = .;
+
+  /DISCARD/ : { *(.interp*) }
+  /DISCARD/ : { *(.dynsym) }
+  /DISCARD/ : { *(.dynstr*) }
+  /DISCARD/ : { *(.dynamic*) }
+  /DISCARD/ : { *(.gnu*) }
+  /DISCARD/ : { *(.rel*) }
 }
