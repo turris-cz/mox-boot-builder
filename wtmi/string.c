@@ -1,4 +1,12 @@
-#include "string.h"
+#include "types.h"
+
+void bzero(void *dest, size_t n)
+{
+	u8 *d = dest;
+
+	while (n--)
+		*d++ = 0;
+}
 
 void *memset(void *dest, int c, size_t n)
 {
