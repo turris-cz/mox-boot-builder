@@ -511,8 +511,8 @@ DECL_DEBUG_CMD(cmd_efuse)
 		     i < (argc == 3 ? row + 1 : 44);
 		     ++i) {
 			res = efuse_read_row(i, &val, &lock);
-			printf("Row %d: %08x%08x%s%s\n", i, (u32)(val >> 32),
-			       (u32)(val & 0xffffffff), lock ? ", locked" : "",
+			printf("Row %d: %016llx%s%s\n", i, val,
+			       lock ? ", locked" : "",
 			       res == -EIO ? ", ECC error" :
 			       res == -EACCES ? ", masked" : "");
 		}
