@@ -230,6 +230,10 @@ static int do_number(FILE *stream, enum flags flags, int width, int prec,
 		width = MAX(minlen, width);
 		spaces = width - minlen;
 	} else {
+		if (!len) {
+			*--p = '0';
+			++len;
+		}
 		minlen = len + pfxlen + sign;
 		width = MAX(width, minlen);
 		if (flags & FLAG_ZEROPAD) {
