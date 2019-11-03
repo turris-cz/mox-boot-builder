@@ -105,6 +105,7 @@ static u32 cbuf_pull(cbuf_t *cbuf, void *dest, u32 len)
 		u32 tail = cbuf->size - cbuf->pos;
 
 		memcpy(dest, &cbuf->data[cbuf->pos], tail);
+		bzero(&cbuf->data[cbuf->pos], tail);
 		dest += tail;
 		len -= tail;
 		cbuf->len -= tail;
@@ -112,8 +113,9 @@ static u32 cbuf_pull(cbuf_t *cbuf, void *dest, u32 len)
 	}
 
 	memcpy(dest, &cbuf->data[cbuf->pos], len);
+	bzero(&cbuf->data[cbuf->pos], len);
 	cbuf->len -= len;
-	cbuf->pos = (cbuf->pos + cbuf->len) % cbuf->size;
+	cbuf->pos = (cbuf->pos + len) % cbuf->size;
 
 	return res;
 }
@@ -125,14 +127,15 @@ static inline u32 cbuf_free_space(const cbuf_t *cbuf)
 
 static u32 cbuf_push(cbuf_t *cbuf, const void *src, u32 len)
 {
-	u32 res;
+	u32 res, pos;
 	u8 *dest;
 
 	len = res = MIN(cbuf_free_space(cbuf), len);
-	dest = &cbuf->data[cbuf->pos];
+	pos = (cbuf->pos + cbuf->len) % cbuf->size;
+	dest = &cbuf->data[pos];
 
-	if (cbuf->pos + len > cbuf->size) {
-		u32 tail = cbuf->size - cbuf->pos;
+	if (pos + len > cbuf->size) {
+		u32 tail = cbuf->size - pos;
 
 		memcpy(dest, src, tail);
 		src += tail;
@@ -152,6 +155,9 @@ static const void *paranoid_rand_64(void);
 void ebg_process(void) {
 	u16 val;
 
+	if (ebg_cbuf.len >= 512 && cbuf_free_space(&paranoid_rand_cbuf) >= 64)
+		cbuf_push(&paranoid_rand_cbuf, paranoid_rand_64(), 64);
+
 	if (ebg_cbuf.len > ebg_cbuf.size - 2)
 		return;
 
@@ -159,9 +165,6 @@ void ebg_process(void) {
 		return;
 
 	cbuf_push(&ebg_cbuf, &val, 2);
-
-	if (ebg_cbuf.len >= 512 && cbuf_free_space(&paranoid_rand_cbuf) >= 64)
-		cbuf_push(&paranoid_rand_cbuf, paranoid_rand_64(), 64);
 }
 
 void ebg_rand_sync(void *buffer, u32 size)
