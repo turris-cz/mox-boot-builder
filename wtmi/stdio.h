@@ -18,6 +18,7 @@ extern int fputs(const char *str, FILE *stream);
 extern int puts(const char *str);
 extern int vfprintf(FILE *stream, const char *fmt, va_list ap);
 extern int fprintf(FILE *stream, const char *fmt, ...);
+extern int vprintf(const char *fmt, va_list ap);
 extern int printf(const char *fmt, ...);
 
 #define debug(...)

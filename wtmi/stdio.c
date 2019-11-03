@@ -366,6 +366,11 @@ int fprintf(FILE *stream, const char *fmt, ...)
 	return res;
 }
 
+int vprintf(const char *fmt, va_list ap)
+{
+	return vfprintf(stdout, fmt, ap);
+}
+
 int printf(const char *fmt, ...)
 {
 	int res;
