@@ -75,11 +75,33 @@ static void escape_seq_error()
 	escape_state = escape_seq_len = 0;
 }
 
+static u8 *history_get(int idx, int *lenp)
+{
+	int pos, i, len;
+
+	idx = history_cmds - idx - 1;
+	for (i = 0, pos = 0; pos < history_len; pos += len + 1, ++i) {
+		len = strnlen(&history[pos], history_len - pos);
+		if (idx == i) {
+			if (lenp)
+				*lenp = len;
+			return (u8 *)&history[pos];
+		}
+	}
+
+	return NULL;
+}
+
 static void history_add(void)
 {
+	u8 *prev;
 	int free_space;
 
 	if (!cmdlen)
+		return;
+
+	prev = history_get(0, NULL);
+	if (prev && !strcmp(cmd, prev))
 		return;
 
 	free_space = sizeof(history) - history_len;
@@ -96,23 +118,6 @@ static void history_add(void)
 	memcpy(history + history_len, cmd, cmdlen + 1);
 	history_len += cmdlen + 1;
 	++history_cmds;
-}
-
-static u8 *history_get(int idx, int *lenp)
-{
-	int pos, i, len;
-
-	idx = history_cmds - idx - 1;
-	for (i = 0, pos = 0; pos < history_len; pos += len + 1, ++i) {
-		len = strnlen(&history[pos], history_len - pos);
-		if (idx == i) {
-			if (lenp)
-				*lenp = len;
-			return (u8 *)&history[pos];
-		}
-	}
-
-	return NULL;
 }
 
 static void cmd_set(u8 *newcmd, int newpos)
