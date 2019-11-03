@@ -487,7 +487,6 @@ int efuse_write_secure_buffer(u32 *priv)
 	return res;
 }
 
-#if 1
 DECL_DEBUG_CMD(cmd_efuse)
 {
 	u32 row = 0;
@@ -526,4 +525,3 @@ usage:
 }
 
 DEBUG_CMD("efuse", "eFuse access", cmd_efuse);
-#endif

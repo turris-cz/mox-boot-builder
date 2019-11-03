@@ -23,7 +23,6 @@ void do_reload(u32 addr, u32 len)
 	reload_helper((void *)addr, len / 4);
 }
 
-#if 1
 DECL_DEBUG_CMD(reload)
 {
 	u32 addr, len;
@@ -44,4 +43,3 @@ DECL_DEBUG_CMD(reload)
 }
 
 DEBUG_CMD("reload", "reload secure-firmware", reload);
-#endif

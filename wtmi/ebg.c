@@ -262,7 +262,6 @@ void paranoid_rand(void *buffer, u32 size)
 	}
 }
 
-#if 1
 DECL_DEBUG_CMD(cmd_rand)
 {
 	u32 len = 0, i, val;
@@ -304,4 +303,3 @@ usage:
 }
 
 DEBUG_CMD("rand", "TRNG testing utility", cmd_rand);
-#endif

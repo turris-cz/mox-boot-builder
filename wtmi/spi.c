@@ -127,7 +127,6 @@ void spi_nor_read(const struct spi *spi, void *dst, u32 pos, u32 len)
 	spi_flash_cmd_rw(spi, op, sizeof(op), dst, NULL, len);
 }
 
-#if 1
 DECL_DEBUG_CMD(cmd_spi)
 {
 	struct spi spidev;
@@ -266,4 +265,3 @@ usage:
 }
 
 DEBUG_CMD("sf", "SPI flash", cmd_sf);
-#endif
