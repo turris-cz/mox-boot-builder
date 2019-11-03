@@ -19,6 +19,8 @@ CPPFLAGS =
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
 LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -no-pie -Xlinker "--build-id=none"
 
+LIBGCC_A = $(shell $(CC) -print-libgcc-file-name)
+
 CSRC = main.c malloc.c zlib.c string.c startup.c reload.c main_wtmi.c
 ASRC = startup_asm.S
 
@@ -31,13 +33,13 @@ all: wtmi.bin
 
 wtmi.bin: $(COBJ) $(AOBJ)
 	$(ECHO) "  LD    $(MAKECMDGOALS)"
-	$(CC) $(LDFLAGS)  $(AOBJ)  $(COBJ) -o wtmi.elf
+	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) $(LIBGCC_A) -o wtmi.elf
 	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
 	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S wtmi.elf > wtmi.dis; fi
 
 main_wtmi.c: main_wtmi.zlib
 	$(ECHO) "  BIN2C main_wtmi.c"
-	$(ECHO) "const unsigned char main_wtmi_zlib[$(shell stat -c %s main_wtmi.zlib)] __attribute__((section(\".compressed_data\"))) = {" >main_wtmi.c
+	$(ECHO) "const unsigned char main_wtmi_zlib[$(shell stat -c %s main_wtmi.zlib)] __attribute__((section(\".compressed_data\"), used)) = {" >main_wtmi.c
 	@bin2c <main_wtmi.zlib >>main_wtmi.c
 	$(ECHO) "};" >>main_wtmi.c
 

@@ -1,7 +1,5 @@
 OUTPUT_FORMAT ("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 
-GROUP(libgcc.a)
-
 ENTRY(reset_handler)
 
 SECTIONS
@@ -44,4 +42,5 @@ SECTIONS
   /DISCARD/ : { *(.dynamic*) }
   /DISCARD/ : { *(.gnu*) }
   /DISCARD/ : { *(.rel*) }
+  /DISCARD/ : { *(.ARM*) }
 }

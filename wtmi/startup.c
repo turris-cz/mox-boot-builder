@@ -26,7 +26,7 @@ void pendsv_handler(void) __attribute((weak, alias("default_handler")));
 void systick_handler(void) __attribute((weak, alias("default_handler")));
 void external_irq(void) __attribute((weak, alias("default_handler")));
 
-__attribute((section(".isr_vector")))
+__attribute((section(".isr_vector"), used))
 u32 *isr_vectors[] = {
 	(u32 *) &stack_top,		/* stack pointer */
 	(u32 *) reset_handler,		/* code entry point */

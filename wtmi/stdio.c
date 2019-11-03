@@ -23,7 +23,7 @@ enum mod {
 	MOD_LL,
 };
 
-int putc(int c, FILE *stream)
+int __attribute__((used)) putc(int c, FILE *stream)
 {
 	if (stream && stream->putc)
 		return stream->putc(c, stream->data);
@@ -31,12 +31,12 @@ int putc(int c, FILE *stream)
 		return EOF;
 }
 
-int putchar(int c)
+int __attribute__((used)) putchar(int c)
 {
 	return putc(c, stdout);
 }
 
-int fputs(const char *str, FILE *stream)
+int __attribute__((used)) fputs(const char *str, FILE *stream)
 {
 	while (*str)
 		if (putc(*str++, stream) < 0)
@@ -44,7 +44,7 @@ int fputs(const char *str, FILE *stream)
 	return 0;
 }
 
-int puts(const char *str)
+int __attribute__((used)) puts(const char *str)
 {
 	if (fputs(str, stdout) < 0)
 		return -1;
