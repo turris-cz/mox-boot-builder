@@ -48,8 +48,8 @@ DECL_DEBUG_CMD(gpio)
 
 	return;
 usage:
-	puts("usage: gpio <input|set|clear|toggle> <pin>\n");
-	puts("       gpio status\n");
+	printf("usage: gpio <input|set|clear|toggle> <pin>\n");
+	printf("       gpio status\n");
 }
 
 DEBUG_CMD("gpio", "query and control gpio pins", gpio);
@@ -69,7 +69,7 @@ DECL_DEBUG_CMD(led)
 
 	return;
 usage:
-	puts("usage: led <on|off>\n");
+	printf("usage: led <on|off>\n");
 }
 
 DEBUG_CMD("led", "led control", led);

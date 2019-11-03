@@ -35,11 +35,11 @@ DECL_DEBUG_CMD(reload)
 		return;
 
 	if ((addr % 4) || (len % 4)) {
-		puts("Address and length must be multiple of 4!\n");
+		printf("Address and length must be multiple of 4!\n");
 		return;
 	}
 
-	puts("Reloading secure firmware\n");
+	printf("Reloading secure firmware\n");
 	do_reload(addr, len);
 }
 

@@ -499,7 +499,7 @@ DECL_DEBUG_CMD(cmd_efuse)
 		return;
 
 	if (row >= 44) {
-		puts("Invalid row number\n");
+		printf("Invalid row number\n");
 		return;
 	}
 
@@ -522,7 +522,7 @@ DECL_DEBUG_CMD(cmd_efuse)
 
 	return;
 usage:
-	puts("usage: efuse read [row]\n");
+	printf("usage: efuse read [row]\n");
 }
 
 DEBUG_CMD("efuse", "eFuse access", cmd_efuse);

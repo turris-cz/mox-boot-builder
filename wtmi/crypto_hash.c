@@ -164,7 +164,7 @@ DECL_DEBUG_CMD(cmd_hash_specific)
 
 	for (i = 0; i < dlen; ++i)
 		printf("%08x", __builtin_bswap32(digest[i]));
-	puts("\n\n");
+	printf("\n\n");
 
 	return;
 usage:
@@ -261,8 +261,8 @@ DECL_DEBUG_CMD(cmd_hash)
 
 	return cmd_hash_specific(argc - 1, argv + 1);
 usage:
-	puts("usage: hash test\n");
-	puts("       hash <md5|sha1|sha224|sha256|sha384|sha512> <addr> <len>\n");
+	printf("usage: hash test\n");
+	printf("       hash <md5|sha1|sha224|sha256|sha384|sha512> <addr> <len>\n");
 }
 
 DEBUG_CMD("hash", "General hash command", cmd_hash);

@@ -140,7 +140,7 @@ DECL_DEBUG_CMD(cmd_spi)
 		goto usage;
 
 	if (argv[1][0] < '0' || argv[1][0] > '3') {
-		puts("Only values 0-3 supported for chip-select!\n");
+		printf("Only values 0-3 supported for chip-select!\n");
 		return;
 	}
 
@@ -151,7 +151,7 @@ DECL_DEBUG_CMD(cmd_spi)
 			goto usage;
 
 		if (argv[1][2] < '0' || argv[1][2] > '3') {
-			puts("Only values 0-3 supported for mode!\n");
+			printf("Only values 0-3 supported for mode!\n");
 			return;
 		}
 
@@ -169,7 +169,7 @@ DECL_DEBUG_CMD(cmd_spi)
 	wptr_hex = argc > 3 ? argv[3] : NULL;
 
 	if (wlen && wlen != rlen * 2) {
-		puts("Data argument has wrong length\n");
+		printf("Data argument has wrong length\n");
 		return;
 	}
 
@@ -201,11 +201,11 @@ DECL_DEBUG_CMD(cmd_spi)
 	}
 
 	spi_cs_deactivate(&spidev);
-	putchar('\n');
+	printf("\n");
 
 	return;
 usage:
-	puts("usage: spi <cs>[.<mode>] <hex_len> [hex_data_out]\n");
+	printf("usage: spi <cs>[.<mode>] <hex_len> [hex_data_out]\n");
 }
 
 DEBUG_CMD("spi", "SPI utility", cmd_spi);
@@ -254,16 +254,15 @@ DECL_DEBUG_CMD(cmd_sf)
 			pos += rd;
 			addr += rd;
 		}
-		printf("\r%x read", total);
-		putchar('\n');
+		printf("\r%x read\n", total);
 	} else {
 		goto usage;
 	}
 
 	return;
 usage:
-	puts("usage: sf id\n");
-	puts("       sf read addr position length [block_size]\n");
+	printf("usage: sf id\n");
+	printf("       sf read addr position length [block_size]\n");
 }
 
 DEBUG_CMD("sf", "SPI flash", cmd_sf);

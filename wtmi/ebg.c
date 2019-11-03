@@ -298,9 +298,9 @@ DECL_DEBUG_CMD(cmd_rand)
 
 	return;
 usage:
-	puts("usage: rand raw [n]\n");
-	puts("       rand strong [n]\n");
-	puts("       rand state\n");
+	printf("usage: rand raw [n]\n");
+	printf("       rand strong [n]\n");
+	printf("       rand state\n");
 }
 
 DEBUG_CMD("rand", "TRNG testing utility", cmd_rand);

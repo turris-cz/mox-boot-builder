@@ -46,7 +46,9 @@ int fputs(const char *str, FILE *stream)
 
 int puts(const char *str)
 {
-	return fputs(str, stdout);
+	if (fputs(str, stdout) < 0)
+		return -1;
+	return putchar('\n');
 }
 
 static inline enum flags get_flags(const char **fmt)

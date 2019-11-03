@@ -19,9 +19,9 @@ static int history_len, history_cmds, history_pos;
 static u8 orig_cmd[128];
 static int orig_cmdlen;
 
-static void prompt(void)
+static inline void prompt(void)
 {
-	puts("debug cmd> ");
+	printf("debug cmd> ");
 }
 
 static void cmd_append(u8 c)
@@ -38,10 +38,10 @@ static void cmd_append(u8 c)
 	++cmdlen;
 
 	putchar(cmd[cmdpos - 1]);
-	puts("\033[s");
+	printf("\033[s");
 	for (i = cmdpos; i < cmdlen; ++i)
 		putchar(cmd[i]);
-	puts("\033[u");
+	printf("\033[u");
 }
 
 static void cmd_del(void)
@@ -51,12 +51,12 @@ static void cmd_del(void)
 	if (cmdpos == cmdlen)
 		return;
 
-	puts("\033[s");
+	printf("\033[s");
 	for (i = cmdpos; i < cmdlen-1; ++i) {
 		cmd[i] = cmd[i+1];
 		putchar(cmd[i]);
 	}
-	puts("\033[K\033[u");
+	printf("\033[K\033[u");
 
 	--cmdlen;
 }
@@ -127,7 +127,7 @@ static void cmd_set(u8 *newcmd, int newpos)
 
 	printf("\r\033[2K");
 	prompt();
-	puts((char *)cmd);
+	printf("%s", (char *)cmd);
 	if (cmdlen - cmdpos > 0)
 		printf("\033[%dD", cmdlen - cmdpos);
 }
@@ -179,13 +179,13 @@ static void escape_seq_process()
 		/* cursor left */
 		if (cmdpos > 0) {
 			--cmdpos;
-			puts("\033[D");
+			printf("\033[D");
 		}
 	} else if (escape_seq[0] == 'C') {
 		/* cursor right */
 		if (cmdpos < cmdlen) {
 			++cmdpos;
-			puts("\033[C");
+			printf("\033[C");
 		}
 	} else if (escape_seq[0] == 'A') {
 		/* cursor up */
@@ -277,7 +277,7 @@ static void consume_normal(u8 c)
 	case 3:
 		/* CTRL + C */
 		cmdlen = cmdpos = history_pos = 0;
-		puts("^C\n");
+		printf("^C\n");
 		prompt();
 		break;
 	case 5:
@@ -286,7 +286,7 @@ static void consume_normal(u8 c)
 		break;
 	case '\b':
 		if (cmdpos) {
-			puts("\033[D");
+			printf("\033[D");
 			--cmdpos;
 			cmd_del();
 		}
@@ -312,7 +312,7 @@ static void consume_normal(u8 c)
 
 void debug_init(void)
 {
-	puts("\nCZ.NIC Turris Mox Secure Firmware debug command line\n");
+	printf("\nCZ.NIC Turris Mox Secure Firmware debug command line\n");
 	prompt();
 }
 
@@ -363,7 +363,7 @@ DECL_DEBUG_CMD(help)
 
 	for (i = s; i < e; ++i)
 		printf("%s - %s\n", i->name, i->help);
-	putchar('\n');
+	printf("\n");
 }
 
 DEBUG_CMD("help", "Display this help", help);
@@ -423,7 +423,7 @@ DECL_DEBUG_CMD(md)
 	}
 
 	if (argc < 2 || argc > 3) {
-		puts("usage: md[.l, .w, .b] address [count]\n");
+		printf("usage: md[.l, .w, .b] address [count]\n");
 		return;
 	}
 
@@ -456,13 +456,13 @@ DECL_DEBUG_CMD(md)
 		}
 
 		if (((i+1) % (16 / sz)) == 0)
-			putchar('\n');
+			printf("\n");
 	
 		addr += sz;
 	}
 
 	if ((i % (16 / sz)) != 0)
-		putchar('\n');
+		printf("\n");
 }
 
 DEBUG_CMD("md", "Memory display (longs)", md);
@@ -483,7 +483,7 @@ DECL_DEBUG_CMD(mw)
 	}
 
 	if (argc < 3 || argc > 4) {
-		puts("usage: mw[.l, .w, .b] address value [count]\n");
+		printf("usage: mw[.l, .w, .b] address value [count]\n");
 		return;
 	}
 

@@ -312,10 +312,10 @@ DECL_DEBUG_CMD(kick)
 	start_ap_at(addr);
 	return;
 usage:
-	puts("usage: kick [uboot|helper] [addr]\n");
-	puts("       starts main CPU at address addr (default 0x04100000)\n");
-	puts("       if argument 1 is uboot, loads U-Boot from SPI-NOR\n");
-	puts("       if argument 1 is helper, loads a53_helper (compiled-in binary)\n");
+	printf("usage: kick [uboot|helper] [addr]\n");
+	printf("       starts main CPU at address addr (default 0x04100000)\n");
+	printf("       if argument 1 is uboot, loads U-Boot from SPI-NOR\n");
+	printf("       if argument 1 is helper, loads a53_helper (compiled-in binary)\n");
 }
 
 DEBUG_CMD("kick", "Kick AP", kick);
