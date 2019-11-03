@@ -201,7 +201,7 @@ DECL_DEBUG_CMD(cmd_spi)
 	}
 
 	spi_cs_deactivate(&spidev);
-	putc('\n');
+	putchar('\n');
 
 	return;
 usage:
@@ -255,7 +255,7 @@ DECL_DEBUG_CMD(cmd_sf)
 			addr += rd;
 		}
 		printf("\r%x read", total);
-		putc('\n');
+		putchar('\n');
 	} else {
 		goto usage;
 	}

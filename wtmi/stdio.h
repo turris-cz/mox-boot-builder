@@ -12,8 +12,8 @@ typedef struct {
 
 extern FILE *stdout;
 
-extern int fputc(int c, FILE *stream);
-extern int putc(int c);
+extern int putc(int c, FILE *stream);
+extern int putchar(int c);
 extern int fputs(const char *str, FILE *stream);
 extern int puts(const char *str);
 extern int vfprintf(FILE *stream, const char *fmt, va_list ap);

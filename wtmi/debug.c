@@ -37,10 +37,10 @@ static void cmd_append(u8 c)
 	++cmdpos;
 	++cmdlen;
 
-	putc(cmd[cmdpos - 1]);
+	putchar(cmd[cmdpos - 1]);
 	puts("\033[s");
 	for (i = cmdpos; i < cmdlen; ++i)
-		putc(cmd[i]);
+		putchar(cmd[i]);
 	puts("\033[u");
 }
 
@@ -54,7 +54,7 @@ static void cmd_del(void)
 	puts("\033[s");
 	for (i = cmdpos; i < cmdlen-1; ++i) {
 		cmd[i] = cmd[i+1];
-		putc(cmd[i]);
+		putchar(cmd[i]);
 	}
 	puts("\033[K\033[u");
 
@@ -293,7 +293,7 @@ static void consume_normal(u8 c)
 		break;
 	case '\r':
 	case '\n':
-		putc('\n');
+		putchar('\n');
 		cmd[cmdlen] = '\0';
 		cmd_exec();
 		cmdlen = cmdpos = 0;
@@ -363,7 +363,7 @@ DECL_DEBUG_CMD(help)
 
 	for (i = s; i < e; ++i)
 		printf("%s - %s\n", i->name, i->help);
-	putc('\n');
+	putchar('\n');
 }
 
 DEBUG_CMD("help", "Display this help", help);
@@ -456,13 +456,13 @@ DECL_DEBUG_CMD(md)
 		}
 
 		if (((i+1) % (16 / sz)) == 0)
-			putc('\n');
+			putchar('\n');
 	
 		addr += sz;
 	}
 
 	if ((i % (16 / sz)) != 0)
-		putc('\n');
+		putchar('\n');
 }
 
 DEBUG_CMD("md", "Memory display (longs)", md);

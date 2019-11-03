@@ -23,7 +23,7 @@ enum mod {
 	MOD_LL,
 };
 
-int fputc(int c, FILE *stream)
+int putc(int c, FILE *stream)
 {
 	if (stream && stream->putc)
 		return stream->putc(c, stream->data);
@@ -31,15 +31,15 @@ int fputc(int c, FILE *stream)
 		return EOF;
 }
 
-int putc(int c)
+int putchar(int c)
 {
-	return fputc(c, stdout);
+	return putc(c, stdout);
 }
 
 int fputs(const char *str, FILE *stream)
 {
 	while (*str)
-		if (fputc(*str++, stream) < 0)
+		if (putc(*str++, stream) < 0)
 			return -1;
 	return 0;
 }
@@ -133,7 +133,7 @@ static inline enum mod get_modifier(const char **fmt)
 	return mod;
 }
 
-#define PUT(c) fputc((c), stream), ++res
+#define PUT(c) putc((c), stream), ++res
 
 static int do_justify(FILE *stream, int left, int width, const char *str,
 		      size_t len)
