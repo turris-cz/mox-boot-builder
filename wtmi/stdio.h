@@ -63,6 +63,11 @@ __extern_always_inline int printf(const char *fmt, ...)
 	return __builtin_printf(fmt, __builtin_va_arg_pack());
 }
 
-#define debug(...)
+static inline void debug(const char *fmt, ...)
+{
+#ifdef DEBUG
+	__builtin_printf(fmt, __builtin_va_arg_pack());
+#endif
+}
 
 #endif /* !_STDIO_H */
