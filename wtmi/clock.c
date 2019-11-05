@@ -1114,7 +1114,24 @@ void wait_ns(u32 wait_ns)
 {
 	u32 loop = wait_ns / loop_ns;
 
-	asm volatile("0:" "subs %[count], 1;" "bne 0b;" :[count]"+r"(loop));
+	asm volatile(
+		"0:\n"
+		"subs %[count], 1\n"
+		"bne 0b\n"
+		: [count] "+r" (loop)
+	);
+}
+
+void udelay(u32 us)
+{
+	u32 loop = 200 * us / (loop_ns * 3);
+
+	asm volatile(
+		"0:\n"
+		"subs %[count], 1\n"
+		"bne 0b\n"
+		: [count] "+r" (loop)
+	);
 }
 
 #define CYCLES_PER_LOOP		3

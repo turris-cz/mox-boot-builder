@@ -2,6 +2,8 @@
 #include "uart.h"
 #include "io.h"
 #include "string.h"
+#include "irq.h"
+#include "clock.h"
 #include "debug.h"
 
 #define BETWEEN(x,l,h) ((l) <= (x) && (x) <= (h))
@@ -523,3 +525,26 @@ DEBUG_CMD("mw", "Memory write (longs)", mw);
 DEBUG_CMD("mw.l", "Memory write (longs)", mw);
 DEBUG_CMD("mw.w", "Memory write (half-words)", mw);
 DEBUG_CMD("mw.b", "Memory write (bytes)", mw);
+
+DECL_DEBUG_CMD(sleep)
+{
+	u32 us, j1, j2;
+
+	if (argc < 2)
+		goto usage;
+
+	if (decnumber(argv[1], &us))
+		return;
+
+	j1 = jiffies;
+	udelay(us);
+	j2 = jiffies;
+
+	printf("%u jiffies\n", j2 - j1);
+
+	return;
+usage:
+	printf("usage: sleep <microseconds>\n");
+}
+
+DEBUG_CMD("sleep", "Sleep", sleep);
