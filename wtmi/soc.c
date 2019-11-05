@@ -147,6 +147,29 @@ static const struct reg_val reset_wdt_and_counters_regs[] = {
 	{ 0xc0008330, 0x205 },
 };
 
+static const struct reg_val reset_dvfs_regs[] = {
+	/* Disable DVFS */
+	{ 0xc0014024, 0 },
+
+	/* Load Levels to default values */
+	{ 0xc0014018, 0x48004800 },
+	{ 0xc001401c, 0x48004800 },
+
+	/* Disable AVS */
+	{ 0xc0011500, 0x18e3ffff },
+
+	/* Disable low voltage mode */
+	{ 0xc0011508, 0x00008000 },
+
+	/* Reset AVS VSET 1, 2 and 3 */
+	{ 0xc001151c, 0x0526ffff },
+	{ 0xc0011520, 0x0526ffff },
+	{ 0xc0011524, 0x0526ffff },
+
+	/* Enable AVS */
+	{ 0xc0011500, 0x58e3ffff },
+};
+
 static const struct reg_val reset_a53_regs[] = {
 	/* CPU SMPEN */
 	{ 0xc000d010, BIT(14) },
@@ -176,6 +199,27 @@ static void reset_soc_irqs(void)
 	write_range(0xc1d00184, 0xc1d001fc, 0xffffffff);
 	write_range(0xc1d00284, 0xc1d001fc, 0xffffffff);
 	write_range(0xc1d00384, 0xc1d001fc, 0xffffffff);
+}
+
+static void reset_dvfs(void)
+{
+	u32 reg;
+
+	if (!(readl(0xc0014024) & BIT(31)))
+		return;
+
+	/* Switch to Load Level L0 */
+	reg = readl(0xc0014030) & 3;
+	if (reg >= 2) {
+		/* If on L2 or L3, first switch to L1 and wait 20ms */
+		writel(1, 0xc0014030);
+		udelay(20000);
+	}
+	writel(0, 0xc0014030);
+	udelay(100);
+
+	write_reg_vals(reset_dvfs_regs);
+	udelay(10000);
 }
 
 #ifdef DEBUG_UART2
@@ -260,6 +304,7 @@ void reset_soc(void)
 	cpu_software_reset();
 	write_reg_vals(reset_a53_regs);
 	reset_soc_irqs();
+	reset_dvfs();
 	write_reg_vals(reset_wdt_and_counters_regs);
 	reset_peripherals();
 	run_a53_helper(0x10000000);
