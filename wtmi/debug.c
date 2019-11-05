@@ -103,7 +103,7 @@ static void history_add(void)
 		return;
 
 	prev = history_get(0, NULL);
-	if (prev && !strcmp(cmd, prev))
+	if (prev && !strcmp((char *)cmd, (char *)prev))
 		return;
 
 	free_space = sizeof(history) - history_len;
