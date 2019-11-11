@@ -1,5 +1,5 @@
 ECDSA_PRIV_KEY	:= ecdsa_priv_key.txt
-CROSS_CM3	:= armv7m-none-eabi-
+CROSS_CM3	:= armv7m-softfloat-eabi-
 CROSS_COMPILE	:= aarch64-unknown-linux-gnu-
 
 BUILD_PLAT = build/a3700/release

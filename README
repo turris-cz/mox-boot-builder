@@ -2,7 +2,7 @@ Dependencies:
 	libressl
 
 GCC needed:
-	armv7m for Cortex-M3 firmware (armv7m-none-eabi-)
+	armv7m for Cortex-M3 firmware (armv7m-softfloat-eabi-)
 		- version 5.4.0 (strange bugs occur with newer GCC)
 	aarch64 for ATF and U-Boot
 

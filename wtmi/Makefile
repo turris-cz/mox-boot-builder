@@ -16,7 +16,7 @@
 # * ***************************************************************************
 #*/
 
-CROSS_CM3 ?= armv7m-none-eabi-
+CROSS_CM3 ?= armv7m-softfloat-eabi-
 
 LD       = $(CROSS_CM3)ld
 CC       = $(CROSS_CM3)gcc
