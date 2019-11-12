@@ -10,7 +10,7 @@ else
 	WTMI_PATH := wtmi
 endif
 
-all: trusted-flash-image.bin trusted-uart-image.bin untrusted-flash-image.bin
+all: trusted-flash-image.bin trusted-uart-image.bin trusted-emmc-image.bin untrusted-flash-image.bin untrusted-emmc-image.bin
 
 trusted-flash-image.bin: trusted-secure-firmware.bin u-boot.bin
 	cat trusted-secure-firmware.bin u-boot.bin >$@
@@ -18,8 +18,14 @@ trusted-flash-image.bin: trusted-secure-firmware.bin u-boot.bin
 trusted-uart-image.bin: trusted-secure-firmware-uart.bin u-boot.bin
 	cat trusted-secure-firmware-uart.bin u-boot.bin >$@
 
+trusted-emmc-image.bin: trusted-secure-firmware-emmc.bin u-boot.bin
+	cat trusted-secure-firmware-emmc.bin u-boot.bin >$@
+
 untrusted-flash-image.bin: untrusted-secure-firmware.bin u-boot.bin
 	cat untrusted-secure-firmware.bin u-boot.bin >$@
+
+untrusted-emmc-image.bin: untrusted-secure-firmware-emmc.bin u-boot.bin
+	cat untrusted-secure-firmware-emmc.bin u-boot.bin >$@
 
 trusted-secure-firmware.bin: mox-imager/mox-imager wtmi_h.bin $(ECDSA_PRIV_KEY)
 	mox-imager/mox-imager --create-trusted-image=SPI -k $(ECDSA_PRIV_KEY) -o $@ wtmi_h.bin
@@ -27,8 +33,14 @@ trusted-secure-firmware.bin: mox-imager/mox-imager wtmi_h.bin $(ECDSA_PRIV_KEY)
 trusted-secure-firmware-uart.bin: mox-imager/mox-imager wtmi_h.bin $(ECDSA_PRIV_KEY)
 	mox-imager/mox-imager --create-trusted-image=UART -k $(ECDSA_PRIV_KEY) -o $@ wtmi_h.bin
 
+trusted-secure-firmware-emmc.bin: mox-imager/mox-imager wtmi_h.bin $(ECDSA_PRIV_KEY)
+	mox-imager/mox-imager --create-trusted-image=EMMC -k $(ECDSA_PRIV_KEY) -o $@ wtmi_h.bin
+
 untrusted-secure-firmware.bin: mox-imager/mox-imager wtmi_h.bin
-	mox-imager/mox-imager --create-untrusted-image -o $@ wtmi_h.bin
+	mox-imager/mox-imager --create-untrusted-image=SPI -o $@ wtmi_h.bin
+
+untrusted-secure-firmware-emmc.bin: mox-imager/mox-imager wtmi_h.bin
+	mox-imager/mox-imager --create-untrusted-image=EMMC -o $@ wtmi_h.bin
 
 wtmi_h.bin:
 	echo $(WTMI_PATH)
