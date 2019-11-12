@@ -215,11 +215,11 @@ static inline void xor(u32 *d, const u32 *s)
  * previous call it appends zeros), and hashes the resultin 576 bytes with
  * sha512. The resulting digest will be used in the next call, and is also
  * combined with the output of EBG to generate the result.
- *              call 0               call 1
- * prev digest  0000                 H(ebg1|0000)
- * EBG output   ebg1                 ebg2                         ...
- * cur digest   H(ebg1|0000)         H(ebg2|H(ebg1|0000))
- * result       C(ebg1,H(ebg1|0000)) C(ebg2,H(ebg2|H(ebg1|0000)))
+ *              call 0             call 1           call 2
+ * prev digest  0000               H0               H1
+ * EBG output   EBG0               EBG1             EBG2             ...
+ * cur digest   H0 = H(EBG0|0000)  H1 = H(EBG1|H0)  H2 = H(EBG2|H1)
+ * result       C(EBG0,H0)         C(EBG1,H1)       C(EBG2|H2)
  */
 static const void *paranoid_rand_64(void)
 {
