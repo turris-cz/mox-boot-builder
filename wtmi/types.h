@@ -42,8 +42,8 @@ typedef u32			size_t;
 
 #define	NULL			((void *)0)
 
-#define MIN(a, b)   ((a) < (b) ? (a) : (b))
-#define MAX(a, b)   ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ({ __auto_type _a = (a); __auto_type _b = (b); _a < _b ? _a : _b; })
+#define MAX(a, b) ({ __auto_type _a = (a); __auto_type _b = (b); _a > _b ? _a : _b; })
 
 #define maybe_unused __attribute__((unused))
 
