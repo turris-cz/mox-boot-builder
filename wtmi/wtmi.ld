@@ -31,10 +31,13 @@ SECTIONS
   . = . + 0x1000;
   paranoid_rand_dgst = .;
   . = . + 0x40;
+  paranoid_rand_tmp = .;
+  . = . + 0x240;
   next_timh_image = .;
   . = . + 0x2000;
   next_timn_image = .;
   . = . + 0x2000;
+  next_wtmi = .;
 
   /DISCARD/ : { *(.interp*) }
   /DISCARD/ : { *(.dynsym) }

@@ -223,9 +223,8 @@ static inline void xor(u32 *d, const u32 *s)
  */
 static const void *paranoid_rand_64(void)
 {
-	static u32 ebgbuf[128 + 16] __attribute__((aligned(16)));
-	extern u32 paranoid_rand_dgst[16];
-	u32 *dgst = paranoid_rand_dgst;
+	extern u32 ebgbuf[128 + 16] asm("paranoid_rand_tmp");
+	extern u32 dgst[16] asm("paranoid_rand_dgst");
 	static int c;
 	int i;
 
