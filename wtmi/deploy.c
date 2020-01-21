@@ -5,7 +5,7 @@
 #include "crypto.h"
 #include "efuse.h"
 #include "uart.h"
-#include "printf.h"
+#include "stdio.h"
 
 #define __from_mox_builder __attribute__((section(".from_mox_builder")))
 
@@ -230,20 +230,26 @@ static void do_deploy(void)
 	return;
 }
 
-static void deploy_putc(void *p, char c)
+static int deploy_putc(int _c, void *p)
 {
 	int i;
-	u8 t = (u8) c;
+	u8 t = (u8) _c;
 
 	for (i = 0; i < 8; ++i) {
-		uart_putc(p, (char) ((t & 1) ? 0xff : 0x00));
+		uart_putc((char) ((t & 1) ? 0xff : 0x00), (void *)&uart1_info);
 		t >>= 1;
 	}
+
+	return t;
 }
+
+static FILE deploy_stdout = {
+	.putc = deploy_putc,
+};
 
 void deploy(void)
 {
-	init_printf((void *)&uart1_info, deploy_putc);
+	stdout = &deploy_stdout;
 
 	if (mbd.op == 0) {
 		/* read OTP */
