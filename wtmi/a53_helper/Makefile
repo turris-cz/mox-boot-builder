@@ -21,6 +21,9 @@ LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -Xlinker "--build-id=none"
 CSRC   = main.c
 COBJ   = $(CSRC:.c=.o)
 
+ASRC   = start.S
+AOBJ   = $(ASRC:.S=.o)
+
 .SILENT:
 
 all: a53_helper.c
@@ -31,15 +34,19 @@ a53_helper.c: a53_helper.bin
 	@bin2c <a53_helper.bin >>a53_helper.c
 	$(ECHO) "};" >>a53_helper.c
 
-a53_helper.bin: $(COBJ) $(LDSCRIPT)
+a53_helper.bin: $(COBJ) $(AOBJ) $(LDSCRIPT)
 	$(ECHO) "  LD    $(MAKECMDGOALS)"
-	$(CC) $(LDFLAGS) $(CFLAGS) $(COBJ) -o a53_helper.elf
+	$(CC) $(LDFLAGS) $(CFLAGS) $(AOBJ) $(COBJ) -o a53_helper.elf
 	$(OBJCOPY) -S -O binary a53_helper.elf a53_helper.bin
 	$(OBJDUMP) -D -S a53_helper.elf > a53_helper.dis
 
 %.o: %.c
 	$(ECHO) "  CC    $<"
 	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -frandom-seed=$< -o $@ $(subst .o,.c,$@)
+
+%.o: %.S
+	$(ECHO) "  AS    $<"
+	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
 
 clean:
 	$(ECHO) "  CLEAN"

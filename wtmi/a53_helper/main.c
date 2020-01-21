@@ -18,10 +18,11 @@ static void __attribute__((unused)) delay(void)
 	setbitsl(RWTM_HOST_INT_RESET, 1, 1);
 }
 
-__attribute__((section(".start"), noreturn))
-void start(void)
+const u64 stack_core0 = 0x10000000;
+const u64 stack_core1 = 0x0f000000;
+
+void main(void)
 {
-	asm volatile ("mov sp, #0x10000000");
 #if 0
 	volatile u64 *regs = (volatile u64 *)0x11000000;
 	int i = 0;
