@@ -2,7 +2,9 @@ ECDSA_PRIV_KEY	:= ecdsa_priv_key.txt
 CROSS_CM3	:= armv7m-softfloat-eabi-
 CROSS_COMPILE	:= aarch64-unknown-linux-gnu-
 
-BUILD_PLAT = build/a3700/release
+ATF_PLAT = a3700
+ATF_LOG_LEVEL = 0
+BUILD_PLAT = build/$(ATF_PLAT)/release
 
 ifeq ($(COMPRESS_WTMI), 1)
 	WTMI_PATH := wtmi/compressed
@@ -56,13 +58,16 @@ mox-imager/mox-imager:
 arm-trusted-firmware/$(BUILD_PLAT)/bl1.bin:
 	make -C arm-trusted-firmware \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
-		DEBUG=0 LOG_LEVEL=0 USE_COHERENT_MEM=0 PLAT=a3700 \
+		DEBUG=0 LOG_LEVEL=$(ATF_LOG_LEVEL) \
+		USE_COHERENT_MEM=0 PLAT=$(ATF_PLAT) \
 		$(BUILD_PLAT)/bl1.bin
 
 arm-trusted-firmware/$(BUILD_PLAT)/fip.bin: u-boot/u-boot.bin
 	make -C arm-trusted-firmware \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
-		BL33=$(shell pwd)/u-boot/u-boot.bin DEBUG=0 LOG_LEVEL=0 USE_COHERENT_MEM=0 PLAT=a3700 \
+		BL33=$(shell pwd)/u-boot/u-boot.bin \
+		DEBUG=0 LOG_LEVEL=$(ATF_LOG_LEVEL) \
+		USE_COHERENT_MEM=0 PLAT=$(ATF_PLAT) \
 		$(BUILD_PLAT)/fip.bin
 
 u-boot.bin: arm-trusted-firmware/$(BUILD_PLAT)/bl1.bin arm-trusted-firmware/$(BUILD_PLAT)/fip.bin
