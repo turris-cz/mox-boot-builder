@@ -3,6 +3,6 @@
 
 #include "types.h"
 
-extern void do_reload(u32 addr, u32 len);
+extern void do_reload(void *addr, u32 len);
 
 #endif /* _RELOAD_H_ */

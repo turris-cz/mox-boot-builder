@@ -7,12 +7,9 @@
 
 #include "reload_helper/reload_helper.c"
 
-void do_reload(u32 addr, u32 len)
+void do_reload(void *addr, u32 len)
 {
-	void __attribute__((noreturn)) (*reload_helper)(const u32 *src, u32 len);
-
-	if ((addr % 4) || (len % 4))
-		return;
+	void __attribute__((noreturn)) (*reload_helper)(const void *src, u32 len);
 
 	memcpy((void *)RELOAD_HELPER_ADDR, reload_helper_code, sizeof(reload_helper_code));
 	disable_irq();
@@ -20,7 +17,7 @@ void do_reload(u32 addr, u32 len)
 
 	/* plus 1 for thumb mode */
 	reload_helper = (void *)(RELOAD_HELPER_ADDR + 1);
-	reload_helper((void *)addr, len / 4);
+	reload_helper((void *)addr, len);
 }
 
 DECL_DEBUG_CMD(reload)
@@ -33,13 +30,8 @@ DECL_DEBUG_CMD(reload)
 	if (number(argv[1], &addr) || number(argv[2], &len))
 		return;
 
-	if ((addr % 4) || (len % 4)) {
-		printf("Address and length must be multiple of 4!\n");
-		return;
-	}
-
 	printf("Reloading secure firmware\n");
-	do_reload(addr, len);
+	do_reload((void *)addr, len);
 }
 
 DEBUG_CMD("reload", "reload secure-firmware", reload);
