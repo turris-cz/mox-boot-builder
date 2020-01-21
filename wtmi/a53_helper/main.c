@@ -5,17 +5,15 @@
 #define RWTM_HOST_INT_RESET	0xd00b00c8
 #define RWTM_HOST_INT_MASK	0xd00b00cc
 
-static void __attribute__((unused)) delay(void)
+static void udelay(u32 usec)
 {
-	int i;
-	for (i = 0; i < 100; ++i) {
-		volatile u64 x;
-		for (x = 0; x < 100000; ++x)
-			;
-		if (readl(RWTM_HOST_INT_RESET) & 1)
-			break;
-	}
-	setbitsl(RWTM_HOST_INT_RESET, 1, 1);
+	u32 start, delta, total_delta;
+
+	start = (u32)~read_cntpct_el0();
+	total_delta = 25*usec/2 + 1U;
+	do {
+		delta = start - (u32)~read_cntpct_el0();
+	} while (delta < total_delta);
 }
 
 const u64 stack_core0 = 0x10000000;
