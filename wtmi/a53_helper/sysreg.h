@@ -11,7 +11,7 @@
 
 #undef __ASSEMBLY__
 
-#define BIT(nr)			(UL(1) << (nr))
+#define BIT(nr)			((1UL) << (nr))
 #define GENMASK(h, l) \
 	(((~UL(0)) - (UL(1) << (l)) + 1) & \
 	 (~UL(0) >> (BITS_PER_LONG - 1 - (h))))
@@ -344,6 +344,7 @@
 #define SYS_ICC_AP1R2_EL1		SYS_ICC_AP1Rn_EL1(2)
 #define SYS_ICC_AP1R3_EL1		SYS_ICC_AP1Rn_EL1(3)
 #define SYS_ICC_DIR_EL1			sys_reg(3, 0, 12, 11, 1)
+#define SYS_ICC_PMR_EL1			sys_reg(3, 0, 4, 6, 0)
 #define SYS_ICC_RPR_EL1			sys_reg(3, 0, 12, 11, 3)
 #define SYS_ICC_SGI1R_EL1		sys_reg(3, 0, 12, 11, 5)
 #define SYS_ICC_ASGI1R_EL1		sys_reg(3, 0, 12, 11, 6)
@@ -353,9 +354,13 @@
 #define SYS_ICC_HPPIR1_EL1		sys_reg(3, 0, 12, 12, 2)
 #define SYS_ICC_BPR1_EL1		sys_reg(3, 0, 12, 12, 3)
 #define SYS_ICC_CTLR_EL1		sys_reg(3, 0, 12, 12, 4)
+#define SYS_ICC_CTLR_EL3		sys_reg(3, 6, 12, 12, 4)
 #define SYS_ICC_SRE_EL1			sys_reg(3, 0, 12, 12, 5)
+#define SYS_ICC_SRE_EL2			sys_reg(3, 4, 12, 9, 5)
+#define SYS_ICC_SRE_EL3			sys_reg(3, 6, 12, 12, 5)
 #define SYS_ICC_IGRPEN0_EL1		sys_reg(3, 0, 12, 12, 6)
 #define SYS_ICC_IGRPEN1_EL1		sys_reg(3, 0, 12, 12, 7)
+#define SYS_ICC_IGRPEN1_EL3		sys_reg(3, 6, 12, 12, 7)
 
 #define SYS_CONTEXTIDR_EL1		sys_reg(3, 0, 13, 0, 1)
 #define SYS_TPIDR_EL1			sys_reg(3, 0, 13, 0, 4)
