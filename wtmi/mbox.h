@@ -46,7 +46,9 @@ enum mbox_cmd {
 	MBOX_CMD_VERIFY,
 
 	MBOX_CMD_OTP_READ,
-	MBOX_CMD_OTP_WRITE
+	MBOX_CMD_OTP_WRITE,
+
+	MBOX_CMD_REBOOT_AND_WDT
 };
 
 typedef u32 (*mbox_cmd_handler_t)(u32 *in_args, u32 *out_args);
