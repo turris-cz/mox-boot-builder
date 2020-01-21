@@ -1,4 +1,3 @@
-#include "types.h"
 #include "io.h"
 #include "clock.h"
 #include "irq.h"
@@ -9,6 +8,7 @@
 #include "gpio.h"
 #include "debug.h"
 #include "tim.h"
+#include "reload.h"
 
 #define NB_RESET		0xc0012400
 #define SB_RESET		0xc0018600
@@ -60,8 +60,6 @@ static const struct reg_val reset_nb_regs[] = {
 	{ 0xc0013c00, 0 },
 	{ 0xc0013c04, 0 },
 	{ 0xc0013c08, 0 },
-	{ 0xc0013c10, 0xffffffff },
-	{ 0xc0013c14, 0xf },
 	{ 0xc0013c18, 0 },
 	{ 0xc0013c1c, 0 },
 
@@ -110,7 +108,6 @@ static const struct reg_val reset_sb_regs[] = {
 	{ 0xc0018830, 0x7e3b },
 	{ 0xc0018c00, 0 },
 	{ 0xc0018c08, 0 },
-	{ 0xc0018c10, 0xffffffff },
 	{ 0xc0018c18, 0 },
 
 	/* SB Pad Control */
@@ -127,100 +124,12 @@ static const struct reg_val reset_sb_regs[] = {
 	{ 0xc001e81c, 0x3f },
 };
 
-static const struct reg_val reset_soc_irqs_regs[] = {
-	{ 0xc0008a04, 0xffffffff },
-	{ 0xc0008a08, 0xffffffff },
-	{ 0xc0008a0c, 0 },
-	{ 0xc0008a00, 0 },
-	{ 0xc0008a14, 0xffffffff },
-	{ 0xc0008a18, 0xffffffff },
-	{ 0xc0008a1c, 0 },
-	{ 0xc0008a10, 0 },
-};
-
-static const struct reg_val reset_wdt_and_counters_regs[] = {
-	{ 0xc000d064, 0 },
-	{ 0xc0008300, 0x200 },
-	{ 0xc0008310, 0x200 },
-	{ 0xc0008320, 0x200 },
-	{ 0xc0008330, 0x204 },
-	{ 0xc0008330, 0x205 },
-};
-
-static const struct reg_val reset_dvfs_regs[] = {
-	/* Disable DVFS */
-	{ 0xc0014024, 0 },
-
-	/* Load Levels to default values */
-	{ 0xc0014018, 0x48004800 },
-	{ 0xc001401c, 0x48004800 },
-
-	/* Disable AVS */
-	{ 0xc0011500, 0x18e3ffff },
-
-	/* Disable low voltage mode */
-	{ 0xc0011508, 0x00008000 },
-
-	/* Reset AVS VSET 1, 2 and 3 */
-	{ 0xc001151c, 0x0526ffff },
-	{ 0xc0011520, 0x0526ffff },
-	{ 0xc0011524, 0x0526ffff },
-
-	/* Enable AVS */
-	{ 0xc0011500, 0x58e3ffff },
-};
-
 static const struct reg_val reset_a53_regs[] = {
-	/* CPU SMPEN */
-	{ 0xc000d010, BIT(14) },
 	/* CPU Configuration */
 	{ 0xc000d00c, 0x66ffc030 },
 	/* Reset ATF Mailbox */
 	{ 0x64000400, 0 },
 };
-
-static void write_range(u32 start, u32 end, u32 value)
-{
-	u32 reg;
-
-	for (reg = start; reg < end; reg += 4)
-		writel(value, reg);
-}
-
-static void reset_soc_irqs(void)
-{
-	write_reg_vals(reset_soc_irqs_regs);
-
-	write_range(0xc0008a30, 0xc0008a64, 0);
-	writel(0, 0xc1d00000);
-	writel(0xffff, 0xc1d00080);
-	write_range(0xc1d00084, 0xc1d000fc, 0);
-	writel(0xffff0000, 0xc1d00180);
-	write_range(0xc1d00184, 0xc1d001fc, 0xffffffff);
-	write_range(0xc1d00284, 0xc1d001fc, 0xffffffff);
-	write_range(0xc1d00384, 0xc1d001fc, 0xffffffff);
-}
-
-static void reset_dvfs(void)
-{
-	u32 reg;
-
-	if (!(readl(0xc0014024) & BIT(31)))
-		return;
-
-	/* Switch to Load Level L0 */
-	reg = readl(0xc0014030) & 3;
-	if (reg >= 2) {
-		/* If on L2 or L3, first switch to L1 and wait 20ms */
-		writel(1, 0xc0014030);
-		udelay(20000);
-	}
-	writel(0, 0xc0014030);
-	udelay(100);
-
-	write_reg_vals(reset_dvfs_regs);
-	udelay(10000);
-}
 
 #ifdef DEBUG_UART2
 #define NB_RESET_UART2		BIT(6)
@@ -269,18 +178,48 @@ static void reset_peripherals(void)
 	wait_ns(10000);
 }
 
-static void cpu_software_reset(void)
+static void core0_reset_cycle(void)
 {
 	writel(0xa1b2c3d4, 0xc000d060);
 }
 
-#include "a53_helper/a53_helper.c"
-
-static void run_a53_helper(u32 addr)
+static void core1_reset(int reset)
 {
-	memcpy((void *)AP_RAM(addr), a53_helper_code, sizeof(a53_helper_code));
-	start_ap_at(addr);
-	wait_ns(100000);
+	setbitsl(0xc000d00c, reset ? 0 : BIT(31), BIT(31));
+}
+
+#include "a53_helper/a53_helper.c"
+#define A53_HELPER_ADDR		0x10000000
+#define A53_HELPER_DONE		0x10010000
+#define A53_HELPER_ARGS		0x10010004
+
+static void _run_a53_helper(u32 cmd, int argc, ...)
+{
+	va_list ap;
+	int i;
+
+	memcpy((void *)AP_RAM(A53_HELPER_ADDR), a53_helper_code, sizeof(a53_helper_code));
+
+	writel(cmd, AP_RAM(A53_HELPER_ARGS));
+	va_start(ap, argc);
+	for (i = 0; i < argc; ++i)
+		writel(va_arg(ap, u32), AP_RAM(A53_HELPER_ARGS + 4*i + 4));
+	va_end(ap);
+
+	writel(0, AP_RAM(A53_HELPER_DONE));
+
+	start_ap_at(A53_HELPER_ADDR);
+
+	while (!readl(AP_RAM(A53_HELPER_DONE)))
+		udelay(1000);
+
+	core1_reset(1);
+	core0_reset_cycle();
+}
+
+static inline __attribute__((__gnu_inline__)) __attribute__((__always_inline__)) void run_a53_helper(u32 cmd, ...)
+{
+	_run_a53_helper(cmd, __builtin_va_arg_pack_len(), __builtin_va_arg_pack());
 }
 
 void start_ap_workaround(void)
@@ -295,24 +234,41 @@ void start_ap_workaround(void)
 			break;
 	}
 
-	if (i == 1000)
-		cpu_software_reset();
+	if (i == 1000) {
+		core1_reset(1);
+		core0_reset_cycle();
+	}
+}
+
+extern u8 next_wtmi[];
+
+static void reload_secure_firmware(void)
+{
+	u32 len;
+
+	load_image(WTMI_ID, next_wtmi, &len);
+
+	do_reload(next_wtmi, len);
+
+	/* Should not reach here */
 }
 
 void reset_soc(void)
 {
-	cpu_software_reset();
-	write_reg_vals(reset_a53_regs);
-	reset_soc_irqs();
-	reset_dvfs();
-	write_reg_vals(reset_wdt_and_counters_regs);
+	core1_reset(1);
+	core0_reset_cycle();
+	udelay(1000);
 	reset_peripherals();
-	run_a53_helper(0x10000000);
-	cpu_software_reset();
+	udelay(1000);
+	run_a53_helper(0);
+	udelay(1000);
+
+	write_reg_vals(reset_a53_regs);
 
 	/* check return value! */
 	load_image(OBMI_ID, (void *)AP_RAM(ATF_ENTRY_ADDRESS), NULL);
-	start_ap_workaround();
+
+	reload_secure_firmware();
 }
 
 DECL_DEBUG_CMD(reset)
@@ -391,10 +347,3 @@ DECL_DEBUG_CMD(info)
 }
 
 DEBUG_CMD("info", "Show some CPU info", info);
-
-DECL_DEBUG_CMD(swrst)
-{
-	cpu_software_reset();
-}
-
-DEBUG_CMD("swrst", "CPU Software Reset", swrst);

@@ -10,6 +10,7 @@
 #include "crypto_hash.h"
 #include "ddr.h"
 #include "deploy.h"
+#include "soc.h"
 #include "debug.h"
 
 #ifndef DEPLOY
@@ -225,6 +226,14 @@ maybe_unused static u32 cmd_otp_write(u32 *args, u32 *out_args)
 	return MBOX_STS(0, 0, SUCCESS);
 }
 
+maybe_unused static u32 cmd_reboot_and_wdt(u32 *args, u32 *out_args)
+{
+	if (args[0] == SOC_MBOX_RESET_CMD_MAGIC)
+		reset_soc();
+
+	return MBOX_STS(0, EINVAL, FAIL);
+}
+
 static void init_ddr(void)
 {
 	int res;
@@ -279,10 +288,11 @@ void main(void)
 	/*mbox_register_cmd(MBOX_CMD_VERIFY, cmd_verify);
 	mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
 	mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);*/
+	mbox_register_cmd(MBOX_CMD_REBOOT_AND_WDT, cmd_reboot_and_wdt);
 	enable_irq();
 
 	debug_init();
-	start_ap();
+	start_ap_workaround();
 
 	while (1) {
 		disable_irq();
