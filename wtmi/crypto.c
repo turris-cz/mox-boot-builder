@@ -202,7 +202,7 @@ static void bn_random(u32 *dst, const u32 *max, int bits)
 	longs = (bits + 31) / 32;
 
 	do {
-		ebg_rand_sync(dst, 4 * longs);
+		paranoid_rand(dst, 4 * longs);
 		dst[longs - 1] &= (1UL << (bits % 32)) - 1UL;
 	} while (bn_cmp(dst, max) >= 0);
 }
