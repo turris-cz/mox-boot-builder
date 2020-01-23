@@ -353,7 +353,6 @@ static int check_tim(timhdr_t *hdr, u32 id)
 
 static void boot_device_read(void *buf, u32 offset, u32 size)
 {
-//	spi_nor_read(&nordev, buf, 0x200000 + offset, size);
 	spi_nor_read(&nordev, buf, offset, size);
 }
 
