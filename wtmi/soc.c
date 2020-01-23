@@ -246,7 +246,12 @@ static void reload_secure_firmware(void)
 {
 	u32 len;
 
-	load_image(WTMI_ID, next_wtmi, &len);
+	if (load_image(WTMI_ID, next_wtmi, &len)) {
+		disable_irq();
+		disable_systick();
+		while (1)
+			wait_for_irq();
+	}
 
 	do_reload(next_wtmi, len);
 
@@ -265,7 +270,8 @@ void reset_soc(void)
 
 	write_reg_vals(reset_a53_regs);
 
-	/* check return value! */
+	/* We do not need to check return value here. New secure firmware should
+	 * tun without OBMI image. */
 	load_image(OBMI_ID, (void *)AP_RAM(ATF_ENTRY_ADDRESS), NULL);
 
 	reload_secure_firmware();
