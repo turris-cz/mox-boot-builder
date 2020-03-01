@@ -494,7 +494,7 @@ DECL_DEBUG_CMD(cmd_efuse)
 	if (argc < 2)
 		goto usage;
 
-	if (argc == 3 && decnumber(argv[2], &row))
+	if (argc > 2 && decnumber(argv[2], &row))
 		return;
 
 	if (row >= 44) {
@@ -515,13 +515,53 @@ DECL_DEBUG_CMD(cmd_efuse)
 			       res == -EIO ? ", ECC error" :
 			       res == -EACCES ? ", masked" : "");
 		}
+	} else if (!strcmp(argv[1], "write")) {
+		u64 val, oldval;
+		u32 high, low;
+		int lock, res;
+
+		if (argc < 5)
+			goto usage;
+
+		if (number(argv[3], &high))
+			goto usage;
+
+		if (number(argv[4], &low))
+			goto usage;
+
+		val = high;
+		val <<= 32;
+		val |= low;
+
+		res = efuse_read_row(row, &oldval, &lock);
+		if (res < 0) {
+			printf("Could not read old value!\n");
+		} else if (lock) {
+			printf("Row is already locked!\n");
+		} else if ((val & oldval) != oldval) {
+			printf("New value has to be a superset of old value!\n");
+		} else {
+			printf("not writing row %i with value %016llx\n", row, val);
+			res = efuse_write_row_no_ecc(row, val, 0);
+			if (res < 0)
+				printf("Could not write row %i with value %016llx\n", row, val);
+			else
+				printf("Written row %i with value %016llx\n", row, val);
+		}
+	} else if (!strcmp(argv[1], "lock")) {
+		if (argc < 3)
+			goto usage;
+
+		printf("not locking row %i\n", row);
 	} else {
 		goto usage;
 	}
 
 	return;
 usage:
-	printf("usage: efuse read [row]\n");
+	printf("usage: efuse read [row]\n"
+	       "       efuse write <row> <high_value> <low_value>\n"
+	       "       efuse lock <row>\n");
 }
 
 DEBUG_CMD("efuse", "eFuse access", cmd_efuse);
