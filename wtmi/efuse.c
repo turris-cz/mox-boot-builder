@@ -3,6 +3,7 @@
 #include "clock.h"
 #include "mbox.h"
 #include "errno.h"
+#include "string.h"
 #include "debug.h"
 
 #define EFUSE_CTRL		0x40003430
