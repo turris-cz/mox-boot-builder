@@ -236,19 +236,25 @@ maybe_unused static u32 cmd_reboot_and_wdt(u32 *args, u32 *out_args)
 
 static void init_ddr(void)
 {
-	int res;
-	u64 val;
+	int type;
+	u32 reg;
 
-	res = efuse_read_row(42, &val, NULL);
-	if (res < 0) {
-		ram_size = 512;
-	} else if ((val >> 56) & 1) {
-		ram_size = 1024;
-	} else {
-		ram_size = 512;
-	}
+	reg = (readl(0xc00002c4) >> 4) & 0xf;
+	if (reg == 3)
+		type = DDR4;
+	else
+		type = DDR3;
 
-	ddr_main(CLK_PRESET_CPU1000_DDR800, 16, 12, 1, ram_size);
+	reg = (readl(0xc0000200) >> 16) & 0x1f;
+	if (reg >= 7 && reg <= 16)
+		ram_size = 1 << (reg - 4);
+	else
+		ram_size = 512;
+
+	printf("Initializing DDR... ");
+	ddr_main(CLK_PRESET_CPU1000_DDR800, type, 16, type == DDR4 ? 11 : 12,
+		 1, MIN(ram_size, 1024));
+	printf("done\n");
 
 	wait_ns(1000000);
 }

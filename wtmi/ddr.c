@@ -91,20 +91,13 @@
  * address with the limited window size.
  *
  */
-static void set_cm3_win_remap(u32 win, u32 remap_addr)
+void rwtm_win_remap(u32 win, u32 remap_addr)
 {
-	u32 reg;
-
 	/* Disable the window before configuring it. */
-	reg = readl(CM3_WIN_CONROL(win));
-	reg &= ~BIT(0);
-	writel(reg, CM3_WIN_CONROL(win));
-
+	setbitsl(CM3_WIN_CONROL(win), 0, BIT(0));
 	writel((remap_addr & 0xFFFF0000), CM3_WIN_REMAP_LOW(win));
-
 	/* Re-enable the window. */
-	reg |= BIT(0);
-	writel(reg, CM3_WIN_CONROL(win));
+	setbitsl(CM3_WIN_CONROL(win), BIT(0), BIT(0));
 }
 
 static u32 do_checksum32(u32 *start, u32 len)
@@ -130,7 +123,7 @@ static int sys_check_warm_boot(void)
 	return 0;
 }
 
-int ddr_main(enum clk_preset WTMI_CLOCK, int BUS_WIDTH, int SPEED_BIN, int CS_NUM, int DEV_CAP)
+int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_BIN, int CS_NUM, int DEV_CAP)
 {
 	struct ddr_topology map;
 	struct ddr_init_para ddr_para;
@@ -177,7 +170,7 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int BUS_WIDTH, int SPEED_BIN, int CS_NU
 	set_clock_preset(WTMI_CLOCK);
 	init_avs(get_cpu_clock());
 
-	set_ddr_type(DDR3);
+	set_ddr_type(DDR_TYPE);
 	set_ddr_topology_parameters(map);
 
 	ddr_para.log_level  = LOG_LEVEL_NONE;
@@ -241,7 +234,7 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int BUS_WIDTH, int SPEED_BIN, int CS_NU
 			 * so that it can continue the translation of the on-
 			 * going addresses which is beyond DRAM_WIN0.
 			 */
-			set_cm3_win_remap(CM3_DRAM_WIN1_ID, CM3_DRAM_WIN0_SZ_MAX);
+			rwtm_win_remap(CM3_DRAM_WIN1_ID, CM3_DRAM_WIN0_SZ_MAX);
 		} else {
 			ddr_para.cs_wins[1].base = CM3_DRAM_WIN1_BASE;
 			/*
@@ -259,7 +252,7 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int BUS_WIDTH, int SPEED_BIN, int CS_NU
 			 * order to guarantee at least 512MB accessible memory
 			 * on CS1.
 			 */
-			set_cm3_win_remap(CM3_DRAM_WIN1_ID, _MB(map.cs[0].capacity));
+			rwtm_win_remap(CM3_DRAM_WIN1_ID, _MB(map.cs[0].capacity));
 		}
 	}
 
