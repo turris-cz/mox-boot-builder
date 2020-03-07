@@ -142,7 +142,7 @@ maybe_unused static u32 cmd_board_info(u32 *args, u32 *out_args)
 	out_args[0] = row43 & 0xffffffff;
 	out_args[1] = row43 >> 32;
 	out_args[2] = (row42 >> 48) & 0xff;
-	out_args[3] = ((row42 >> 56) & 1) ? 1024 : 512;
+	out_args[3] = 512 << ((row42 >> 56) & 3);
 
 	out_args[4] = (row42 >> 32) & 0xffff;
 	out_args[5] = row42 & 0xffffffff;
