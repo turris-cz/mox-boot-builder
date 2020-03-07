@@ -239,7 +239,7 @@ maybe_unused static u32 cmd_sign(u32 *args, u32 *out_args)
 {
 	ec_sig_t sig;
 	u32 msg[17];
-	int res, i;
+	int res;
 
 	if (args[0] != 0x1)
 		return MBOX_STS(0, EOPNOTSUPP, FAIL);
