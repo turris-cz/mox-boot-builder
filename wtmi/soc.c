@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "tim.h"
 #include "reload.h"
+#include "ddr.h"
 
 #define NB_RESET		0xc0012400
 #define SB_RESET		0xc0018600
@@ -353,3 +354,61 @@ DECL_DEBUG_CMD(info)
 }
 
 DEBUG_CMD("info", "Show some CPU info", info);
+
+DECL_DEBUG_CMD(ddrtest)
+{
+	u32 reg, cnt, addr, i, inc_by = 4;
+
+	if (argc > 1) {
+		if (!strcmp(argv[1], "1M"))
+			inc_by = 1 << 20;
+		else
+			goto usage;
+	}
+
+	reg = (readl(0xc0000200) >> 16) & 0x1f;
+	if (reg < 7 || reg > 16) {
+		printf("Unknown DDR memory size\n");
+		return;
+	}
+
+	cnt = (0x4000 << reg) / (inc_by / 4);
+
+	printf("Writing data\n");
+
+	for (addr = 0, i = 0; i < cnt; ++i, addr += inc_by) {
+		if (!(addr & 0x3fffffff)) {
+			printf("Remapping %08x\n", addr);
+			rwtm_win_remap(0, addr);
+		}
+
+		writel((addr & 4) ? ~addr : addr, (addr & 0x3fffffff) + 0x60000000);
+
+		if (!(addr & 0xfffff))
+			printf("%u MiB written\r", addr >> 20);
+	}
+
+	printf("\n\nNow testing\n");
+
+	for (addr = 0, i = 0; i < cnt; ++i, addr += inc_by) {
+		if (!(addr & 0x3fffffff)) {
+			printf("Remapping %08x\n", addr);
+			rwtm_win_remap(0, addr);
+		}
+
+		if (readl((addr & 0x3fffffff) + 0x60000000) != ((addr & 4) ? ~addr : addr))
+			printf("Error at address %08x\n", addr);
+
+		if (!(addr & 0xfffff))
+			printf("%u MiB tested\r", addr >> 20);
+	}
+
+	rwtm_win_remap(0, 0);
+
+	printf("\nDone.\n");
+	return;
+usage:
+	printf("usage: ddrtest [1M]\n");
+}
+
+DEBUG_CMD("ddrtest", "ddr test", ddrtest);
