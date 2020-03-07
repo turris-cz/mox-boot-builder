@@ -16,11 +16,80 @@
 #ifndef DEPLOY
 static int ram_size;
 
+static int process_ap_mem(void *param, u32 addr, u32 len,
+			  void (*cb)(void **, void *, u32))
+{
+	u32 cur_base, new_base, cur_len;
+
+	if ((addr + len) < addr)
+		return -EIO;
+
+	cur_base = 0;
+	new_base = addr & 0xc0000000;
+
+	if (cur_base != new_base) {
+		rwtm_win_remap(0, new_base);
+		cur_base = new_base;
+	}
+
+	while (1) {
+		new_base = (addr + MIN(len, 0x40000000) - 1) & 0xc0000000;
+		if (cur_base == new_base)
+			cur_len = len;
+		else
+			cur_len = new_base - addr;
+
+		cb(&param, (void *)AP_RAM(addr - cur_base), cur_len);
+		len -= cur_len;
+		addr = new_base;
+		if (cur_base == new_base)
+			break;
+
+		rwtm_win_remap(0, new_base);
+		cur_base = new_base;
+	}
+
+	if (cur_base != 0)
+		rwtm_win_remap(0, 0);
+
+	return 0;
+}
+
+static void paranoid_rand_ap_cb(void **param, void *addr, u32 len)
+{
+	paranoid_rand(addr, len);
+}
+
+static void copy_from_ap_cb(void **dst_p, void *addr, u32 len)
+{
+	memcpy(*dst_p, addr, len);
+	*dst_p += len;
+}
+
+static int copy_from_ap(void *dst, u32 src, u32 len)
+{
+	return process_ap_mem(dst, src, len, copy_from_ap_cb);
+}
+
+static void copy_to_ap_cb(void **src_p, void *addr, u32 len)
+{
+	memcpy(addr, *src_p, len);
+	*src_p += len;
+}
+
+static int copy_to_ap(u32 dst, void *src, u32 len)
+{
+	return process_ap_mem(src, dst, len, copy_to_ap_cb);
+}
+
 static int check_ap_addr(u32 addr, u32 len, u32 align)
 {
 	if (addr % align)
 		return 0;
-	else if (addr > (ram_size << 20) || (addr + len - 1) > (ram_size << 20))
+	else if (ram_size == 4096)
+		return 1;
+	else if (addr > (ram_size << 20) ||
+		 (addr + len - 1) > (ram_size << 20))
 		return 0;
 	else
 		return 1;
@@ -34,7 +103,10 @@ maybe_unused static u32 cmd_get_random(u32 *args, u32 *out_args)
 		if (!check_ap_addr(args[1], args[2], 4))
 			return MBOX_STS(0, EINVAL, FAIL);
 
-		paranoid_rand((void *)AP_RAM(args[1]), args[2]);
+		res = process_ap_mem(NULL, args[1], args[2], paranoid_rand_ap_cb);
+		if (res < 0)
+			return MBOX_STS(0, -res, FAIL);
+
 		res = 0xfffff;
 	} else {
 		res = ebg_rand(out_args, MBOX_MAX_ARGS * sizeof(u32));
@@ -142,6 +214,18 @@ maybe_unused static u32 cmd_hash(u32 *args, u32 *out_args)
 	return MBOX_STS(0, 0, SUCCESS);
 }
 
+static void array_reverse_u32(u32 *x, int len)
+{
+	u32 tmp;
+	int i, j;
+
+	for (i = 0, j = len - 1; i < len / 2; ++i, --j) {
+		tmp = x[i];
+		x[i] = x[j];
+		x[j] = tmp;
+	}
+}
+
 /*
  * For ECDSA521
  *   args[0] = 0x1
@@ -167,18 +251,24 @@ maybe_unused static u32 cmd_sign(u32 *args, u32 *out_args)
 		return MBOX_STS(0, EINVAL, FAIL);
 
 	/* read src message from AP RAM */
-	for (i = 0; i < 17; ++i)
-		msg[16 - i] = readl(AP_RAM(args[1] + 4 * i));
+	res = copy_from_ap(msg, args[1], 68);
+	if (res < 0)
+		return MBOX_STS(0, -res, FAIL);
+	array_reverse_u32(msg, 17);
 
 	res = ecdsa_sign(&sig, msg);
 	if (res < 0)
 		return MBOX_STS(0, -res, FAIL);
 
-	/* write signature to AP RAM */
-	for (i = 0; i < 17; ++i) {
-		writel(sig.r[16 - i], AP_RAM(args[2] + 4 * i));
-		writel(sig.s[16 - i], AP_RAM(args[3] + 4 * i));
-	}
+	array_reverse_u32(sig.r, 17);
+	res = copy_to_ap(args[2], sig.r, 68);
+	if (res < 0)
+		return MBOX_STS(0, -res, FAIL);
+
+	array_reverse_u32(sig.s, 17);
+	res = copy_to_ap(args[2], sig.s, 68);
+	if (res < 0)
+		return MBOX_STS(0, -res, FAIL);
 
 	return MBOX_STS(0, 0, SUCCESS);
 }
