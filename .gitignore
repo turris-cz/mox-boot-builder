@@ -1,3 +1,9 @@
+# built images
 *.bin
+
+# python cache
 *.pyc
 __pycache__
+
+# secure firmware secret key (failsafe from versioning)
+ecdsa_priv_key.txt
