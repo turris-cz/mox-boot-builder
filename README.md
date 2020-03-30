@@ -64,3 +64,37 @@ Produced images:
         sf probe
         sf update $addr 0x20000 $size
         ```
+
+
+## Sign
+
+To sign a built firmware to make it *trusted secure firmware*, you need to have
+- Built *secure firmware*
+- *MOX imager* and `WTMI` compiled
+- Turris MOX secure firmware key `ecdsa_priv_key.txt`
+
+
+### Compilation
+
+To compile MOX imager, run:
+
+```
+make mox-imager/mox-imager
+make wtmi_h.bin
+```
+
+
+### Create signed firmware
+
+```
+mox-imager/mox-imager --create-trusted-image=SPI -k ecdsa_priv_key.txt -o trusted-secure-firmware.bin wtmi_h.bin
+```
+
+
+### Outputs
+
+Produced images:
+
+- `trusted-secure-firmware.bin`
+    - Secure firmware
+    - Flash via Linux or U-Boot (see *Build* section for instructions)
