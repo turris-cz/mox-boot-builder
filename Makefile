@@ -12,7 +12,14 @@ else
 	WTMI_PATH := wtmi
 endif
 
-all: trusted-flash-image.bin trusted-uart-image.bin trusted-emmc-image.bin untrusted-flash-image.bin untrusted-emmc-image.bin
+TRUSTED_IMAGES = trusted-flash-image.bin trusted-uart-image.bin trusted-emmc-image.bin
+UNTRUSTED_IMAGES = untrusted-flash-image.bin untrusted-emmc-image.bin
+
+all: trusted untrusted
+
+trusted: $(TRUSTED_IMAGES)
+
+untrusted: $(UNTRUSTED_IMAGES)
 
 trusted-flash-image.bin: trusted-secure-firmware.bin u-boot.bin
 	cat trusted-secure-firmware.bin u-boot.bin >$@
@@ -83,6 +90,7 @@ clean:
 	make -C u-boot clean
 	make -C wtmi/compressed clean
 	make -C mox-imager clean
-	rm -rf arm-trusted-firmware/build untrusted-secure-firmware.bin trusted-secure-firmware.bin \
-		untrusted-flash-image.bin trusted-flash-image.bin \
-		wtmi_h.bin u-boot.bin
+	rm -rf arm-trusted-firmware/build wtmi_h.bin u-boot.bin \
+		$(UNTRUSTED_IMAGES) $(TRUSTED_IMAGES) \
+		trusted-secure-firmware.bin trusted-secure-firmware-uart.bin trusted-secure-firmware-emmc.bin \
+		untrusted-secure-firmware.bin untrusted-secure-firmware-emmc.bin
