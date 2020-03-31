@@ -53,24 +53,24 @@ untrusted-secure-firmware-emmc.bin: mox-imager/mox-imager wtmi_h.bin
 
 wtmi_h.bin:
 	echo $(WTMI_PATH)
-	make -C $(WTMI_PATH) clean
-	make -C $(WTMI_PATH) CROSS_CM3=$(CROSS_CM3)
+	$(MAKE) -C $(WTMI_PATH) clean
+	$(MAKE) -C $(WTMI_PATH) CROSS_CM3=$(CROSS_CM3)
 	echo -ne "IMTW" >wtmi_h.bin
 	cat $(WTMI_PATH)/wtmi.bin >>wtmi_h.bin
 
 mox-imager/mox-imager:
-	make -C wtmi/compressed clean
-	make -C mox-imager
+	$(MAKE) -C wtmi/compressed clean
+	$(MAKE) -C mox-imager
 
 arm-trusted-firmware/$(BUILD_PLAT)/bl1.bin:
-	make -C arm-trusted-firmware \
+	$(MAKE) -C arm-trusted-firmware \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		DEBUG=0 LOG_LEVEL=$(ATF_LOG_LEVEL) \
 		USE_COHERENT_MEM=0 PLAT=$(ATF_PLAT) \
 		$(BUILD_PLAT)/bl1.bin
 
 arm-trusted-firmware/$(BUILD_PLAT)/fip.bin: u-boot/u-boot.bin
-	make -C arm-trusted-firmware \
+	$(MAKE) -C arm-trusted-firmware \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		BL33=$(shell pwd)/u-boot/u-boot.bin \
 		DEBUG=0 LOG_LEVEL=$(ATF_LOG_LEVEL) \
@@ -83,13 +83,13 @@ u-boot.bin: arm-trusted-firmware/$(BUILD_PLAT)/bl1.bin arm-trusted-firmware/$(BU
 	truncate -s %4 $@
 
 u-boot/u-boot.bin:
-	make -C u-boot turris_mox_defconfig
-	make -C u-boot CROSS_COMPILE=$(CROSS_COMPILE)
+	$(MAKE) -C u-boot turris_mox_defconfig
+	$(MAKE) -C u-boot CROSS_COMPILE=$(CROSS_COMPILE)
 
 clean:
-	make -C u-boot clean
-	make -C wtmi/compressed clean
-	make -C mox-imager clean
+	$(MAKE) -C u-boot clean
+	$(MAKE) -C wtmi/compressed clean
+	$(MAKE) -C mox-imager clean
 	rm -rf arm-trusted-firmware/build wtmi_h.bin u-boot.bin \
 		$(UNTRUSTED_IMAGES) $(TRUSTED_IMAGES) \
 		trusted-secure-firmware.bin trusted-secure-firmware-uart.bin trusted-secure-firmware-emmc.bin \
