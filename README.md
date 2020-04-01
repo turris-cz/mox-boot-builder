@@ -84,7 +84,9 @@ make trusted ECDSA_PRIV_KEY=/path/to/ecdsa_priv_key.txt
 ```
 
 will create the same as untrusted image in section above, but signed with this
-key. Thus it is called `trusted-flash-image.bin`.
+key. Thus it is called `trusted-flash-image.bin`. This will also create
+`trusted-secure-firmware.bin`, which contains only the part for
+`secure-firmware` SPI-NOR partition.
 
 *NOTE*: U-Boot is not part of the image checked by this signature, thus users
 can compile U-Boot on their own. The only part of the image that users cannot
