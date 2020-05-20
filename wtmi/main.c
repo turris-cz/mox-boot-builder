@@ -266,7 +266,7 @@ maybe_unused static u32 cmd_sign(u32 *args, u32 *out_args)
 		return MBOX_STS(0, -res, FAIL);
 
 	array_reverse_u32(sig.s, 17);
-	res = copy_to_ap(args[2], sig.s, 68);
+	res = copy_to_ap(args[3], sig.s, 68);
 	if (res < 0)
 		return MBOX_STS(0, -res, FAIL);
 
