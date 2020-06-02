@@ -330,13 +330,36 @@ static int ecp_secp521r1_point_mul(ec_point_t *r, const ec_point_t *a,
 	return 0;
 }
 
+/* This generates a random per-boot private key. This is used in case there is
+   no private key in OTP, which is implied if at least one of the corresponding
+   OTP rows is unlocked. */
+static const u32 *get_volatile_priv_key(void)
+{
+	static int generated;
+	static u32 priv[17];
+
+	if (generated)
+		return priv;
+
+	do
+		bn_random(priv, secp521r1.order.p, 521);
+	while (bn_is_zero(priv));
+
+	generated = 1;
+
+	return priv;
+}
+
 static int ecp_secp521r1_point_mul_by_otp(ec_point_t *r, const ec_point_t *a)
 {
-	int res;
+	int res, locked;
 
-	res = efuse_read_secure_buffer();
+	res = efuse_read_secure_buffer(&locked);
 	if (res < 0)
 		return res;
+
+	if (!locked)
+		return ecp_secp521r1_point_mul(r, a, get_volatile_priv_key());
 
 	ecp_secp521r1_init();
 	bn_copy(ECP_OP1_X, a->x);
@@ -418,14 +441,18 @@ static inline int zmodp_op(u32 op, u32 *res, const u32 *x, const u32 *y,
 
 	reg = ZMODP_CONF_SECURE | (op & ZMODP_CONF_OP_MASK);
 	if (flags & X_FROM_OTP) {
-		int res;
+		int ret, locked;
 
 		if (op != ZMODP_CONF_OP_MUL && op != ZMODP_CONF_OP_MONT)
 			return -EINVAL;
 
-		res = efuse_read_secure_buffer();
-		if (res < 0)
-			return res;
+		ret = efuse_read_secure_buffer(&locked);
+		if (ret < 0)
+			return ret;
+
+		if (!locked)
+			return zmodp_op(op, res, get_volatile_priv_key(), y,
+					flags & ~X_FROM_OTP);
 
 		reg |= ZMODP_CONF_X_FROM_OTP;
 	}

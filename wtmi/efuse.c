@@ -209,25 +209,37 @@ int efuse_read_row_no_ecc(int row, u64 *val, int *lock)
 	return res;
 }
 
-int efuse_read_secure_buffer(void)
+int efuse_read_secure_buffer(int *pall_locked)
 {
 	static int sbfill;
-	int i, res;
+	int i, res, lock, all_locked;
 
-	if (sbfill)
+	if (sbfill) {
+		if (pall_locked)
+			*pall_locked = 1;
 		return 0;
+	}
 
-	res = _efuse_read_row(40, NULL, NULL, 1, 1);
+	all_locked = 1;
+
+	res = _efuse_read_row(40, NULL, &lock, 1, 1);
 	if (res < 0)
 		return res;
 
+	all_locked = (all_locked && lock);
+
 	for (i = 37; i >= 30; --i) {
-		res = _efuse_read_row(i, NULL, NULL, 1, 1);
+		res = _efuse_read_row(i, NULL, &lock, 1, 1);
 		if (res < 0)
 			return res;
+
+		all_locked = (all_locked && lock);
 	}
 
-	sbfill = 1;
+	if (all_locked)
+		sbfill = 1;
+	if (pall_locked)
+		*pall_locked = all_locked;
 
 	return 0;
 }

@@ -115,6 +115,31 @@ maybe_unused static u32 cmd_get_random(u32 *args, u32 *out_args)
 	return MBOX_STS(0, res, SUCCESS);
 }
 
+static u32 random_board_info(u32 *out_args)
+{
+	u32 reg;
+
+	/* random lower word of serial number */
+	paranoid_rand(&out_args[0], sizeof(out_args[0]));
+	out_args[1] = 0xdeadbeef;
+
+	/* DDR4 RAM implies board version at least 30 */
+	reg = (readl(0xc00002c4) >> 4) & 0xf;
+	if (reg == 3)
+		out_args[2] = 30;
+	else
+		out_args[2] = 22;
+
+	out_args[3] = ram_size;
+
+	out_args[4] = 0xdead;
+	out_args[5] = out_args[0];
+	out_args[6] = 0xdead;
+	out_args[7] = out_args[0] + 1;
+
+	return MBOX_STS(0, 0, SUCCESS);
+}
+
 maybe_unused static u32 cmd_board_info(u32 *args, u32 *out_args)
 {
 	int res, lock;
@@ -124,13 +149,13 @@ maybe_unused static u32 cmd_board_info(u32 *args, u32 *out_args)
 	if (res < 0)
 		return MBOX_STS(0, -res, FAIL);
 	else if (!lock)
-		return MBOX_STS(0, ENODATA, FAIL);
+		return random_board_info(out_args);
 
 	res = efuse_read_row(43, &row43, &lock);
 	if (res < 0)
 		return MBOX_STS(0, -res, FAIL);
 	else if (!lock)
-		return MBOX_STS(0, ENODATA, FAIL);
+		return random_board_info(out_args);
 
 	/*
 	 * 0-1 = serial number
