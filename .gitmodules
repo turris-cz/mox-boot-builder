@@ -1,9 +1,9 @@
 [submodule "mox-imager"]
 	path = mox-imager
-	url = git@gitlab.labs.nic.cz:turris/mox-imager.git
+	url = https://gitlab.labs.nic.cz/turris/mox-imager
 [submodule "u-boot"]
 	path = u-boot
-	url = git@gitlab.labs.nic.cz:turris/mox-u-boot.git
+	url = https://gitlab.labs.nic.cz/turris/mox-u-boot
 [submodule "arm-trusted-firmware"]
 	path = arm-trusted-firmware
-	url = git@gitlab.labs.nic.cz:turris/mox-arm-trusted-firmware.git
+	url = https://gitlab.labs.nic.cz/turris/mox-arm-trusted-firmware
