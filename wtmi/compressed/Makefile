@@ -32,7 +32,7 @@ AOBJ   = $(ASRC:.S=.o)
 all: wtmi.bin
 
 wtmi.bin: $(COBJ) $(AOBJ)
-	$(ECHO) "  LD    $(MAKECMDGOALS)"
+	$(ECHO) "  LD    $@"
 	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) $(LIBGCC_A) -o wtmi.elf
 	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
 	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S wtmi.elf > wtmi.dis; fi

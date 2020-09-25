@@ -35,7 +35,7 @@ a53_helper.c: a53_helper.bin
 	$(ECHO) "};" >>a53_helper.c
 
 a53_helper.bin: $(COBJ) $(AOBJ) $(LDSCRIPT)
-	$(ECHO) "  LD    $(MAKECMDGOALS)"
+	$(ECHO) "  LD    $@"
 	$(CC) $(LDFLAGS) $(CFLAGS) $(AOBJ) $(COBJ) -o a53_helper.elf
 	$(OBJCOPY) -S -O binary a53_helper.elf a53_helper.bin
 	$(OBJDUMP) -D -S a53_helper.elf > a53_helper.dis

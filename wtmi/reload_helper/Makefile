@@ -32,7 +32,7 @@ reload_helper.c: reload_helper.bin
 	$(ECHO) "};" >>reload_helper.c
 
 reload_helper.bin: $(COBJ) $(LDSCRIPT)
-	$(ECHO) "  LD    $(MAKECMDGOALS)"
+	$(ECHO) "  LD    $@"
 	$(CC) $(LDFLAGS) $(CFLAGS) $(COBJ) -o reload_helper.elf
 	$(OBJCOPY) -S -O binary reload_helper.elf reload_helper.bin
 	$(OBJDUMP) -D -S reload_helper.elf > reload_helper.dis
