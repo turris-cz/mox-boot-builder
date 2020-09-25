@@ -43,8 +43,6 @@ CPPFLAGS =
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
 LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) $(CFLAGS) -no-pie -Xlinker "--build-id=none"
 
-LIBGCC_A = $(shell $(CC) -print-libgcc-file-name)
-
 ifeq ($(DEPLOY), 1)
 	CPPFLAGS += -DDEPLOY=1
 endif
@@ -72,7 +70,7 @@ all: wtmi.bin
 
 wtmi.bin: $(COBJ) $(AOBJ)
 	$(ECHO) "  LD    $(MAKECMDGOALS)"
-	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) $(LIBGCC_A) -o wtmi.elf
+	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -o wtmi.elf
 	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
 	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S wtmi.elf > wtmi.dis; fi
 
