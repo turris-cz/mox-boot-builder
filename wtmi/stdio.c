@@ -171,6 +171,24 @@ static inline int do_char(FILE *stream, int left, int width, unsigned char c)
 	return do_justify(stream, left, width, str, 1);
 }
 
+static inline u8 divmod10(u64 *n)
+{
+	u64 q;
+	u8 r;
+
+	q = (*n >> 1) + (*n >> 2);
+	q += q >> 4;
+	q += q >> 8;
+	q += q >> 16;
+	q += q >> 32;
+	q >>= 3;
+	r = *n - 10*q;
+
+	*n = q + (r > 9);
+
+	return r;
+}
+
 static const char digitsL[16] = "0123456789abcdef";
 static const char digitsH[16] = "0123456789ABCDEF";
 
@@ -218,8 +236,22 @@ static int do_number(FILE *stream, enum flags flags, int width, int prec,
 
 	len = 0;
 	while (number) {
-		*--p = digits[number % base];
-		number /= base;
+		switch (base) {
+		case 16:
+			*--p = digits[number & 15];
+			number >>= 4;
+			break;
+		case 8:
+			*--p = digits[number & 7];
+			number >>= 3;
+			break;
+		case 2:
+			*--p = digits[number & 1];
+			number >>= 1;
+			break;
+		default:
+			*--p = digits[divmod10(&number)];
+		}
 		++len;
 	}
 
