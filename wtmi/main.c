@@ -316,7 +316,7 @@ maybe_unused static u32 cmd_otp_write(u32 *args, u32 *out_args)
 	return MBOX_STS(0, 0, SUCCESS);
 }
 
-maybe_unused static u32 cmd_reboot_and_wdt(u32 *args, u32 *out_args)
+maybe_unused static u32 cmd_reboot(u32 *args, u32 *out_args)
 {
 	if (args[0] == SOC_MBOX_RESET_CMD_MAGIC)
 		reset_soc();
@@ -384,7 +384,7 @@ void main(void)
 	/*mbox_register_cmd(MBOX_CMD_VERIFY, cmd_verify);
 	mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
 	mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);*/
-	mbox_register_cmd(MBOX_CMD_REBOOT_AND_WDT, cmd_reboot_and_wdt);
+	mbox_register_cmd(MBOX_CMD_REBOOT, cmd_reboot);
 	enable_irq();
 
 	debug_init();
@@ -395,6 +395,7 @@ void main(void)
 		if (!mbox_has_cmd())
 			wait_for_irq();
 		enable_irq();
+		soc_wdt_workaround();
 		mbox_process_commands();
 		debug_process();
 		ebg_process();

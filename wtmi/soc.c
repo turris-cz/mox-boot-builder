@@ -140,9 +140,12 @@ static const struct reg_val reset_a53_regs[] = {
 
 static void reset_peripherals(void)
 {
-	/* disable PHY */
+	/* fix TEST MODE by forcing interrupt on PHY and disable PHY */
+	mdio_write(1, 22, 3);
+	mdio_write(1, 18, 0xc985);
 	mdio_write(1, 22, 0);
 	mdio_write(1, 0, BIT(15));
+	udelay(1000);
 
 	/* North Bridge peripherals reset */
 	writel(BIT(10) | BIT(3) | NB_RESET_UART2, NB_RESET);
@@ -264,15 +267,26 @@ void reset_soc(void)
 	core1_reset(1);
 	core0_reset_cycle();
 	udelay(1000);
+
 	reset_peripherals();
 	udelay(1000);
-	run_a53_helper(0);
-	udelay(1000);
+/*	run_a53_helper(0);
+	udelay(1000);*/
+
+	/* write magic value into WARM RESET register */
+	writel(0x1d1e, 0xc0013840);
+
+	/*
+	 * If we get here, warm reset failed. Try to reload secure firmware from
+	 * SPI. Note: this may fail when loading U-Boot, because we did not
+	 * manage to reset GIC correctly.
+	 */
+	udelay(10000);
 
 	write_reg_vals(reset_a53_regs);
 
 	/* We do not need to check return value here. New secure firmware should
-	 * tun without OBMI image. */
+	 * run without OBMI image. */
 	load_image(OBMI_ID, (void *)AP_RAM(ATF_ENTRY_ADDRESS), NULL);
 
 	reload_secure_firmware();
@@ -327,6 +341,28 @@ usage:
 }
 
 DEBUG_CMD("kick", "Kick AP", kick);
+
+void soc_wdt_workaround(void)
+{
+	u32 reg, lo, hi;
+
+	reg = readl(0xc000d064);
+	if (!(reg & BIT(1)))
+		return;
+
+	reg = readl(0xc0008310);
+	if (!(reg & BIT(1)))
+		return;
+
+	lo = readl(0xc0008314);
+	hi = readl(0xc0008318);
+	if (hi || (lo & 0xff000000))
+		return;
+
+	lo *= (reg >> 8) & 0xff;
+	if (lo < 25000 * 1000)
+		reset_soc();
+}
 
 DECL_DEBUG_CMD(info)
 {
