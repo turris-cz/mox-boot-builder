@@ -192,6 +192,8 @@ static void core1_reset(int reset)
 	setbitsl(0xc000d00c, reset ? 0 : BIT(31), BIT(31));
 }
 
+#ifdef A53_HELPER
+
 #include "a53_helper/a53_helper.c"
 #define A53_HELPER_ADDR		0x10000000
 #define A53_HELPER_DONE		0x10010000
@@ -225,6 +227,8 @@ static inline __attribute__((__gnu_inline__)) __attribute__((__always_inline__))
 {
 	_run_a53_helper(cmd, __builtin_va_arg_pack_len(), __builtin_va_arg_pack());
 }
+
+#endif /* A53_HELPER */
 
 void start_ap_workaround(void)
 {
@@ -270,8 +274,6 @@ void reset_soc(void)
 
 	reset_peripherals();
 	udelay(1000);
-/*	run_a53_helper(0);
-	udelay(1000);*/
 
 	/* write magic value into WARM RESET register */
 	writel(0x1d1e, 0xc0013840);
@@ -319,8 +321,13 @@ DECL_DEBUG_CMD(kick)
 
 	switch (load) {
 	case Helper:
+#ifdef A53_HELPER
 		memcpy((void *)AP_RAM(addr), a53_helper_code,
 		       sizeof(a53_helper_code));
+#else
+		printf("a53_helper not supported in this build\n");
+		return;
+#endif
 		break;
 	case Uboot:
 		spi_init(&nordev);

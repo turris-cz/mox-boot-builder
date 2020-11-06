@@ -59,6 +59,13 @@ else
 	CSRC := $(filter-out debug.c,$(CSRC))
 endif
 
+ifeq ($(A53_HELPER), 1)
+	CPPFLAGS += -DA53_HELPER=1
+	a53_helper_src := a53_helper/a53_helper.c
+else
+	a53_helper_src :=
+endif
+
 ASRC = $(wildcard *.S)
 
 COBJ   = $(CSRC:.c=.o)
@@ -84,13 +91,13 @@ wtmi.bin: $(COBJ) $(AOBJ)
 
 -include $(COBJ:.o=.d)
 
-a53_helper/a53_helper.c: a53_helper/a53_helper.ld a53_helper/main.c
+$(a53_helper_src): a53_helper/a53_helper.ld a53_helper/main.c
 	$(MAKE) -C a53_helper
 
 reload_helper/reload_helper.c: reload_helper/reload_helper.ld reload_helper/reload.c
 	$(MAKE) -C reload_helper
 
-soc.c: a53_helper/a53_helper.c
+soc.c: $(a53_helper_src)
 
 reload.c: reload_helper/reload_helper.c
 
