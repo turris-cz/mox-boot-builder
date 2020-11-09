@@ -186,7 +186,7 @@ static inline u8 divmod10(u64 *n)
 
 	*n = q + (r > 9);
 
-	return r;
+	return r % 10;
 }
 
 static const char digitsL[16] = "0123456789abcdef";
