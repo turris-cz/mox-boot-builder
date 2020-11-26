@@ -268,6 +268,9 @@ static void reload_secure_firmware(void)
 
 void reset_soc(void)
 {
+	disable_irq();
+	disable_systick();
+
 	core1_reset(1);
 	core0_reset_cycle();
 	udelay(1000);
