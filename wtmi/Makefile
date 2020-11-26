@@ -38,8 +38,10 @@ else
 	LTO_FLAGS =
 endif
 
+WTMI_VERSION=$(shell git describe --always --dirty --tags 2>/dev/null)
+
 CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector -fno-stack-clash-protection -fno-pie $(LTO_FLAGS) $(INCLUDE) -Os $(CPUOPTS)
-CPPFLAGS =
+CPPFLAGS = -DWTMI_VERSION='"'$(WTMI_VERSION)'"'
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
 LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) $(CFLAGS) -no-pie -Xlinker "--build-id=none"
 
