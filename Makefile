@@ -67,7 +67,7 @@ arm-trusted-firmware/$(BUILD_PLAT)/bl1.bin:
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		DEBUG=0 LOG_LEVEL=$(ATF_LOG_LEVEL) \
 		USE_COHERENT_MEM=0 PLAT=$(ATF_PLAT) \
-		$(BUILD_PLAT)/bl1.bin
+		bl1
 
 arm-trusted-firmware/$(BUILD_PLAT)/fip.bin: u-boot/u-boot.bin
 	$(MAKE) -C arm-trusted-firmware \
@@ -75,7 +75,7 @@ arm-trusted-firmware/$(BUILD_PLAT)/fip.bin: u-boot/u-boot.bin
 		BL33=$(shell pwd)/u-boot/u-boot.bin \
 		DEBUG=0 LOG_LEVEL=$(ATF_LOG_LEVEL) \
 		USE_COHERENT_MEM=0 PLAT=$(ATF_PLAT) \
-		$(BUILD_PLAT)/fip.bin
+		fip
 
 u-boot.bin: arm-trusted-firmware/$(BUILD_PLAT)/bl1.bin arm-trusted-firmware/$(BUILD_PLAT)/fip.bin
 	truncate -s %128K arm-trusted-firmware/$(BUILD_PLAT)/bl1.bin
