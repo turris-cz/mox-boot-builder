@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	do {
 		printf("\t\"");
 		while ((ch = getchar()) != EOF) {
-			total;
+			total++;
 			printf("\\x%02x", ch);
 			if (total % 16 == 0)
 				break;
