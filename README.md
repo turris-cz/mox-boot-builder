@@ -43,16 +43,16 @@ make mox-imager/mox-imager
 make -C wtmi clean
 ```
 
-### Compiling only U-Boot (without secure-firmware)
+### Compiling only a53-firmware (TF-A + U-Boot) (without secure-firmware)
 
 Run
 
 ```
-make u-boot.bin
+make a53-firmware.bin
 ```
 
-to compile ATF and U-Boot which will be combined into one image, `u-boot.bin`.
-This can then be flash onto the SPI-NOR memory (into partition `u-boot`, which
+to compile TF-A and U-Boot which will be combined into one image, `a53-firmware.bin`.
+This can then be flashed onto the SPI-NOR memory (into partition `a53-firmware`, which
 is at offset `0x20000`).
 
 
@@ -69,7 +69,7 @@ make untrusted
 will build untrusted secure firmware together with ATF and U-Boot and combine
 them into one image (`untrusted-flash-image.bin`), which can then be flashed
 into the SPI-NOR memory at offset `0x0`. This image overlaps 2 mtd partitions:
-`secure-firmware` and `u-boot`.
+`secure-firmware` and `a53-firmware`.
 
 
 ### Compiling trusted image
@@ -88,9 +88,9 @@ key. Thus it is called `trusted-flash-image.bin`. This will also create
 `trusted-secure-firmware.bin`, which contains only the part for
 `secure-firmware` SPI-NOR partition.
 
-*NOTE*: U-Boot is not part of the image checked by this signature, thus users
-can compile U-Boot on their own. The only part of the image that users cannot
-build themselves is the secure firmware.
+*NOTE*: U-Boot/a53-firmware is not part of the image checked by this signature,
+thus users can compile U-Boot/a53-firmware on their own. The only part of the
+image that users cannot build themselves is the secure firmware.
 
 
 ### Other variables
@@ -110,7 +110,7 @@ Secure firmware compilation can be configured by these variables:
 Produced images:
 
 - `(un)trusted-flash-image.bin`
-    - whole flash image (secure firmware + U-Boot)
+    - whole flash image (secure firmware + TF-A + U-Boot)
     - Flash via U-Boot:
         ```
         sf probe
@@ -129,11 +129,11 @@ Produced images:
         sf update $addr 0 $size
         ```
 
-- `u-boot.bin`
+- `a53-firmware.bin`
     - Only U-Boot (with ATF)
     - Flash via Linux:
         ```
-        mtd write u-boot.bin u-boot
+        mtd write a53-firmware.bin a53-firmware
         ```
     - Flash via U-Boot:
         ```
