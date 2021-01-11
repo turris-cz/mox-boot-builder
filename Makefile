@@ -60,7 +60,7 @@ mox-imager/mox-imager: FORCE
 arm-trusted-firmware/build/a3700/release/boot-image.bin: u-boot/u-boot.bin FORCE
 	$(MAKE) -C arm-trusted-firmware \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
-		PLAT=a3700 USE_COHERENT_MEM=0 FIP_ALIGN=0x100 \
+		PLAT=a3700 CM3_SYSTEM_RESET=1 USE_COHERENT_MEM=0 FIP_ALIGN=0x100 \
 		BL33=$(shell pwd)/u-boot/u-boot.bin \
 		mrvl_bootimage
 
