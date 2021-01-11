@@ -18,6 +18,9 @@
 
 CROSS_CM3 ?= armv7m-softfloat-eabi-
 
+HOSTCC    ?= gcc
+HOSTCFLAGS = -O2
+
 LD       = $(CROSS_CM3)ld
 CC       = $(CROSS_CM3)gcc
 AS       = $(CROSS_CM3)as
@@ -68,6 +71,8 @@ else
 	a53_helper_src :=
 endif
 
+CSRC := $(filter-out bin2c.c,$(CSRC))
+
 ASRC = $(wildcard *.S)
 
 COBJ   = $(CSRC:.c=.o)
@@ -76,6 +81,10 @@ AOBJ   = $(ASRC:.S=.o)
 .SILENT:
 
 all: wtmi.bin
+
+bin2c: bin2c.c
+	$(ECHO) "  HOSTCC $<"
+	$(HOSTCC) $(HOSTCFLAGS) -o $@ $<
 
 wtmi.bin: $(COBJ) $(AOBJ)
 	$(ECHO) "  LD    $@"
@@ -93,10 +102,10 @@ wtmi.bin: $(COBJ) $(AOBJ)
 
 -include $(COBJ:.o=.d)
 
-$(a53_helper_src): a53_helper/a53_helper.ld a53_helper/main.c
+$(a53_helper_src): a53_helper/a53_helper.ld a53_helper/main.c bin2c
 	$(MAKE) -C a53_helper
 
-reload_helper/reload_helper.c: reload_helper/reload_helper.ld reload_helper/reload.c
+reload_helper/reload_helper.c: reload_helper/reload_helper.ld reload_helper/reload.c bin2c
 	$(MAKE) -C reload_helper
 
 soc.c: $(a53_helper_src)
@@ -105,7 +114,7 @@ reload.c: reload_helper/reload_helper.c
 
 clean:
 	$(ECHO) "  CLEAN"
-	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) deploy.d deploy.o debug.d debug.o wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin
+	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) deploy.d deploy.o debug.d debug.o wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin bin2c
 	@$(MAKE) -C a53_helper clean
 	@$(MAKE) -C reload_helper clean
 

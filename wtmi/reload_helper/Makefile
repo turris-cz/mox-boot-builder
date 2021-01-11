@@ -28,7 +28,7 @@ all: reload_helper.c
 reload_helper.c: reload_helper.bin
 	$(ECHO) "  BIN2C reload_helper.c"
 	$(ECHO) "static const unsigned char reload_helper_code[$(shell stat -c %s reload_helper.bin)] = {" >reload_helper.c
-	@bin2c <reload_helper.bin >>reload_helper.c
+	@../bin2c <reload_helper.bin >>reload_helper.c
 	$(ECHO) "};" >>reload_helper.c
 
 reload_helper.bin: $(COBJ) $(LDSCRIPT)

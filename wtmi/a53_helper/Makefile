@@ -31,7 +31,7 @@ all: a53_helper.c
 a53_helper.c: a53_helper.bin
 	$(ECHO) "  BIN2C a53_helper.c"
 	$(ECHO) "static const unsigned char a53_helper_code[$(shell stat -c %s a53_helper.bin)] = {" >a53_helper.c
-	@bin2c <a53_helper.bin >>a53_helper.c
+	@../bin2c <a53_helper.bin >>a53_helper.c
 	$(ECHO) "};" >>a53_helper.c
 
 a53_helper.bin: $(COBJ) $(AOBJ) $(LDSCRIPT)

@@ -31,16 +31,19 @@ AOBJ   = $(ASRC:.S=.o)
 
 all: wtmi.bin
 
+../bin2c:
+	$(MAKE) -C .. bin2c
+
 wtmi.bin: $(COBJ) $(AOBJ)
 	$(ECHO) "  LD    $@"
 	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) $(LIBGCC_A) -o wtmi.elf
 	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
 	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S wtmi.elf > wtmi.dis; fi
 
-main_wtmi.c: main_wtmi.zlib
+main_wtmi.c: main_wtmi.zlib ../bin2c
 	$(ECHO) "  BIN2C main_wtmi.c"
 	$(ECHO) "const unsigned char main_wtmi_zlib[$(shell stat -c %s main_wtmi.zlib)] __attribute__((section(\".compressed_data\"), used)) = {" >main_wtmi.c
-	@bin2c <main_wtmi.zlib >>main_wtmi.c
+	@../bin2c <main_wtmi.zlib >>main_wtmi.c
 	$(ECHO) "};" >>main_wtmi.c
 
 main_wtmi.zlib: ../wtmi.bin
@@ -59,7 +62,7 @@ main_wtmi.zlib: ../wtmi.bin
 
 -include $(COBJ:.o=.d)
 
-../reload_helper/reload_helper.c: ../reload_helper/reload_helper.ld ../reload_helper/reload.c
+../reload_helper/reload_helper.c: ../reload_helper/reload_helper.ld ../reload_helper/reload.c ../bin2c
 	$(MAKE) -C ../reload_helper
 
 reload.c: ../reload_helper/reload_helper.c
