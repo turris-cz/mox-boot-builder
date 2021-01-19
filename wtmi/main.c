@@ -370,7 +370,7 @@ void main(void)
 	wait_ns(10000000);
 	writel(0x1d1e, 0xc0013840);
 #else /* !DEPLOY */
-	printf("\nCZ.NIC Turris Mox Secure Firmware version %s (%s %s)\n",
+	printf("\n\nCZ.NIC Turris Mox Secure Firmware version %s (%s %s)\n",
 	       WTMI_VERSION, __DATE__, __TIME__);
 	init_ddr();
 	ebg_init();
