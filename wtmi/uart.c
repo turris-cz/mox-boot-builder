@@ -110,6 +110,11 @@ int uart_putc(int _c, void *p)
 
 	writel(c, info->tx);
 
+	if (c == '\n') {
+		while (!(readl(info->status) & BIT(6)))
+			wait_ns(20000);
+	}
+
 	return c;
 }
 
