@@ -50,7 +50,9 @@ a53_helper.bin: $(COBJ) $(AOBJ) $(LDSCRIPT)
 
 clean:
 	$(ECHO) "  CLEAN"
-	@$(RM) -f $(COBJ) $(COBJ:.o=.d) a53_helper.elf a53_helper.bin a53_helper.dis a53_helper.c
+	@$(RM) -f $(COBJ) $(COBJ:.o=.d) $(AOBJ) $(AOBJ:.o=.d) a53_helper.elf a53_helper.bin a53_helper.dis a53_helper.c
 
-disasm:
+disasm: a53_helper.bin
 	$(OBJDUMP) -m aarch64 -b binary --adjust-vma=0x04100000 -D a53_helper.bin
+
+.PHONY: all clean disasm

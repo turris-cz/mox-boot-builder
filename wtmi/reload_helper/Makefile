@@ -45,5 +45,7 @@ clean:
 	$(ECHO) "  CLEAN"
 	@$(RM) -f $(COBJ) $(COBJ:.o=.d) reload_helper.elf reload_helper.bin reload_helper.dis reload_helper.c
 
-disasm:
+disasm: reload_helper.bin
 	$(OBJDUMP) -m arm -M force-thumb -b binary --adjust-vma=0x1fffff00 -D reload_helper.bin
+
+.PHONY: all clean disasm

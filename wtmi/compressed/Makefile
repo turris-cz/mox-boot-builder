@@ -31,7 +31,7 @@ AOBJ   = $(ASRC:.S=.o)
 
 all: wtmi.bin
 
-../bin2c:
+../bin2c: FORCE
 	$(MAKE) -C .. bin2c
 
 wtmi.bin: $(COBJ) $(AOBJ)
@@ -49,8 +49,8 @@ main_wtmi.c: main_wtmi.zlib ../bin2c
 main_wtmi.zlib: ../wtmi.bin
 	gzip -cnkf9 ../wtmi.bin | dd bs=10 skip=1 >main_wtmi.zlib
 
-../wtmi.bin:
-	$(MAKE) -C ../
+../wtmi.bin: FORCE
+	$(MAKE) -C ../ wtmi.bin
 
 %.o: %.c
 	$(ECHO) "  CC    $<"
@@ -72,5 +72,8 @@ clean:
 	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) wtmi.elf wtmi.dis wtmi.bin main_wtmi.zlib main_wtmi.c
 	$(MAKE) -C ../ clean
 
-disasm:
+disasm: wtmi.bin
 	$(OBJDUMP) -m arm -M force-thumb -b binary --adjust-vma=0x1fff0000 -D wtmi.bin
+
+.PHONY: all clean disasm FORCE
+FORCE:;

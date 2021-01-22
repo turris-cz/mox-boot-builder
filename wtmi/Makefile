@@ -118,5 +118,7 @@ clean:
 	@$(MAKE) -C a53_helper clean
 	@$(MAKE) -C reload_helper clean
 
-disasm:
+disasm: wtmi.bin
 	$(OBJDUMP) -m arm -M force-thumb -b binary --adjust-vma=0x1fff0000 -D wtmi.bin
+
+.PHONY: all clean disasm

@@ -68,8 +68,8 @@ a53-firmware.bin: arm-trusted-firmware/build/a3700/release/boot-image.bin
 	cp -a $< $@
 	od -v -tu8 -An -j 131184 -N 8 $@ | awk '{ for (i = 0; i < 64; i += 8) printf "%c", and(rshift(1310720-$$1, i), 255) }' | dd of=$@ bs=1 seek=131192 count=8 conv=notrunc 2>/dev/null
 
-u-boot/u-boot.bin:
-	$(MAKE) -C u-boot turris_mox_defconfig
+u-boot/u-boot.bin: FORCE
+	$(MAKE) -C u-boot CROSS_COMPILE=$(CROSS_COMPILE) turris_mox_defconfig
 	$(MAKE) -C u-boot CROSS_COMPILE=$(CROSS_COMPILE) u-boot.bin
 
 clean:
