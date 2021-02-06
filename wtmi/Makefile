@@ -41,7 +41,10 @@ else
 	LTO_FLAGS =
 endif
 
-WTMI_VERSION=$(shell git describe --always --dirty --tags 2>/dev/null)
+override WTMI_VERSION = $(shell git describe --always --dirty --tags)
+ifndef WTMI_VERSION
+$(error Repository is without git tags, please do a full git clone again)
+endif
 
 CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector -fno-stack-clash-protection -fno-pie $(LTO_FLAGS) $(INCLUDE) -Os $(CPUOPTS)
 CPPFLAGS = -DWTMI_VERSION='"'$(WTMI_VERSION)'"'
