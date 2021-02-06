@@ -89,7 +89,7 @@ bin2c: bin2c.c
 	$(ECHO) "  HOSTCC $<"
 	$(HOSTCC) $(HOSTCFLAGS) -o $@ $<
 
-wtmi.bin: $(COBJ) $(AOBJ)
+wtmi.bin: $(COBJ) $(AOBJ) $(LDSCRIPT)
 	$(ECHO) "  LD    $@"
 	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -o wtmi.elf
 	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
@@ -102,6 +102,8 @@ wtmi.bin: $(COBJ) $(AOBJ)
 %.o: %.S
 	$(ECHO) "  AS    $<"
 	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
+
+main.o: $(filter-out main.o,$(COBJ)) $(AOBJ) $(LDSCRIPT)
 
 -include $(COBJ:.o=.d)
 
