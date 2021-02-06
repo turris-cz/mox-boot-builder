@@ -1,6 +1,7 @@
 ECDSA_PRIV_KEY	:= ecdsa_priv_key.txt
 CROSS_CM3	:= armv7m-softfloat-eabi-
 CROSS_COMPILE	:= aarch64-unknown-linux-gnu-
+LTO 		:= 1
 
 ifeq ($(COMPRESS_WTMI), 1)
 	WTMI_PATH := wtmi/compressed
@@ -48,7 +49,7 @@ untrusted-secure-firmware-emmc.bin: mox-imager/mox-imager wtmi_h.bin
 	mox-imager/mox-imager --create-untrusted-image=EMMC -o $@ wtmi_h.bin
 
 $(WTMI_PATH)/wtmi.bin: FORCE
-	$(MAKE) -C $(WTMI_PATH) CROSS_CM3=$(CROSS_CM3)
+	$(MAKE) -C $(WTMI_PATH) CROSS_CM3=$(CROSS_CM3) LTO=$(LTO) wtmi.bin
 
 wtmi_h.bin: $(WTMI_PATH)/wtmi.bin
 	printf "IMTW" >wtmi_h.bin
