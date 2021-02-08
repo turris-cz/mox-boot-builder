@@ -103,11 +103,27 @@ static int write_sn(void)
 	return row_write_if_not_locked(43, val);
 }
 
+static int ram_size_code(int ram_size)
+{
+	switch (ram_size) {
+	case 512:
+		return 0;
+	case 1024:
+		return 1;
+	case 2048:
+		return 2;
+	case 4096:
+		return 3;
+	default:
+		return -1;
+	}
+}
+
 static int write_ram_bver_mac(int ram_size)
 {
 	u64 val;
 
-	val = (ram_size == 1024 ? 1 : 0);
+	val = ram_size_code(ram_size);
 	val <<= 8;
 	val |= mbd.board_version & 0xff;
 	val <<= 16;
@@ -180,7 +196,7 @@ static void do_deploy(void)
 
 #define die(...) do { printf(__VA_ARGS__); return; } while (0)
 
-	if (ram_size != 1024 && ram_size != 512)
+	if (ram_size_code(ram_size) < 0)
 		die("FAIL_DETERMIN_RAM");
 
 	/* write SN and time */
@@ -201,7 +217,7 @@ static void do_deploy(void)
 #endif
 
 	/* send RAM info */
-	printf("RAM%c", ram_size == 1024 ? '1' : '0');
+	printf("RAM%c", ram_size_code(ram_size) + '0');
 
 	/* read SN and time and send back */
 	if (efuse_read_row(43, &val, NULL) < 0)
