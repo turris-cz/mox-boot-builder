@@ -535,14 +535,13 @@ DECL_DEBUG_CMD(cmd_efuse)
 		val |= low;
 
 		res = efuse_read_row(row, &oldval, &lock);
-		if (res < 0) {
+		if (res < 0 && res != -EIO) {
 			printf("Could not read old value!\n");
 		} else if (lock) {
 			printf("Row is already locked!\n");
 		} else if ((val & oldval) != oldval) {
 			printf("New value has to be a superset of old value!\n");
 		} else {
-			printf("not writing row %i with value %016llx\n", row, val);
 			res = efuse_write_row_no_ecc(row, val, 0);
 			if (res < 0)
 				printf("Could not write row %i with value %016llx\n", row, val);
@@ -550,10 +549,16 @@ DECL_DEBUG_CMD(cmd_efuse)
 				printf("Written row %i with value %016llx\n", row, val);
 		}
 	} else if (!strcmp(argv[1], "lock")) {
+		int res;
+
 		if (argc < 3)
 			goto usage;
 
-		printf("not locking row %i\n", row);
+		res = efuse_write_row_with_ecc_lock(row, 0);
+		if (res < 0)
+			printf("Failed locking row %i\n", row);
+		else
+			printf("Row %i locked\n", row);
 	} else {
 		goto usage;
 	}
