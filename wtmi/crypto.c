@@ -668,3 +668,14 @@ DECL_DEBUG_CMD(cmd_ecdsa)
 }
 
 DEBUG_CMD("ecdsa", "Test ECDSA cryptographic engine", cmd_ecdsa);
+
+DECL_DEBUG_CMD(cmd_gen_ecdsa_key)
+{
+	if (ecdsa_generate_efuse_private_key())
+		printf("Failed generating/writing ECDSA key\n");
+	else
+		printf("ECDSA key generated and written to eFuse\n");
+}
+
+DEBUG_CMD("gen_ecdsa_key", "Generate ECDSA private key and write to eFuse",
+	  cmd_gen_ecdsa_key);
