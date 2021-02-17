@@ -42,12 +42,11 @@ void main (void)
 	extern u8 compressed_start, compressed_end;
 	void *src;
 	void *dst;
-	u32 addr, len;
+	u32 len;
 
 	src = &compressed_start;
 	len = &compressed_end - &compressed_start;
-	addr = 0x20000000;
-	dst = (void *)addr;
+	dst = (void *)0x20000000;
 
 	if (zunzip(dst, 65536, src, &len, 1, 0))
 		die();
@@ -55,6 +54,6 @@ void main (void)
 	if (len % 4)
 		len += 4 - (len % 4);
 
-	do_reload(addr, len);
+	do_reload(dst, len);
 	die();
 }
