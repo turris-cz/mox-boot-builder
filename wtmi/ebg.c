@@ -39,7 +39,7 @@ static int ebg_next(int wait, u16 *res)
 
 	if (wait) {
 		while (!((val = readl(EBG_ENTROPY)) & BIT(31)))
-			wait_ns(10);
+			wait_ns(100);
 	} else {
 		val = readl(EBG_ENTROPY);
 		if (!(val & BIT(31)))

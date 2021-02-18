@@ -1124,7 +1124,7 @@ void wait_ns(u32 wait_ns)
 
 void udelay(u32 us)
 {
-	u32 loop = 200 * us / (loop_ns * 3);
+	u32 loop = 1000 * us / loop_ns;
 
 	asm volatile(
 		"0:\n"
@@ -1146,7 +1146,7 @@ int clock_init(void)
 
 	if (cm3_clk != 0) {
 		clk_ns = 1000 / cm3_clk;
-		loop_ns = clk_ns / CYCLES_PER_LOOP;
+		loop_ns = clk_ns * CYCLES_PER_LOOP;
 		res = 0;
 	}
 

@@ -13,7 +13,7 @@
 static inline void mdio_wait(void)
 {
 	while (readl(SMI) & SMI_BUSY)
-		wait_ns(10);
+		wait_ns(100);
 }
 
 void mdio_write(int dev, int reg, u16 val)
