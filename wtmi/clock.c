@@ -36,6 +36,7 @@
 #include "clock.h"
 #include "stdio.h"
 #include "errno.h"
+#include "debug.h"
 
 #define NB_TBG_CFG		0xc0013200
 #define NB_TBG_CTRL0		0xc0013204
@@ -1152,3 +1153,47 @@ int clock_init(void)
 
 	return res;
 }
+
+DECL_DEBUG_CMD(cmd_wait_ns)
+{
+	u32 ns, start, stop;
+
+	if (argc < 2)
+		goto usage;
+
+	if (decnumber(argv[1], &ns))
+		goto usage;
+
+	start = readl(0xc0008324);
+	wait_ns(ns);
+	stop = readl(0xc0008324);
+	printf("diff = %u us\n", start - stop);
+
+	return;
+usage:
+	printf("usage: wait_ns <ns>\n");
+}
+
+DEBUG_CMD("wait_ns", "Delay in nanoseconds", cmd_wait_ns);
+
+DECL_DEBUG_CMD(cmd_udelay)
+{
+	u32 us, start, stop;
+
+	if (argc < 2)
+		goto usage;
+
+	if (decnumber(argv[1], &us))
+		goto usage;
+
+	start = readl(0xc0008324);
+	udelay(us);
+	stop = readl(0xc0008324);
+	printf("diff = %u us\n", start - stop);
+
+	return;
+usage:
+	printf("usage: udelay <us>\n");
+}
+
+DEBUG_CMD("udelay", "Delay in microseconds", cmd_udelay);
