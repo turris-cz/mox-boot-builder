@@ -212,6 +212,7 @@ static int do_number(FILE *stream, enum flags flags, int width, int prec,
 	case 'p':
 		pfx = "0x";
 		base = 16;
+		break;
 	case 'x':
 		if (flags & FLAG_ALT)
 			pfx = "0x";
