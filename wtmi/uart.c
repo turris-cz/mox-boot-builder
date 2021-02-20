@@ -70,7 +70,7 @@ static FILE uart_stdout = {
 	.putc = uart_putc,
 };
 
-int uart_init(const struct uart_info *info, unsigned int baudrate)
+void uart_init(const struct uart_info *info, unsigned int baudrate)
 {
 	/* set baudrate */
 	writel((UART_CLOCK_FREQ / baudrate / 16), info->baud);
@@ -93,8 +93,6 @@ int uart_init(const struct uart_info *info, unsigned int baudrate)
 
 	uart_stdout.data = (void *)info;
 	stdout = &uart_stdout;
-
-	return 0;
 }
 
 int uart_putc(int _c, void *p)

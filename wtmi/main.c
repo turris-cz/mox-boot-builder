@@ -358,9 +358,7 @@ void main(void)
 	if (res < 0)
 		return;
 
-	res = uart_init(get_debug_uart(), 115200);
-	if (res < 0)
-		return;
+	uart_init(get_debug_uart(), 115200);
 
 #ifdef DEPLOY
 	ebg_init();
