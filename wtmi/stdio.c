@@ -334,7 +334,8 @@ int vfprintf(FILE *stream, const char *fmt, va_list ap)
 		mod = get_modifier(&fmt);
 
 		switch (*fmt) {
-			u64 x, sx;
+			s64 sx;
+			u64 x;
 		case '\0':
 			return -1;
 		case '%':
