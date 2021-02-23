@@ -132,12 +132,6 @@ static const struct reg_val reset_a53_regs[] = {
 	{ 0x64000400, 0 },
 };
 
-#ifdef DEBUG_UART2
-#define NB_RESET_UART2		BIT(6)
-#else
-#define NB_RESET_UART2		0
-#endif
-
 static void reset_peripherals(void)
 {
 	/* fix TEST MODE by forcing interrupt on PHY and disable PHY */
@@ -148,7 +142,7 @@ static void reset_peripherals(void)
 	udelay(1000);
 
 	/* North Bridge peripherals reset */
-	writel(BIT(10) | BIT(3) | NB_RESET_UART2, NB_RESET);
+	writel(BIT(10) | BIT(6) | BIT(3), NB_RESET);
 	wait_ns(1000000);
 	writel(0x7fcff, NB_RESET);
 	wait_ns(1000000);
