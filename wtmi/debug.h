@@ -4,7 +4,7 @@
 #include "uart.h"
 #include "stdio.h"
 
-#ifdef DEBUG_UART2
+#ifdef DEBUG_UART
 
 struct debug_cmd {
 	char name[16];
@@ -24,7 +24,7 @@ struct debug_cmd {
 
 static inline const struct uart_info *get_debug_uart(void)
 {
-	return &uart2_info;
+	return (DEBUG_UART == 2) ? &uart2_info : &uart1_info;
 }
 
 void debug_init(void);
@@ -32,7 +32,7 @@ void debug_process(void);
 
 int _number(const char *str, u32 *pres, int base);
 
-#else /* !DEBUG_UART2 */
+#else /* !DEBUG_UART */
 
 #define DEBUG_CMD(n,h,f)
 
@@ -54,7 +54,7 @@ static inline int _number(const char *str, u32 *pres, int base)
 	return -1;
 }
 
-#endif /* !DEBUG_UART2 */
+#endif /* !DEBUG_UART */
 
 #define DECL_DEBUG_CMD(f) \
 	static void __attribute__((unused)) f(int argc, char **argv)

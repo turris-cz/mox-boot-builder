@@ -99,10 +99,10 @@ Secure firmware compilation can be configured by these variables:
 
 - `LTO=1` will compile secure firmware wit link time optimizations enabled. This
   will lead to smalled binary
-- `DEBUG_UART2=1` will start a debug console on UART2. This is useful for
-  debugging secure firmware
+- `DEBUG_UART=1` or `DEBUG_UART=2` will start a debug console on UART1/UART2.
+  This is useful for debugging secure firmware
 - `COMPRESS_WTMI=1` will compress secure-firmware and add code to decompress it
-  before running. Useful when `DEBUG_UART2=1` is used
+  before running. Useful when `DEBUG_UART` is used
 
 
 ### Outputs

@@ -61,8 +61,8 @@ else
 	CSRC = $(filter-out deploy.c,$(wildcard *.c ddr/*.c))
 endif
 
-ifeq ($(DEBUG_UART2), 1)
-	CPPFLAGS += -DDEBUG_UART2=1
+ifeq ($(shell echo "$(DEBUG_UART)" | tr 2 1), 1)
+	CPPFLAGS += -DDEBUG_UART=$(DEBUG_UART)
 else
 	CSRC := $(filter-out debug.c,$(CSRC))
 endif
