@@ -1109,11 +1109,23 @@ u32 get_cm3_clk(void)
 	return tbg/(cm3_pre_scl1 * cm3_pre_scl2);
 }
 
-static u32 loop_ns;
+/*
+ * CM3 Secure Processor runs at 200 MHz at every setting.
+ * It could theoretically run at other frequency, but since this firmware
+ * does not change it's clock, we are goint to assume constant frequency
+ * of 200 MHz.
+ *
+ * The assembly loop in wait_ns() and udelay() functions takes 3 clock ticks.
+ * At 200 MHz, 3 clock ticks amount to 15 ns. That is why NS_TO_LOOPS()
+ * divides the desired wait delay by 15.
+ * US_TO_LOOPS(us) = NS_TO_LOOPS(1000 * us) = 1000 * us / 15 = 200 * us / 3.
+ */
+#define NS_TO_LOOPS(ns)		((ns) / 15)
+#define US_TO_LOOPS(us)		(200 * (us) / 3)
 
 void wait_ns(u32 wait_ns)
 {
-	u32 loop = wait_ns / loop_ns;
+	u32 loop = NS_TO_LOOPS(wait_ns);
 
 	asm volatile(
 		"0:\n"
@@ -1125,7 +1137,7 @@ void wait_ns(u32 wait_ns)
 
 void udelay(u32 us)
 {
-	u32 loop = 1000 * us / loop_ns;
+	u32 loop = US_TO_LOOPS(us);
 
 	asm volatile(
 		"0:\n"
@@ -1133,25 +1145,6 @@ void udelay(u32 us)
 		"bne 0b\n"
 		: [count] "+r" (loop)
 	);
-}
-
-#define CYCLES_PER_LOOP		3
-
-int clock_init(void)
-{
-	int res;
-	u32 clk_ns, cm3_clk;
-
-	cm3_clk = get_cm3_clk();
-	res = -EIO;
-
-	if (cm3_clk != 0) {
-		clk_ns = 1000 / cm3_clk;
-		loop_ns = clk_ns * CYCLES_PER_LOOP;
-		res = 0;
-	}
-
-	return res;
 }
 
 DECL_DEBUG_CMD(cmd_wait_ns)

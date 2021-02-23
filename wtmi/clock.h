@@ -34,7 +34,6 @@ int get_cpu_clock(void);
 int get_ddr_clock(void);
 int setup_clock_tree(void);
 
-int clock_init(void);
 u32 get_ref_clk(void);
 u32 get_cm3_clk(void);
 void wait_ns(u32 wait_ns);

@@ -352,12 +352,6 @@ static void init_ddr(void)
 
 void main(void)
 {
-	int res;
-
-	res = clock_init();
-	if (res < 0)
-		return;
-
 	uart_init(get_debug_uart(), 115200);
 
 #ifdef DEPLOY
