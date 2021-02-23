@@ -101,15 +101,15 @@ static int _efuse_raw_read(u32 rwreg, u32 ecc_pos, u64 *val, int *lock)
 	writel(0x4, EFUSE_CTRL);
 	setbitsl(EFUSE_CTRL, 0x8, 0x8);
 	setbitsl(EFUSE_CTRL, 0x3, 0x7);
-	wait_ns(300);
+	ndelay(300);
 
 	writel(rwreg, EFUSE_RW);
 	if (ecc_pos)
 		setbitsl(EFUSE_CTRL, ecc_pos << 24, 0xff000000);
 
-	wait_ns(300);
+	ndelay(300);
 	setbitsl(EFUSE_CTRL, 0x100, 0x100);
-	wait_ns(200);
+	ndelay(200);
 	setbitsl(EFUSE_CTRL, 0, 0x100);
 
 	res = -ETIMEDOUT;
@@ -129,7 +129,7 @@ static int _efuse_raw_read(u32 rwreg, u32 ecc_pos, u64 *val, int *lock)
 			res = 0;
 			break;
 		}
-		wait_ns(100);
+		ndelay(100);
 	}
 
 	setbitsl(EFUSE_CTRL, 0x4, 0x6);
@@ -237,7 +237,7 @@ static int efuse_write_enable(void)
 	int i, j, seq_val;
 
 	writel(0x0, EFUSE_CTRL);
-	wait_ns(300);
+	ndelay(300);
 	writel(0x5a, EFUSE_MASTER_CTRL);
 	writel(0x100, EFUSE_CTRL);
 
@@ -256,7 +256,7 @@ static int efuse_write_enable(void)
 		if (readl(EFUSE_AUX) & BIT(29))
 			return 0;
 
-		wait_ns(100);
+		ndelay(100);
 	}
 
 	return -ETIMEDOUT;
@@ -288,7 +288,7 @@ static int efuse_raw_write(int row, u64 val)
 
 	setbitsl(EFUSE_CTRL, 0x8, 0x8);
 	setbitsl(EFUSE_CTRL, 0, 0x7);
-	wait_ns(500);
+	ndelay(500);
 
 	for (i = 0; i < 64; ++i) {
 		if (!((val >> i) & 1))
@@ -326,7 +326,7 @@ static int efuse_raw_lock(int row)
 	setbitsl(EFUSE_CTRL, 0x8, 0x8);
 	setbitsl(EFUSE_CTRL, 0, 0x5);
 	setbitsl(EFUSE_CTRL, 0x2, 0x2);
-	wait_ns(500);
+	ndelay(500);
 
 	writel(EFUSE_RC(row, 0), EFUSE_RW);
 	setbitsl(EFUSE_CTRL, 0x100, 0x100);

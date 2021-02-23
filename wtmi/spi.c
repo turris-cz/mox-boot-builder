@@ -32,7 +32,7 @@ const struct spi nordev = {
 static inline void spi_ctrl_wait_bit(u32 x)
 {
 	while (!(readl(SPI_CTRL) & x))
-		wait_ns(100);
+		ndelay(100);
 }
 
 void spi_init(const struct spi *spi)

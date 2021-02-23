@@ -48,7 +48,7 @@
 static inline void hash_wait(void)
 {
 	while (readl(HASH_STATUS) != HASH_STATUS_DONE)
-		wait_ns(100);
+		ndelay(100);
 }
 
 static void hash_init(u32 alg, u32 size)

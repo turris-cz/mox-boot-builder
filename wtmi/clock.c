@@ -1115,7 +1115,7 @@ u32 get_cm3_clk(void)
  * does not change it's clock, we are goint to assume constant frequency
  * of 200 MHz.
  *
- * The assembly loop in wait_ns() and udelay() functions takes 3 clock ticks.
+ * The assembly loop in ndelay() and udelay() functions takes 3 clock ticks.
  * At 200 MHz, 3 clock ticks amount to 15 ns. That is why NS_TO_LOOPS()
  * divides the desired wait delay by 15.
  * US_TO_LOOPS(us) = NS_TO_LOOPS(1000 * us) = 1000 * us / 15 = 200 * us / 3.
@@ -1123,9 +1123,9 @@ u32 get_cm3_clk(void)
 #define NS_TO_LOOPS(ns)		((ns) / 15)
 #define US_TO_LOOPS(us)		(200 * (us) / 3)
 
-void wait_ns(u32 wait_ns)
+void ndelay(u32 ns)
 {
-	u32 loop = NS_TO_LOOPS(wait_ns);
+	u32 loop = NS_TO_LOOPS(ns);
 
 	asm volatile(
 		"0:\n"
@@ -1147,7 +1147,7 @@ void udelay(u32 us)
 	);
 }
 
-DECL_DEBUG_CMD(cmd_wait_ns)
+DECL_DEBUG_CMD(cmd_ndelay)
 {
 	u32 ns, start, stop;
 
@@ -1158,16 +1158,16 @@ DECL_DEBUG_CMD(cmd_wait_ns)
 		goto usage;
 
 	start = readl(0xc0008324);
-	wait_ns(ns);
+	ndelay(ns);
 	stop = readl(0xc0008324);
 	printf("diff = %u us\n", start - stop);
 
 	return;
 usage:
-	printf("usage: wait_ns <ns>\n");
+	printf("usage: ndelay <ns>\n");
 }
 
-DEBUG_CMD("wait_ns", "Delay in nanoseconds", cmd_wait_ns);
+DEBUG_CMD("ndelay", "Delay in nanoseconds", cmd_ndelay);
 
 DECL_DEBUG_CMD(cmd_udelay)
 {

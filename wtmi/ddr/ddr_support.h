@@ -90,3 +90,8 @@ enum training { PHYINIT_SYNC2=0, INIT_TIMING=1, TERM=2, QS_GATE=3, VREF_READ=4, 
 static inline void logs_training_regs(enum training type)
 {
 }
+
+static inline void wait_ns(u32 ns)
+{
+	ndelay(ns);
+}

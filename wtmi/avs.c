@@ -78,7 +78,7 @@ static int otp_nb_read_parallel(u32 *data)
 	regval &= ~OTP_PRDT_BIT;
 	writel(regval, MVEBU_NORTH_OTP_CTRL);
 
-	wait_ns(100);
+	ndelay(100);
 
 	regval = readl(MVEBU_NORTH_OTP_CTRL);
 	regval |= OTP_PRDT_BIT;

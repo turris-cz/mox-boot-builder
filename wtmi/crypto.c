@@ -254,7 +254,7 @@ static inline u32 ecp_wait(void)
 	u32 val;
 
 	while (!(val = readl(ECP_INT)))
-		wait_ns(100);
+		ndelay(100);
 	writel(val, ECP_INT);
 
 //	printf("ECP_INT = %x\n", val);
@@ -363,7 +363,7 @@ static inline u32 zmodp_wait(void)
 	u32 val;
 
 	while (!(val = readl(ZMODP_INT)))
-		wait_ns(100);
+		ndelay(100);
 	writel(val, ZMODP_INT);
 
 //	printf("ZMODP_INT = %x\n", val);

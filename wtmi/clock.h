@@ -36,7 +36,7 @@ int setup_clock_tree(void);
 
 u32 get_ref_clk(void);
 u32 get_cm3_clk(void);
-void wait_ns(u32 wait_ns);
+void ndelay(u32 ns);
 void udelay(u32 us);
 
 #endif /* _CLOCK_H_ */
