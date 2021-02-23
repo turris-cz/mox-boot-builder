@@ -110,7 +110,7 @@ static void spi_flash_cmd(const struct spi *spi, u8 cmd, void *din, u32 datalen)
 
 void spi_nor_read_id(const struct spi *spi, u8 *id)
 {
-	spi_flash_cmd(spi, SPINOR_OP_RDID, id, sizeof(id));
+	spi_flash_cmd(spi, SPINOR_OP_RDID, id, 6);
 }
 
 void spi_nor_read(const struct spi *spi, void *dst, u32 pos, u32 len)
