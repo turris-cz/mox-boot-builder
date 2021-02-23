@@ -38,7 +38,7 @@ wtmi.bin: $(COBJ) $(AOBJ)
 	$(ECHO) "  LD    $@"
 	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) $(LIBGCC_A) -o wtmi.elf
 	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
-	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S wtmi.elf > wtmi.dis; fi
+	$(OBJDUMP) -D -S wtmi.elf > wtmi.dis
 
 main_wtmi.c: main_wtmi.zlib ../bin2c
 	$(ECHO) "  BIN2C main_wtmi.c"

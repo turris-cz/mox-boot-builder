@@ -93,7 +93,7 @@ wtmi.bin: $(COBJ) $(AOBJ) $(LDSCRIPT)
 	$(ECHO) "  LD    $@"
 	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -o wtmi.elf
 	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
-	@if [ `uname -m` = "x86_64" ]; then $(OBJDUMP) -D -S wtmi.elf > wtmi.dis; fi
+	$(OBJDUMP) -D -S wtmi.elf > wtmi.dis
 
 %.o: %.c
 	$(ECHO) "  CC    $<"
