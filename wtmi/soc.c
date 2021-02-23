@@ -143,37 +143,37 @@ static void reset_peripherals(void)
 
 	/* North Bridge peripherals reset */
 	writel(BIT(10) | BIT(6) | BIT(3), NB_RESET);
-	wait_ns(1000000);
+	udelay(1000);
 	writel(0x7fcff, NB_RESET);
-	wait_ns(1000000);
+	udelay(1000);
 
 	write_reg_vals(reset_nb_regs);
 
 	/* South Bridge peripheral reset */
 	writel(0, SB_RESET);
-	wait_ns(1000000);
+	udelay(1000);
 	writel(0xf3c, SB_RESET);
-	wait_ns(1000000);
+	udelay(1000);
 
 	write_reg_vals(reset_sb_regs);
 
 	/* PCIE/GBE0 PHY */
 	writel(0x122, 0xc001f382);
-	wait_ns(10000);
+	udelay(10);
 	writel(0x21, 0xc001f382);
-	wait_ns(10000);
+	udelay(10);
 
 	/* USB3/GBE1 PHY */
 	writel(0x122, 0xc005c382);
-	wait_ns(10000);
+	udelay(10);
 	writel(0x21, 0xc005c382);
-	wait_ns(10000);
+	udelay(10);
 
 	/* USB3/SATA PHY */
 	write_indirect(0x122, 0x3c1);
-	wait_ns(10000);
+	udelay(10);
 	write_indirect(0x21, 0x3c1);
-	wait_ns(10000);
+	udelay(10);
 }
 
 static void core0_reset_cycle(void)
@@ -231,7 +231,7 @@ void start_ap_workaround(void)
 	start_ap();
 
 	for (i = 0; i < 1000; ++i) {
-		wait_ns(100000);
+		udelay(100);
 		if (readl(0x64000400))
 			break;
 	}

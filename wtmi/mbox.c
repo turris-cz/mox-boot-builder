@@ -133,7 +133,7 @@ void mbox_send(u32 status, u32 *args)
 		else
 			break;
 
-		wait_ns(100000);
+		udelay(100);
 	}
 
 	if (args) {

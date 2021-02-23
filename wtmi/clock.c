@@ -612,7 +612,7 @@ static u32 set_tbg_clock(u32 kvco_mhz,
 	ret = get_tbg_vco_sel(kvco_mhz, &vco_intpi, &vco_range);
 	if (ret != 0) {
 		printf("Failed to obtain VCO divider selection\n");
-		wait_ns(10000);
+		udelay(10);
 		return ret;
 	}
 
@@ -697,7 +697,7 @@ static u32 set_tbg_clock(u32 kvco_mhz,
 	} while (regval != (BIT(15) | BIT(31)));
 
 	/* Wait for stable clock output, suggested 40us */
-	wait_ns(40000);
+	udelay(40);
 
 	return 0;
 }
@@ -813,7 +813,7 @@ static u32 set_ssc_clock(u32 kvco_mhz,
 	writel(regval, NB_TBG_CTRL3);
 
 	/* 14. wait 5us */
-	wait_ns(5000);
+	udelay(5);
 
 	/* 15. Set TBG_X_PI_LOOP_MODE = 1 */
 	regval = readl(NB_TBG_CTRL2);

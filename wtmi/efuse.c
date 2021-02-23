@@ -296,16 +296,16 @@ static int efuse_raw_write(int row, u64 val)
 
 		writel(EFUSE_RC(row, i), EFUSE_RW);
 		setbitsl(EFUSE_CTRL, 0x100, 0x100);
-		wait_ns(13000);
+		udelay(13);
 		setbitsl(EFUSE_CTRL, 0, 0x100);
 	}
 
 	setbitsl(EFUSE_CTRL, 0x4, 0x4);
 	setbitsl(EFUSE_CTRL, 0x1, 0x3);
 
-	wait_ns(1000000);
+	udelay(1000);
 	efuse_write_disable();
-	wait_ns(1000000);
+	udelay(1000);
 
 	return 0;
 }
@@ -330,15 +330,15 @@ static int efuse_raw_lock(int row)
 
 	writel(EFUSE_RC(row, 0), EFUSE_RW);
 	setbitsl(EFUSE_CTRL, 0x100, 0x100);
-	wait_ns(13000);
+	udelay(13);
 	setbitsl(EFUSE_CTRL, 0, 0x100);
 
 	setbitsl(EFUSE_CTRL, 0x4, 0x4);
 	setbitsl(EFUSE_CTRL, 0x1, 0x3);
 
-	wait_ns(1000000);
+	udelay(1000);
 	efuse_write_disable();
-	wait_ns(1000000);
+	udelay(1000);
 
 	return 0;
 }

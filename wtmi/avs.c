@@ -84,13 +84,13 @@ static int otp_nb_read_parallel(u32 *data)
 	regval |= OTP_PRDT_BIT;
 	writel(regval, MVEBU_NORTH_OTP_CTRL);
 
-	wait_ns(100000);
+	udelay(100);
 
 	/*6. Read the content of OTP 32-bits at a time */
 	data[0] = readl(MVEBU_NORTH_OTP_RD_PORT);
-	wait_ns(100000);
+	udelay(100);
 	data[1] = readl(MVEBU_NORTH_OTP_RD_PORT);
-	wait_ns(100000);
+	udelay(100);
 	data[2] = readl(MVEBU_NORTH_OTP_RD_PORT);
 
 	return 0;
@@ -160,7 +160,7 @@ int init_avs(u32 speed)
 	regval |= (AVS_ENABLE_BIT | SEL_VSENSE0_BIT);
 	writel(regval, MVEBU_AVS_CONTROL0);
 	/* Delay 100ms */
-	wait_ns(100000000);
+	udelay(100000);
 
 	return 0;
 }

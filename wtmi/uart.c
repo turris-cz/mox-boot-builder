@@ -80,12 +80,12 @@ void uart_init(const struct uart_info *info, unsigned int baudrate)
 	/* reset FIFOs */
 	writel(BIT(14) | BIT(15), info->ctrl);
 
-	wait_ns(1000);
+	udelay(1);
 
 	/* No Parity, 1 Stop */
 	writel(0, info->ctrl);
 
-	wait_ns(100000);
+	udelay(100);
 
 	/* uart2 pinctrl enable */
 	if (info == &uart2_info)
@@ -104,13 +104,13 @@ int uart_putc(int _c, void *p)
 		uart_putc('\r', p);
 
 	while (readl(info->status) & BIT(11))
-		wait_ns(20000);
+		udelay(20);
 
 	writel(c, info->tx);
 
 	if (c == '\n') {
 		while (!(readl(info->status) & BIT(6)))
-			wait_ns(20000);
+			udelay(20);
 	}
 
 	return c;

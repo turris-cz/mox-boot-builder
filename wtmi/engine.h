@@ -23,7 +23,7 @@ enum engine {
 static inline void engine_reset(enum engine e)
 {
 	setbitsl(ENGINE_CTRL, BIT(e), BIT(e));
-	wait_ns(10000);
+	udelay(10);
 	setbitsl(ENGINE_CTRL, 0, BIT(e));
 }
 

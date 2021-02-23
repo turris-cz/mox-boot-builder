@@ -70,7 +70,7 @@ void ebg_init(void)
 	reg |= 0x200;
 	writel(reg, EBG_CTRL);
 
-	wait_ns(400000);
+	udelay(400);
 
 	reg |= 0x80;
 	writel(reg, EBG_CTRL);
@@ -81,7 +81,7 @@ void ebg_init(void)
 	reg |= 0x03104840;
 	writel(reg, EBG_CTRL);
 
-	wait_ns(100000);
+	udelay(100);
 	writel(reg | 0x1000, EBG_CTRL);
 
 	/* throw away first 16 values */

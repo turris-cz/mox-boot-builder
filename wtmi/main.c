@@ -346,7 +346,7 @@ static void init_ddr(void)
 		 1, MIN(ram_size, 1024));
 	printf("done\n");
 
-	wait_ns(1000000);
+	udelay(1000);
 }
 #endif /* !DEPLOY */
 
@@ -359,7 +359,7 @@ void main(void)
 	deploy();
 
 	/* warm reset */
-	wait_ns(10000000);
+	udelay(10000);
 	writel(0x1d1e, 0xc0013840);
 #else /* !DEPLOY */
 	printf("\n\nCZ.NIC Turris Mox Secure Firmware version %s (%s %s)\n",
