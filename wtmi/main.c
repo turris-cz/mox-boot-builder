@@ -396,14 +396,20 @@ void main(void)
 	/* TODO: what do we want to do with the disabled commands */
 	mbox_init();
 	mbox_register_cmd(MBOX_CMD_GET_RANDOM, cmd_get_random);
-	mbox_register_cmd(MBOX_CMD_BOARD_INFO, cmd_board_info);
-	mbox_register_cmd(MBOX_CMD_ECDSA_PUB_KEY, cmd_ecdsa_pub_key);
-	/*mbox_register_cmd(MBOX_CMD_HASH, cmd_hash);*/
-	mbox_register_cmd(MBOX_CMD_SIGN, cmd_sign);
-	/*mbox_register_cmd(MBOX_CMD_VERIFY, cmd_verify);
-	mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
-	mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);*/
-	mbox_register_cmd(MBOX_CMD_REBOOT, cmd_reboot);
+
+	if (board == Turris_MOX || board == Atlas_RIPE) {
+		mbox_register_cmd(MBOX_CMD_BOARD_INFO, cmd_board_info);
+		mbox_register_cmd(MBOX_CMD_ECDSA_PUB_KEY, cmd_ecdsa_pub_key);
+		/*mbox_register_cmd(MBOX_CMD_HASH, cmd_hash);*/
+		mbox_register_cmd(MBOX_CMD_SIGN, cmd_sign);
+		/*mbox_register_cmd(MBOX_CMD_VERIFY, cmd_verify);
+		mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
+		mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);*/
+	}
+
+	if (board == Turris_MOX)
+		mbox_register_cmd(MBOX_CMD_REBOOT, cmd_reboot);
+
 	enable_irq();
 
 	/* start AP immediately only if debugging is disabled */
