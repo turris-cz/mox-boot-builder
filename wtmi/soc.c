@@ -135,11 +135,13 @@ static const struct reg_val reset_a53_regs[] = {
 static void reset_peripherals(void)
 {
 	/* fix TEST MODE by forcing interrupt on PHY and disable PHY */
+	mdio_begin();
 	mdio_write(1, 22, 3);
 	mdio_write(1, 18, 0xc985);
 	mdio_write(1, 22, 0);
 	mdio_write(1, 0, BIT(15));
 	udelay(1000);
+	mdio_end();
 
 	/* North Bridge peripherals reset */
 	writel(BIT(10) | BIT(6) | BIT(3), NB_RESET);
