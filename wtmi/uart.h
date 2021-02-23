@@ -49,7 +49,8 @@ struct uart_info {
 
 extern const struct uart_info uart1_info, uart2_info;
 
-extern void uart_init(const struct uart_info *info, unsigned int baudrate);
+extern void uart_reset(const struct uart_info *info, unsigned int baudrate);
+extern void uart_set_stdio(const struct uart_info *info);
 extern int uart_putc(int _c, void *p);
 extern int uart_getc(const struct uart_info *info);
 

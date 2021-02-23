@@ -361,9 +361,17 @@ static void init_ddr(void)
 }
 #endif /* !DEPLOY */
 
+static void uart_init(const struct uart_info *uart, int reset)
+{
+	if (reset)
+		uart_reset(uart, 115200);
+
+	uart_set_stdio(uart);
+}
+
 void main(void)
 {
-	uart_init(get_debug_uart(), 115200);
+	uart_init(get_debug_uart(), 1);
 
 #ifdef DEPLOY
 	ebg_init();

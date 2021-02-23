@@ -70,7 +70,13 @@ static FILE uart_stdout = {
 	.putc = uart_putc,
 };
 
-void uart_init(const struct uart_info *info, unsigned int baudrate)
+void uart_set_stdio(const struct uart_info *info)
+{
+	uart_stdout.data = (void *)info;
+	stdout = &uart_stdout;
+}
+
+void uart_reset(const struct uart_info *info, unsigned int baudrate)
 {
 	/* set baudrate */
 	writel((UART_CLOCK_FREQ / baudrate / 16), info->baud);
@@ -90,9 +96,6 @@ void uart_init(const struct uart_info *info, unsigned int baudrate)
 	/* uart2 pinctrl enable */
 	if (info == &uart2_info)
 		setbitsl(NB_PINCTRL, BIT(19), BIT(19) | BIT(13) | BIT(14));
-
-	uart_stdout.data = (void *)info;
-	stdout = &uart_stdout;
 }
 
 int uart_putc(int _c, void *p)
