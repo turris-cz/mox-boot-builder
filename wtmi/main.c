@@ -14,7 +14,22 @@
 #include "debug.h"
 
 #ifndef DEPLOY
-static int ram_size;
+static int get_ram_size(void)
+{
+	static int ram_size;
+	u32 reg;
+
+	if (ram_size)
+		return ram_size;
+
+	reg = (readl(0xc0000200) >> 16) & 0x1f;
+	if (reg >= 7 && reg <= 16)
+		ram_size = 1 << (reg - 4);
+	else
+		ram_size = 512;
+
+	return ram_size;
+}
 
 static int process_ap_mem(void *param, u32 addr, u32 len,
 			  void (*cb)(void **, void *, u32))
@@ -84,6 +99,8 @@ static int copy_to_ap(u32 dst, void *src, u32 len)
 
 static int check_ap_addr(u32 addr, u32 len, u32 align)
 {
+	int ram_size = get_ram_size();
+
 	if (addr % align)
 		return 0;
 	else if (ram_size == 4096)
@@ -335,15 +352,9 @@ static void init_ddr(void)
 	else
 		type = DDR3;
 
-	reg = (readl(0xc0000200) >> 16) & 0x1f;
-	if (reg >= 7 && reg <= 16)
-		ram_size = 1 << (reg - 4);
-	else
-		ram_size = 512;
-
 	printf("Initializing DDR... ");
 	ddr_main(CLK_PRESET_CPU1000_DDR800, type, 16, type == DDR4 ? 11 : 12,
-		 1, MIN(ram_size, 1024));
+		 1, MIN(get_ram_size(), 1024));
 	printf("done\n");
 
 	udelay(1000);
