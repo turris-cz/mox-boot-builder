@@ -6,6 +6,9 @@
 #define AP_RAM(a)	(0x60000000 + (a))
 #define BIT(n)		(1UL << (n))
 
+#define NB_PINCTRL	0xc0013830
+#define SB_PINCTRL	0xc0018830
+
 static inline u8 readb(u32 addr)
 {
 	u8 val;

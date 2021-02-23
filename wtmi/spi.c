@@ -5,7 +5,6 @@
 #include "string.h"
 #include "debug.h"
 
-#define NB_PINCTRL		0xc0013830
 #define NB_TBG_SEL		0xc0013000
 #define NB_DIV_SEL0		0xc0013004
 #define NB_DIV_SEL1		0xc0013008

@@ -42,8 +42,6 @@
 
 #define UART_CLOCK_FREQ		25804800
 
-#define NB_PINCTRL		0xc0013830
-
 const struct uart_info uart1_info = {
 	.rx	= 0xc0012000,
 	.tx	= 0xc0012004,
