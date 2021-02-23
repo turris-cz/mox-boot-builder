@@ -346,7 +346,7 @@ usage:
 
 DEBUG_CMD("kick", "Kick AP", kick);
 
-void soc_wdt_workaround(void)
+void mox_wdt_workaround(void)
 {
 	u32 reg, lo, hi;
 

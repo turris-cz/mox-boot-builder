@@ -5,6 +5,6 @@
 
 extern void start_ap_workaround(void);
 extern void reset_soc(void);
-extern void soc_wdt_workaround(void);
+extern void mox_wdt_workaround(void);
 
 #endif /* _SOC_H_ */

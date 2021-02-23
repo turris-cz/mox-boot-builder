@@ -409,7 +409,7 @@ void main(void)
 		if (!mbox_has_cmd())
 			wait_for_irq();
 		enable_irq();
-		soc_wdt_workaround();
+		mox_wdt_workaround();
 		mbox_process_commands();
 		debug_process();
 		ebg_process();
