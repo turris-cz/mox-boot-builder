@@ -319,7 +319,7 @@ static void consume_normal(u8 c)
 
 int debug_init(void)
 {
-	printf("\nCZ.NIC Turris Mox Secure Firmware debug command line\n");
+	printf("\nCZ.NIC's Armada 3720 Secure Firmware debug command line\n");
 	prompt();
 	return 1;
 }

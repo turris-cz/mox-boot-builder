@@ -11,6 +11,7 @@
 #include "ddr.h"
 #include "deploy.h"
 #include "soc.h"
+#include "board.h"
 #include "debug.h"
 
 #ifndef DEPLOY
@@ -381,8 +382,9 @@ void main(void)
 	udelay(10000);
 	writel(0x1d1e, 0xc0013840);
 #else /* !DEPLOY */
-	printf("\n\nCZ.NIC Turris Mox Secure Firmware version %s (%s %s)\n",
-	       WTMI_VERSION, __DATE__, __TIME__);
+	printf("\n\nCZ.NIC's Armada 3720 Secure Firmware %s (%s %s)\n"
+	       "Running on %s\n",
+	       WTMI_VERSION, __DATE__, __TIME__, get_board_name());
 	init_ddr();
 	ebg_init();
 	enable_systick();
