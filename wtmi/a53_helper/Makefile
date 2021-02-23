@@ -29,23 +29,26 @@ AOBJ   = $(ASRC:.S=.o)
 all: a53_helper.c
 
 a53_helper.c: a53_helper.bin
-	$(ECHO) "  BIN2C a53_helper.c"
-	$(ECHO) "static const unsigned char a53_helper_code[$(shell stat -c %s a53_helper.bin)] = {" >a53_helper.c
-	@../bin2c <a53_helper.bin >>a53_helper.c
-	$(ECHO) "};" >>a53_helper.c
+	$(ECHO) "  BIN2C    $@"
+	$(ECHO) "static const unsigned char a53_helper_code[$(shell stat -c %s a53_helper.bin)] = {" >$@
+	@../bin2c <$< >>$@
+	$(ECHO) "};" >>$@
 
-a53_helper.bin: $(COBJ) $(AOBJ) $(LDSCRIPT)
-	$(ECHO) "  LD    $@"
+a53_helper.elf: $(COBJ) $(AOBJ) $(LDSCRIPT)
+	$(ECHO) "  LD       $@"
 	$(CC) $(LDFLAGS) $(CFLAGS) $(AOBJ) $(COBJ) -o a53_helper.elf
-	$(OBJCOPY) -S -O binary a53_helper.elf a53_helper.bin
-	$(OBJDUMP) -D -S a53_helper.elf > a53_helper.dis
+
+%.bin: %.elf
+	$(ECHO) "  OBJCOPY  $@"
+	$(OBJCOPY) -S -O binary $< $@
+	$(OBJDUMP) -D -S $< > $(patsubst %.elf,%.dis,$<)
 
 %.o: %.c
-	$(ECHO) "  CC    $<"
+	$(ECHO) "  CC       $<"
 	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -frandom-seed=$< -o $@ $(subst .o,.c,$@)
 
 %.o: %.S
-	$(ECHO) "  AS    $<"
+	$(ECHO) "  AS       $<"
 	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
 
 clean:

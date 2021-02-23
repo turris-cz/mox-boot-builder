@@ -26,19 +26,22 @@ COBJ   = $(CSRC:.c=.o)
 all: reload_helper.c
 
 reload_helper.c: reload_helper.bin
-	$(ECHO) "  BIN2C reload_helper.c"
-	$(ECHO) "static const unsigned char reload_helper_code[$(shell stat -c %s reload_helper.bin)] = {" >reload_helper.c
-	@../bin2c <reload_helper.bin >>reload_helper.c
-	$(ECHO) "};" >>reload_helper.c
+	$(ECHO) "  BIN2C    $@"
+	$(ECHO) "static const unsigned char reload_helper_code[$(shell stat -c %s reload_helper.bin)] = {" >$@
+	@../bin2c <$< >>$@
+	$(ECHO) "};" >>$@
 
-reload_helper.bin: $(COBJ) $(LDSCRIPT)
-	$(ECHO) "  LD    $@"
-	$(CC) $(LDFLAGS) $(CFLAGS) $(COBJ) -o reload_helper.elf
-	$(OBJCOPY) -S -O binary reload_helper.elf reload_helper.bin
-	$(OBJDUMP) -D -S reload_helper.elf > reload_helper.dis
+reload_helper.elf: $(COBJ) $(LDSCRIPT)
+	$(ECHO) "  LD       $@"
+	$(CC) $(LDFLAGS) $(CFLAGS) $(COBJ) -o $@
+
+%.bin: %.elf
+	$(ECHO) "  OBJCOPY  $@"
+	$(OBJCOPY) -S -O binary $< $@
+	$(OBJDUMP) -D -S $< > $(patsubst %.elf,%.dis,$<)
 
 %.o: %.c
-	$(ECHO) "  CC    $<"
+	$(ECHO) "  CC       $<"
 	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -frandom-seed=$< -o $@ $(subst .o,.c,$@)
 
 clean:

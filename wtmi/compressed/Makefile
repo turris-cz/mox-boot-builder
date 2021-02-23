@@ -19,8 +19,6 @@ CPPFLAGS =
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
 LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -no-pie -Xlinker "--build-id=none"
 
-LIBGCC_A = $(shell $(CC) -print-libgcc-file-name)
-
 CSRC = main.c malloc.c zlib.c string.c startup.c reload.c main_wtmi.c
 ASRC = startup_asm.S
 
@@ -34,30 +32,37 @@ all: wtmi.bin
 ../bin2c: FORCE
 	$(MAKE) -C .. bin2c
 
-wtmi.bin: $(COBJ) $(AOBJ)
-	$(ECHO) "  LD    $@"
-	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) $(LIBGCC_A) -o wtmi.elf
-	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
-	$(OBJDUMP) -D -S wtmi.elf > wtmi.dis
+wtmi.elf: $(COBJ) $(AOBJ) $(LDSCRIPT)
+	$(ECHO) "  LD       $@"
+	@if ! $(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -o $@; then	\
+		echo "           FAILED, trying with -lgcc";	\
+		echo "  LD -lgcc $@";				\
+		$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -lgcc -o $@;	\
+	fi
+
+%.bin: %.elf
+	$(ECHO) "  OBJCOPY  $@"
+	$(OBJCOPY) -S -O binary $< $@
+	$(OBJDUMP) -D -S $< > $(patsubst %.elf,%.dis,$<)
 
 main_wtmi.c: main_wtmi.zlib ../bin2c
-	$(ECHO) "  BIN2C main_wtmi.c"
-	$(ECHO) "const unsigned char main_wtmi_zlib[$(shell stat -c %s main_wtmi.zlib)] __attribute__((section(\".compressed_data\"), used)) = {" >main_wtmi.c
-	@../bin2c <main_wtmi.zlib >>main_wtmi.c
-	$(ECHO) "};" >>main_wtmi.c
+	$(ECHO) "  BIN2C    $@"
+	$(ECHO) "const unsigned char main_wtmi_zlib[$(shell stat -c %s main_wtmi.zlib)] __attribute__((section(\".compressed_data\"), used)) = {" >$@
+	@../bin2c <$< >>$@
+	$(ECHO) "};" >>$@
 
 main_wtmi.zlib: ../wtmi.bin
-	gzip -cnkf9 ../wtmi.bin | dd bs=10 skip=1 >main_wtmi.zlib
+	gzip -cnkf9 $< | dd bs=10 skip=1 >$@
 
 ../wtmi.bin: FORCE
 	$(MAKE) -C ../ wtmi.bin
 
 %.o: %.c
-	$(ECHO) "  CC    $<"
+	$(ECHO) "  CC       $<"
 	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -frandom-seed=$< -o $@ $(subst .o,.c,$@)
 
 %.o: %.S
-	$(ECHO) "  AS    $<"
+	$(ECHO) "  AS       $<"
 	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
 
 -include $(COBJ:.o=.d)

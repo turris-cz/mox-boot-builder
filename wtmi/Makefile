@@ -86,21 +86,28 @@ AOBJ   = $(ASRC:.S=.o)
 all: wtmi.bin
 
 bin2c: bin2c.c
-	$(ECHO) "  HOSTCC $<"
+	$(ECHO) "  HOSTCC   $<"
 	$(HOSTCC) $(HOSTCFLAGS) -o $@ $<
 
-wtmi.bin: $(COBJ) $(AOBJ) $(LDSCRIPT)
-	$(ECHO) "  LD    $@"
-	$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -o wtmi.elf
-	$(OBJCOPY) -S -O binary wtmi.elf wtmi.bin
-	$(OBJDUMP) -D -S wtmi.elf > wtmi.dis
+wtmi.elf: $(COBJ) $(AOBJ) $(LDSCRIPT)
+	$(ECHO) "  LD       $@"
+	@if ! $(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -o $@; then	\
+		echo "           FAILED, trying with -lgcc";	\
+		echo "  LD -lgcc $@";				\
+		$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -lgcc -o $@;	\
+	fi
+
+%.bin: %.elf
+	$(ECHO) "  OBJCOPY  $@"
+	$(OBJCOPY) -S -O binary $< $@
+	$(OBJDUMP) -D -S $< > $(patsubst %.elf,%.dis,$<)
 
 %.o: %.c
-	$(ECHO) "  CC    $<"
+	$(ECHO) "  CC       $<"
 	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -frandom-seed=$< -o $@ $(subst .o,.c,$@)
 
 %.o: %.S
-	$(ECHO) "  AS    $<"
+	$(ECHO) "  AS       $<"
 	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
 
 main.o: $(filter-out main.o,$(COBJ)) $(AOBJ) $(LDSCRIPT)
