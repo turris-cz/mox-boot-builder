@@ -372,6 +372,8 @@ static void uart_init(const struct uart_info *uart, int reset)
 
 void main(void)
 {
+	enum board board;
+
 	uart_init(get_debug_uart(), 1);
 
 #ifdef DEPLOY
@@ -388,6 +390,8 @@ void main(void)
 	init_ddr();
 	ebg_init();
 	enable_systick();
+
+	board = get_board();
 
 	/* TODO: what do we want to do with the disabled commands */
 	mbox_init();
@@ -411,7 +415,8 @@ void main(void)
 		if (!mbox_has_cmd())
 			wait_for_irq();
 		enable_irq();
-		mox_wdt_workaround();
+		if (board == Turris_MOX)
+			mox_wdt_workaround();
 		mbox_process_commands();
 		debug_process();
 		ebg_process();
