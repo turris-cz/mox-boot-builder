@@ -27,7 +27,7 @@ static inline const struct uart_info *get_debug_uart(void)
 	return (DEBUG_UART == 2) ? &uart2_info : &uart1_info;
 }
 
-void debug_init(void);
+int debug_init(void);
 void debug_process(void);
 
 int _number(const char *str, u32 *pres, int base);
@@ -41,8 +41,9 @@ static inline const struct uart_info *get_debug_uart(void)
 	return &uart1_info;
 }
 
-static inline void debug_init(void)
+static inline int debug_init(void)
 {
+	return 0;
 }
 
 static inline void debug_process(void)

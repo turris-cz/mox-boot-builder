@@ -381,8 +381,9 @@ void main(void)
 	mbox_register_cmd(MBOX_CMD_REBOOT, cmd_reboot);
 	enable_irq();
 
-	debug_init();
-	start_ap_workaround();
+	/* start AP immediately only if debugging is disabled */
+	if (!debug_init())
+		start_ap_workaround();
 
 	while (1) {
 		disable_irq();

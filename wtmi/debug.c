@@ -317,10 +317,11 @@ static void consume_normal(u8 c)
 
 }
 
-void debug_init(void)
+int debug_init(void)
 {
 	printf("\nCZ.NIC Turris Mox Secure Firmware debug command line\n");
 	prompt();
+	return 1;
 }
 
 void debug_process(void)
