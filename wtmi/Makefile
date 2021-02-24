@@ -137,7 +137,7 @@ clean:
 		main_app.d main_app.o deploy.d deploy.o debug.d debug.o	\
 		wtmi.elf wtmi.dis wtmi.bin				\
 		wtmi_app.elf wtmi_app.dis wtmi_app.bin			\
-		wtmi_h.bin bin2c
+		bin2c
 	@$(MAKE) -C a53_helper clean
 	@$(MAKE) -C reload_helper clean
 
