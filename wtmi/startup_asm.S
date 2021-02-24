@@ -1,6 +1,6 @@
 .cpu cortex-m3
 
-.section .text
+.section .startup
 .thumb
 
 .thumb_func

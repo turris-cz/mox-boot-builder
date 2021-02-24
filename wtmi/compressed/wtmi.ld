@@ -7,6 +7,7 @@ SECTIONS
   . = 0x1FFF0000;
   .ro : {
     KEEP(*(.isr_vector));
+    *(.startup)
     *(.text*)
     *(.rodata*)
   }
