@@ -78,8 +78,8 @@ CSRC := $(filter-out bin2c.c,$(CSRC))
 
 ASRC = $(wildcard *.S)
 
-COBJ   = $(CSRC:.c=.o)
-AOBJ   = $(ASRC:.S=.o)
+COBJ = $(CSRC:.c=.o)
+AOBJ = $(ASRC:.S=.o)
 
 .SILENT:
 
@@ -89,18 +89,24 @@ bin2c: bin2c.c
 	$(ECHO) "  HOSTCC   $<"
 	$(HOSTCC) $(HOSTCFLAGS) -o $@ $<
 
-wtmi.elf: $(COBJ) $(AOBJ) $(LDSCRIPT)
+.SECONDARY: wtmi.elf wtmi_app.elf
+.SECONDEXPANSION:
+%.elf: $$(patsubst main.o,main$$(findstring _app,$$@).o,$$(COBJ)) $(AOBJ) $(LDSCRIPT)
 	$(ECHO) "  LD       $@"
-	@if ! $(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -o $@; then	\
+	@if ! $(CC) $(LDFLAGS) $(filter %.o,$^) -o $@; then	\
 		echo "           FAILED, trying with -lgcc";	\
 		echo "  LD -lgcc $@";				\
-		$(CC) $(LDFLAGS) $(AOBJ) $(COBJ) -lgcc -o $@;	\
+		$(CC) $(LDFLAGS) $(filter %.o,$^) -lgcc -o $@;	\
 	fi
 
 %.bin: %.elf
 	$(ECHO) "  OBJCOPY  $@"
 	$(OBJCOPY) -S -O binary $< $@
 	$(OBJDUMP) -D -S $< > $(patsubst %.elf,%.dis,$<)
+
+main_app.o: main.c
+	$(ECHO) "  CC       $<"
+	$(CC) -MMD -MP -c $(CFLAGS) $(CPPFLAGS) -DWTMI_APP -frandom-seed=$< -o $@ $<
 
 %.o: %.c
 	$(ECHO) "  CC       $<"
@@ -110,9 +116,10 @@ wtmi.elf: $(COBJ) $(AOBJ) $(LDSCRIPT)
 	$(ECHO) "  AS       $<"
 	$(AS) $(ASFLAGS) -o $@ $(subst .o,.S,$@)
 
-main.o: $(filter-out main.o,$(COBJ)) $(AOBJ) $(LDSCRIPT)
+main.o main_app.o: $(filter-out main.o,$(COBJ)) $(AOBJ) $(LDSCRIPT)
 
 -include $(COBJ:.o=.d)
+-include main_app.d
 
 $(a53_helper_src): a53_helper/a53_helper.ld a53_helper/main.c bin2c
 	$(MAKE) -C a53_helper
@@ -126,7 +133,11 @@ reload.c: reload_helper/reload_helper.c
 
 clean:
 	$(ECHO) "  CLEAN"
-	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d) deploy.d deploy.o debug.d debug.o wtmi.elf wtmi.dis wtmi.bin wtmi_h.bin bin2c
+	@$(RM) -f $(COBJ) $(AOBJ) $(COBJ:.o=.d)				\
+		main_app.d main_app.o deploy.d deploy.o debug.d debug.o	\
+		wtmi.elf wtmi.dis wtmi.bin				\
+		wtmi_app.elf wtmi_app.dis wtmi_app.bin			\
+		wtmi_h.bin bin2c
 	@$(MAKE) -C a53_helper clean
 	@$(MAKE) -C reload_helper clean
 

@@ -48,8 +48,8 @@ untrusted-secure-firmware.bin: mox-imager/mox-imager wtmi_h.bin
 untrusted-secure-firmware-emmc.bin: mox-imager/mox-imager wtmi_h.bin
 	mox-imager/mox-imager --create-untrusted-image=EMMC -o $@ wtmi_h.bin
 
-$(WTMI_PATH)/wtmi.bin: FORCE
-	$(MAKE) -C $(WTMI_PATH) CROSS_CM3=$(CROSS_CM3) LTO=$(LTO) wtmi.bin
+$(WTMI_PATH)/%.bin: FORCE
+	$(MAKE) -C $(WTMI_PATH) CROSS_CM3=$(CROSS_CM3) LTO=$(LTO) $(notdir $@)
 
 wtmi_h.bin: $(WTMI_PATH)/wtmi.bin
 	printf "IMTW" >wtmi_h.bin
@@ -73,13 +73,16 @@ u-boot/u-boot.bin: FORCE
 	$(MAKE) -C u-boot CROSS_COMPILE=$(CROSS_COMPILE) turris_mox_defconfig
 	$(MAKE) -C u-boot CROSS_COMPILE=$(CROSS_COMPILE) u-boot.bin
 
+wtmi_app.bin: $(WTMI_PATH)/wtmi_app.bin
+	cp -a $< $@
+
 clean:
 	$(MAKE) -C u-boot clean
 	$(MAKE) -C arm-trusted-firmware realclean
 	$(MAKE) -C wtmi clean
 	$(MAKE) -C wtmi/compressed clean
 	$(MAKE) -C mox-imager clean
-	rm -f wtmi_h.bin a53-firmware.bin \
+	rm -f wtmi_h.bin wtmi_app.bin a53-firmware.bin \
 		$(UNTRUSTED_IMAGES) $(TRUSTED_IMAGES) \
 		trusted-secure-firmware.bin trusted-secure-firmware-uart.bin trusted-secure-firmware-emmc.bin \
 		untrusted-secure-firmware.bin untrusted-secure-firmware-emmc.bin

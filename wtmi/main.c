@@ -370,11 +370,18 @@ static void uart_init(const struct uart_info *uart, int reset)
 	uart_set_stdio(uart);
 }
 
+#ifndef WTMI_APP
+# define WTMI_APP 0
+#endif
+
 void main(void)
 {
 	enum board board;
 
-	uart_init(get_debug_uart(), 1);
+	if (WTMI_APP)
+		uart_init(&uart1_info, 0);
+	else
+		uart_init(get_debug_uart(), 1);
 
 #ifdef DEPLOY
 	ebg_init();
@@ -384,10 +391,17 @@ void main(void)
 	udelay(10000);
 	writel(0x1d1e, 0xc0013840);
 #else /* !DEPLOY */
-	printf("\n\nCZ.NIC's Armada 3720 Secure Firmware %s (%s %s)\n"
+
+	if (!WTMI_APP)
+		puts("\n\n");
+
+	printf("CZ.NIC's Armada 3720 Secure Firmware %s (%s %s)\n"
 	       "Running on %s\n",
 	       WTMI_VERSION, __DATE__, __TIME__, get_board_name());
-	init_ddr();
+
+	if (!WTMI_APP)
+		init_ddr();
+
 	ebg_init();
 	enable_systick();
 
@@ -412,8 +426,11 @@ void main(void)
 
 	enable_irq();
 
-	/* start AP immediately only if debugging is disabled */
-	if (!debug_init())
+	/*
+	 * Start AP immediately only if debugging is disabled.
+	 * If running as application, AP is already running.
+	 */
+	if (!debug_init() && !WTMI_APP)
 		start_ap_workaround();
 
 	while (1) {
