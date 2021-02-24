@@ -12,15 +12,11 @@ Dependencies:
 - *openssl* or *libressl* for *mox-imager*
 
 Cross-GCC needed:
-- `armv7m-softfloat-eabi-` for the secure firmware runnning on internal
-  Cortex-M3 secure processor (armv7m-softfloat-eabi-)
-  - armv7a compiler will not work, because even though one could use the
-    `-mthumb` option, compiler's internal `libgcc` was not compiled with this,
-    and some functions from `libgcc` are needed
-  - non-softfloat compiler will also not work, because even though one could
-    use the `-msoft-float` option, again compiler's internal `libgcc` was not
-    compiler with this
-  - simplest solution to compile this compiler is using Gentoo's `crossdev`
+- `arm-linux-gnueabi-` or `armv7m-softfloat-eabi-` for the secure firmware
+  runnning on internal Cortex-M3 secure processor
+  - `armv7m-softfloat-eabi-` can be built by [Gentoo's crossdev tool](https://wiki.gentoo.org/wiki/Crossdev)
+    and should always work, since it's internal `libgcc` is compiled with
+    `-mthumb` option
 - `aarch64` for ATF and U-Boot
 
 For trusted image you will also need ECDSA private key with which the image will
@@ -93,12 +89,58 @@ thus users can compile U-Boot/a53-firmware on their own. The only part of the
 image that users cannot build themselves is the secure firmware.
 
 
+### Using on ESPRESSObin / other Armada 3720 devices
+
+Our firmware can also be used on other Armada 3720 devices, bringing support
+for hardware random number generator which can only be accessed from the secure
+processor.
+
+Build the `wtmi_app.bin` binary with
+
+```
+make wtmi_app.bin
+```
+
+and then use the `WTMI_IMG` variable when building flash image for the target
+device (such as ESPRESSObin) from `trusted-firmware-a` sources.
+
+Example for ESPRESSObin:
+
+```
+git clone https://review.trustedfirmware.org/TF-A/trusted-firmware-a
+git clone https://gitlab.denx.de/u-boot/u-boot.git
+git clone https://github.com/weidai11/cryptopp.git
+git clone https://github.com/MarvellEmbeddedProcessors/mv-ddr-marvell.git -b master
+git clone https://github.com/MarvellEmbeddedProcessors/A3700-utils-marvell.git -b master
+git clone https://gitlab.nic.cz/turris/mox-boot-builder.git
+
+make -C u-boot CROSS_COMPILE=aarch64-linux-gnu- mvebu_espressobin-88f3720_defconfig u-boot.bin
+make -C mox-boot-builder CROSS_CM3=arm-linux-gnueabi- wtmi_app.bin
+make -C trusted-firmware-a				\
+	CROSS_COMPILE=aarch64-linux-gnu-		\
+	CROSS_CM3=arm-linux-gnueabi-			\
+	USE_COHERENT_MEM=0				\
+	PLAT=a3700					\
+	CLOCKSPRESET=CPU_1000_DDR_800			\
+	DDR_TOPOLOGY=2					\
+	MV_DDR_PATH=$PWD/mv-ddr-marvell/		\
+	WTP=$PWD/A3700-utils-marvell/			\
+	CRYPTOPP_PATH=$PWD/cryptopp/			\
+	BL33=$PWD/u-boot/u-boot.bin			\
+	WTMI_IMG=$PWD/mox-boot-builder/wtmi_app.bin	\
+	FIP_ALIGN=0x100					\
+	mrvl_flash
+```
+
+The resulting `flash-image.bin` will be stored in
+`trusted-firmware-a/build/a3700/release/` directory.
+
 ### Other variables
 
 Secure firmware compilation can be configured by these variables:
 
-- `LTO=1` will compile secure firmware wit link time optimizations enabled. This
-  will lead to smalled binary
+- `LTO=1` will compile secure firmware with link time optimizations enabled. This
+  will lead to smaller binary. This is now default. Use `LTO=0` to disable
 - `DEBUG_UART=1` or `DEBUG_UART=2` will start a debug console on UART1/UART2.
   This is useful for debugging secure firmware
 - `COMPRESS_WTMI=1` will compress secure-firmware and add code to decompress it
