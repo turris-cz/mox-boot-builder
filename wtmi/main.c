@@ -422,8 +422,7 @@ void main(void)
 		mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);*/
 	}
 
-	if (board == Turris_MOX)
-		mbox_register_cmd(MBOX_CMD_REBOOT, cmd_reboot);
+	mbox_register_cmd(MBOX_CMD_REBOOT, cmd_reboot);
 
 	enable_irq();
 

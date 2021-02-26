@@ -10,6 +10,7 @@
 #include "tim.h"
 #include "reload.h"
 #include "ddr.h"
+#include "board.h"
 
 #define NB_RESET		0xc0012400
 #define SB_RESET		0xc0018600
@@ -262,7 +263,7 @@ static void reload_secure_firmware(void)
 	/* Should not reach here */
 }
 
-void reset_soc(void)
+static void reset_mox(void)
 {
 	disable_irq();
 	disable_systick();
@@ -291,6 +292,19 @@ void reset_soc(void)
 	load_image(OBMI_ID, (void *)AP_RAM(ATF_ENTRY_ADDRESS), NULL);
 
 	reload_secure_firmware();
+}
+
+void reset_soc(void)
+{
+	if (get_board() == Turris_MOX)
+		reset_mox();
+
+	/* write magic value into WARM RESET register */
+	writel(0x1d1e, 0xc0013840);
+
+	/* Should not reach here */
+	while (1)
+		wait_for_irq();
 }
 
 DECL_DEBUG_CMD(reset)
