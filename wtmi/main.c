@@ -393,11 +393,12 @@ void main(void)
 #else /* !DEPLOY */
 
 	if (!WTMI_APP)
-		puts("\n\n");
+		puts("\n");
 
-	printf("CZ.NIC's Armada 3720 Secure Firmware %s (%s %s)\n"
-	       "Running on %s\n",
-	       WTMI_VERSION, __DATE__, __TIME__, get_board_name());
+	puts("CZ.NIC's Armada 3720 Secure Firmware " WTMI_VERSION
+	     " (" __DATE__ " " __TIME__ ")");
+	fputs("Running on ", stdout);
+	puts(get_board_name());
 
 	if (!WTMI_APP)
 		init_ddr();
