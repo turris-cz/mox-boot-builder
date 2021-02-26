@@ -4,3 +4,4 @@
 *.bin
 *.elf
 *.dis
+bin2c
