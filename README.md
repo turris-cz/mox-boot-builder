@@ -104,7 +104,7 @@ make wtmi_app.bin
 and then use the `WTMI_IMG` variable when building flash image for the target
 device (such as ESPRESSObin) from `trusted-firmware-a` sources.
 
-Example for ESPRESSObin:
+Example for ESPRESSObin (with 1GHz CPU and DDR3 2CS 1GB RAM):
 
 ```
 git clone https://review.trustedfirmware.org/TF-A/trusted-firmware-a
@@ -134,6 +134,11 @@ make -C trusted-firmware-a				\
 
 The resulting `flash-image.bin` will be stored in
 `trusted-firmware-a/build/a3700/release/` directory.
+
+For other boards or different CPU frequencies or different RAM types please
+change U-Boot's `defconfig` file and the `CLOCKSPRESET` and `DDR_TOPOLOGY`
+variables according to
+[this `trusted-firmware-a` documentation](https://trustedfirmware-a.readthedocs.io/en/latest/plat/marvell/armada/build.html).
 
 ### Other variables
 
