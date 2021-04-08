@@ -107,11 +107,11 @@ device (such as ESPRESSObin) from `trusted-firmware-a` sources.
 Example for ESPRESSObin (with 1GHz CPU and DDR3 2CS 1GB RAM):
 
 ```
-git clone https://review.trustedfirmware.org/TF-A/trusted-firmware-a
-git clone https://gitlab.denx.de/u-boot/u-boot.git
+git clone https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
+git clone https://source.denx.de/u-boot/u-boot.git
 git clone https://github.com/weidai11/cryptopp.git
-git clone https://github.com/MarvellEmbeddedProcessors/mv-ddr-marvell.git -b master
-git clone https://github.com/MarvellEmbeddedProcessors/A3700-utils-marvell.git -b master
+git clone https://github.com/MarvellEmbeddedProcessors/mv-ddr-marvell.git
+git clone https://github.com/MarvellEmbeddedProcessors/A3700-utils-marvell.git
 git clone https://gitlab.nic.cz/turris/mox-boot-builder.git
 
 make -C u-boot CROSS_COMPILE=aarch64-linux-gnu- mvebu_espressobin-88f3720_defconfig u-boot.bin
