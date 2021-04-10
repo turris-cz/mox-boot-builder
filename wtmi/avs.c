@@ -140,10 +140,16 @@ int init_avs(u32 speed)
 	}
 
 	if (svc_rev >= SVC_REVISION_2) {
-		vdd_otp = ((otp_data[OTP_DATA_SVC_SPEED_ID] >> shift) +
-			   AVS_VDD_BASE) & AVS_VDD_MASK;
-		regval |= (vdd_otp << HIGH_VDD_LIMIT_OFF);
-		regval |= (vdd_otp << LOW_VDD_LIMIT_OFF);
+		vdd_otp = (otp_data[OTP_DATA_SVC_SPEED_ID] >> shift) &
+			  AVS_VDD_MASK;
+		if (!vdd_otp || vdd_otp + AVS_VDD_BASE > AVS_VDD_MASK) {
+			regval |= (vdd_default << HIGH_VDD_LIMIT_OFF);
+			regval |= (vdd_default << LOW_VDD_LIMIT_OFF);
+		} else {
+			vdd_otp += AVS_VDD_BASE;
+			regval |= (vdd_otp << HIGH_VDD_LIMIT_OFF);
+			regval |= (vdd_otp << LOW_VDD_LIMIT_OFF);
+		}
 	} else {
 		regval |= (vdd_default << HIGH_VDD_LIMIT_OFF);
 		regval |= (vdd_default << LOW_VDD_LIMIT_OFF);
