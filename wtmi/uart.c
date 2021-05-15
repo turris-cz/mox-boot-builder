@@ -40,8 +40,6 @@
 #include "stdio.h"
 #include "debug.h"
 
-#define UART_CLOCK_FREQ		25804800
-
 const struct uart_info uart1_info = {
 	.rx	= 0xc0012000,
 	.tx	= 0xc0012004,
@@ -76,8 +74,11 @@ void uart_set_stdio(const struct uart_info *info)
 
 void uart_reset(const struct uart_info *info, unsigned int baudrate)
 {
+	u32 parent_rate = get_ref_clk() * 1000000;
+
 	/* set baudrate */
-	writel((UART_CLOCK_FREQ / baudrate / 16), info->baud);
+	writel(div_round_closest_u32(parent_rate, baudrate * 16), info->baud);
+
 	/* set Programmable Oversampling Stack to 0, UART defaults to 16X scheme */
 	writel(0, info->possr);
 

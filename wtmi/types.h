@@ -47,4 +47,9 @@ typedef u32			size_t;
 
 #define maybe_unused __attribute__((unused))
 
+static inline u32 div_round_closest_u32(u32 x, u32 d)
+{
+	return (x + d / 2) / d;
+}
+
 #endif /* __TYPES_H */
