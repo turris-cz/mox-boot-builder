@@ -45,6 +45,8 @@ struct uart_info {
 	u32 rx_ready_bit;
 	u32 baud;
 	u32 possr;
+	u32 dis;
+	u32 dis_bit;
 };
 
 extern const struct uart_info uart1_info, uart2_info;

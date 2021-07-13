@@ -40,6 +40,8 @@
 #include "stdio.h"
 #include "debug.h"
 
+#define UART_CLK	0xc0012010
+
 const struct uart_info uart1_info = {
 	.rx	= 0xc0012000,
 	.tx	= 0xc0012004,
@@ -48,6 +50,8 @@ const struct uart_info uart1_info = {
 	.rx_ready_bit = BIT(4),
 	.baud	= 0xc0012010,
 	.possr	= 0xc0012014,
+	.dis	= 0xc0013804,
+	.dis_bit = 31,
 };
 
 const struct uart_info uart2_info = {
@@ -58,6 +62,8 @@ const struct uart_info uart2_info = {
 	.rx_ready_bit = BIT(14),
 	.baud	= 0xc0012210,
 	.possr	= 0xc0012214,
+	.dis	= 0xc0013804,
+	.dis_bit = 29,
 };
 
 int uart_putc(int _c, void *p);
@@ -76,21 +82,49 @@ void uart_reset(const struct uart_info *info, unsigned int baudrate)
 {
 	u32 parent_rate = get_ref_clk() * 1000000;
 
+	/* disable UART */
+	setbitsl(info->dis, BIT(info->dis_bit), BIT(info->dis_bit));
+
+	/* enable loopback */
+	writel(BIT(12), info->ctrl);
+
+	/* reset FIFOs */
+	setbitsl(info->ctrl, BIT(14) | BIT(15), BIT(14) | BIT(15));
+
+	/* wait one or more frame periods (frame period is 87us at 115200 Bd) */
+	udelay(200);
+
+	/* wait until TX empty */
+	while (!(readl(info->status) & BIT(6)))
+		udelay(20);
+
+	/* gate UART clocks */
+	setbitsl(UART_CLK, BIT(20) | BIT(21), BIT(20) | BIT(21));
+
+	/* set parent clock to XTAL and clear TBG configs */
+	setbitsl(UART_CLK, 0, BIT(19) | 0x3fc00);
+
+	/* ungate UART clocks */
+	setbitsl(UART_CLK, 0, BIT(20) | BIT(21));
+
 	/* set baudrate */
-	writel(div_round_closest_u32(parent_rate, baudrate * 16), info->baud);
+	setbitsl(info->baud, div_round_closest_u32(parent_rate, baudrate * 16),
+		 0x3ff);
 
 	/* set Programmable Oversampling Stack to 0, UART defaults to 16X scheme */
 	writel(0, info->possr);
 
-	/* reset FIFOs */
-	writel(BIT(14) | BIT(15), info->ctrl);
+	/* diable loopback */
+	setbitsl(info->ctrl, 0, BIT(12));
 
-	udelay(1);
+	/* clear reset */
+	setbitsl(info->ctrl, 0, BIT(14) | BIT(15));
 
 	/* No Parity, 1 Stop */
 	writel(0, info->ctrl);
 
-	udelay(100);
+	/* enable UART */
+	setbitsl(info->dis, 0, BIT(info->dis_bit));
 
 	/* uart2 pinctrl enable */
 	if (info == &uart2_info)
