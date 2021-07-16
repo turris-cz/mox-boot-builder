@@ -40,7 +40,7 @@
 #include "stdio.h"
 #include "debug.h"
 
-#define UART_CLK	0xc0012010
+#define UART_CLK_CTRL	0xc0012010
 
 const struct uart_info uart1_info = {
 	.rx	= 0xc0012000,
@@ -99,13 +99,13 @@ void uart_reset(const struct uart_info *info, unsigned int baudrate)
 		udelay(20);
 
 	/* gate UART clocks */
-	setbitsl(UART_CLK, BIT(20) | BIT(21), BIT(20) | BIT(21));
+	setbitsl(UART_CLK_CTRL, BIT(20) | BIT(21), BIT(20) | BIT(21));
 
 	/* set parent clock to XTAL and clear TBG configs */
-	setbitsl(UART_CLK, 0, BIT(19) | 0x3fc00);
+	setbitsl(UART_CLK_CTRL, 0, BIT(19) | 0x3fc00);
 
 	/* ungate UART clocks */
-	setbitsl(UART_CLK, 0, BIT(20) | BIT(21));
+	setbitsl(UART_CLK_CTRL, 0, BIT(20) | BIT(21));
 
 	/* set baudrate */
 	setbitsl(info->baud, div_round_closest_u32(parent_rate, baudrate * 16),
