@@ -11,6 +11,7 @@
 #include "reload.h"
 #include "ddr.h"
 #include "board.h"
+#include "soc.h"
 
 #define NB_RESET		0xc0012400
 #define SB_RESET		0xc0018600
@@ -235,7 +236,7 @@ void start_ap_workaround(void)
 
 	for (i = 0; i < 1000; ++i) {
 		udelay(100);
-		if (readl(0x64000400))
+		if (readl(PLAT_MARVELL_MAILBOX_BASE))
 			break;
 	}
 
