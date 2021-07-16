@@ -234,7 +234,7 @@ void start_ap_workaround(void)
 
 	start_ap();
 
-	for (i = 0; i < 1000; ++i) {
+	for (i = 0; i < 4000; ++i) {
 		udelay(100);
 		if (readl(PLAT_MARVELL_MAILBOX_BASE))
 			break;
