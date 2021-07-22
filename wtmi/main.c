@@ -15,19 +15,35 @@
 #include "debug.h"
 
 #ifndef DEPLOY
+static int cs_reg_to_ram_size(u32 addr)
+{
+	u32 reg = readl(addr);
+
+	if (!(reg & 0x1))
+		return 0;
+
+	reg = (reg >> 16) & 0x1f;
+	if (reg >= 7)
+		return 1 << (reg - 4);
+	else
+		return (1 << reg) * 384;
+}
+
 static int get_ram_size(void)
 {
 	static int ram_size;
-	u32 reg;
 
 	if (ram_size)
 		return ram_size;
 
-	reg = (readl(0xc0000200) >> 16) & 0x1f;
-	if (reg >= 7 && reg <= 16)
-		ram_size = 1 << (reg - 4);
-	else
-		ram_size = 512;
+	ram_size = cs_reg_to_ram_size(0xc0000200) +
+		   cs_reg_to_ram_size(0xc0000208);
+
+	if (!ram_size) {
+		printf("No DDR chip configured!\n");
+		while (1)
+			wait_for_irq();
+	}
 
 	return ram_size;
 }
