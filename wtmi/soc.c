@@ -142,7 +142,7 @@ static void reset_peripherals(void)
 	mdio_write(1, 18, 0xc985);
 	mdio_write(1, 22, 0);
 	mdio_write(1, 0, BIT(15));
-	udelay(1000);
+	udelay(1000000);
 	mdio_end();
 
 	/* North Bridge peripherals reset */
