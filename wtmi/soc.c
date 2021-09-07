@@ -136,7 +136,7 @@ static const struct reg_val reset_a53_regs[] = {
 
 static void reset_peripherals(void)
 {
-	/* fix TEST MODE by forcing interrupt on PHY and disable PHY */
+	/* Force INTn pin on PHY down to workaround reset bug */
 	mdio_begin();
 	mdio_write(1, 22, 3);
 	mdio_write(1, 18, 0xc985);
