@@ -292,6 +292,7 @@ static void consume_normal(u8 c)
 		cmd_set(cmd, cmdlen);
 		break;
 	case '\b':
+	case 127:
 		if (cmdpos) {
 			printf("\033[D");
 			--cmdpos;
