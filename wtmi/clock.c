@@ -1127,6 +1127,9 @@ void ndelay(u32 ns)
 {
 	u32 loop = NS_TO_LOOPS(ns);
 
+	if (!ns)
+		return;
+
 	asm volatile(
 		"0:\n"
 		"subs %[count], 1\n"
@@ -1138,6 +1141,9 @@ void ndelay(u32 ns)
 void udelay(u32 us)
 {
 	u32 loop = US_TO_LOOPS(us);
+
+	if (!us)
+		return;
 
 	asm volatile(
 		"0:\n"
