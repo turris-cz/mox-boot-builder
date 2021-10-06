@@ -153,7 +153,7 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_
 
 	debug("\nDDR topology parameters:\n");
 	debug("========================\n");
-	debug("ddr type               DDR%d\n", 3);
+	debug("ddr type               DDR%d\n", DDR_TYPE == DDR4 ? 4 : 3);
 	debug("ddr speedbin           %d\n", SPEED_BIN);
 	debug("bus width              %d-bits\n", map.bus_width);
 	debug("cs num                 %d\n", map.cs_num);
