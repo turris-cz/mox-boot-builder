@@ -129,6 +129,7 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_
 	struct ddr_init_para ddr_para;
 	struct ddr_init_result *result_in_dram, result_in_sram;
 	u32 chksum_in_dram = 0;
+	int ret;
 
 	result_in_dram = (struct ddr_init_result *)(DDR_TUNE_RESULT_MEM_BASE);
 
@@ -284,9 +285,9 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_
 	* after init_ddr function
 	*/
 	if (ddr_para.warm_boot)
-		init_ddr(ddr_para, result_in_dram);
+		ret = init_ddr(ddr_para, result_in_dram);
 	else
-		init_ddr(ddr_para, &result_in_sram);
+		ret = init_ddr(ddr_para, &result_in_sram);
 
 	/* Copy tuning result to reserved memory */
 	if (!ddr_para.warm_boot) {
@@ -295,5 +296,5 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_
 			do_checksum32((u32 *)&result_in_sram, sizeof(struct ddr_init_result));
 	}
 
-	return 0;
+	return ret;
 }

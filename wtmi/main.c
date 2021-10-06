@@ -370,9 +370,11 @@ static void init_ddr(void)
 		type = DDR3;
 
 	printf("Initializing DDR... ");
-	ddr_main(CLK_PRESET_CPU1000_DDR800, type, 16, type == DDR4 ? 11 : 12,
-		 1, MIN(get_ram_size(), 1024));
-	printf("done\n");
+	if (ddr_main(CLK_PRESET_CPU1000_DDR800, type, 16,
+		     type == DDR4 ? 11 : 12, 1, MIN(get_ram_size(), 1024)))
+		printf("failed\n");
+	else
+		printf("done\n");
 
 	udelay(1000);
 }
