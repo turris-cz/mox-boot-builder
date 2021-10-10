@@ -1196,3 +1196,16 @@ usage:
 }
 
 DEBUG_CMD("udelay", "Delay in microseconds", cmd_udelay);
+
+DECL_DEBUG_CMD(cmd_clk)
+{
+	printf("xtal\t\t%u MHz\n"
+	       "TBG_A_P\t\t%u MHz\n"
+	       "TBG_B_P\t\t%u MHz\n"
+	       "TBG_A_S\t\t%u MHz\n"
+	       "TBG_B_S\t\t%u MHz\n", get_ref_clk(), get_tbg_clk(TBG_A_P),
+	       get_tbg_clk(TBG_B_P), get_tbg_clk(TBG_A_S),
+	       get_tbg_clk(TBG_B_S));
+}
+
+DEBUG_CMD("clk", "Clock information", cmd_clk);
