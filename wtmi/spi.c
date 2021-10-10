@@ -55,8 +55,8 @@ void spi_init(const struct spi *spi)
 	if (spi->cpha)
 		cfg |= BIT(6);
 
-	/* prescaler 20 */
-	cfg |= 1;//0x1a;
+	/* prescaler 1 */
+	cfg |= 1;
 	writel(cfg, SPI_CFG);
 }
 
