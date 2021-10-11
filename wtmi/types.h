@@ -45,6 +45,8 @@ typedef u32			size_t;
 #define MIN(a, b) ({ __auto_type _a = (a); __auto_type _b = (b); _a < _b ? _a : _b; })
 #define MAX(a, b) ({ __auto_type _a = (a); __auto_type _b = (b); _a > _b ? _a : _b; })
 
+#define ARRAY_SIZE(x)		(sizeof((x)) / sizeof((x)[0]))
+
 #define maybe_unused __attribute__((unused))
 
 static inline u32 div_round_closest_u32(u32 x, u32 d)
