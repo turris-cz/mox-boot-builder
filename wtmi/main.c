@@ -172,6 +172,7 @@ maybe_unused static u32 cmd_board_info(u32 *args, u32 *out_args)
 	 * 3 = RAM in MiB
 	 * 4-5 = MAC address of eth0
 	 * 6-7 = MAC address of eth1
+	 * 8 = device (0 = Turris Mox, 2 = RIPE Atlas, other = reserved)
 	 */
 	out_args[0] = row43 & 0xffffffff;
 	out_args[1] = row43 >> 32;
@@ -183,6 +184,7 @@ maybe_unused static u32 cmd_board_info(u32 *args, u32 *out_args)
 	++row42;
 	out_args[6] = (row42 >> 32) & 0xffff;
 	out_args[7] = row42 & 0xffffffff;
+	out_args[8] = (row42 >> 54) & 3;
 
 	return MBOX_STS(0, 0, SUCCESS);
 }
