@@ -70,6 +70,51 @@ static inline void spi_cs_deactivate(const struct spi *spi)
 	setbitsl(SPI_CTRL, 0, BIT(16 + spi->cs));
 }
 
+static int is_aligned_4(const void *p)
+{
+	return !((u32)p & 3);
+}
+
+static inline void spi_4byte(int enable)
+{
+	spi_ctrl_wait_bit(SPI_CTRL_RDY);
+	setbitsl(SPI_CFG, enable ? BIT(5) : 0, BIT(5));
+}
+
+static inline void spi_out(u32 c)
+{
+	spi_ctrl_wait_bit(SPI_CTRL_RDY);
+	writel(c, SPI_DOUT);
+}
+
+void spi_write(const struct spi *spi, const void *buf, u32 len)
+{
+	const u8 *pout = buf;
+
+	while (!is_aligned_4(pout) && len--)
+		spi_out(*pout++);
+
+	if (len > 4) {
+		const u32 *pout4 = (const u32 *)pout;
+
+		/* enable 4-byte mode */
+		spi_4byte(1);
+
+		while (len > 4) {
+			spi_out(*pout4++);
+			len -= 4;
+		}
+
+		pout = (const u8 *)pout4;
+
+		/* disable 4-byte mode */
+		spi_4byte(0);
+	}
+
+	while (len--)
+		spi_out(*pout++);
+}
+
 static void spi_xfer(void *din, const void *dout, u32 len)
 {
 	const u8 *pout = dout;
