@@ -44,7 +44,7 @@ void spi_init(const struct spi *spi)
 	/* configure SQF clock */
 	setbitsl(NB_CLK_EN, BIT(12), BIT(12));
 	setbitsl(NB_CLK_SEL, BIT(7), BIT(7));
-	setbitsl(NB_DIV_SEL1, (5 << 27) | (5 << 24), (7 << 27) | (7 << 24));
+	setbitsl(NB_DIV_SEL1, (5 << 27) | (4 << 24), (7 << 27) | (7 << 24));
 	setbitsl(NB_TBG_SEL, 1, 3 << 12);
 	setbitsl(NB_CLK_EN, 0, BIT(12));
 
