@@ -4,7 +4,7 @@
 enum board {
 	BOARD_Unknown = 0,
 	Turris_MOX,
-	Atlas_RIPE,
+	RIPE_Atlas,
 	ESPRESSObin,
 	ESPRESSObin_Ultra,
 	Armada3720_DB,

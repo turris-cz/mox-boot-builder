@@ -20,7 +20,7 @@ static enum board _get_board(void)
 	if (!efuse_read_row(42, &val, &lock) && lock) {
 		if (((val >> 24) & 0xffffff) == 0xd858d7) {
 			if ((val >> 55) & 1)
-				return Atlas_RIPE;
+				return RIPE_Atlas;
 			else
 				return Turris_MOX;
 		}
@@ -53,7 +53,7 @@ static enum board _get_board(void)
 		if (id[0] == 0xef || id[0] == 0xc2 || id[0] == 0x01)
 			return Turris_MOX;
 		else
-			return Atlas_RIPE;
+			return RIPE_Atlas;
 	} else if (reg0 == 0xffff && reg1 != 0xffff) {
 		return ESPRESSObin;
 	} else {
@@ -80,8 +80,8 @@ const char *get_board_name(void)
 	switch (get_board()) {
 	case Turris_MOX:
 		return "Turris MOX";
-	case Atlas_RIPE:
-		return "Atlas RIPE";
+	case RIPE_Atlas:
+		return "RIPE Atlas Probe";
 	case ESPRESSObin:
 		return "ESPRESSObin";
 	case ESPRESSObin_Ultra:

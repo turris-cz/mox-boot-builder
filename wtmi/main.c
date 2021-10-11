@@ -432,7 +432,7 @@ void main(void)
 	mbox_init();
 	mbox_register_cmd(MBOX_CMD_GET_RANDOM, cmd_get_random);
 
-	if (board == Turris_MOX || board == Atlas_RIPE) {
+	if (board == Turris_MOX || board == RIPE_Atlas) {
 		mbox_register_cmd(MBOX_CMD_BOARD_INFO, cmd_board_info);
 		mbox_register_cmd(MBOX_CMD_ECDSA_PUB_KEY, cmd_ecdsa_pub_key);
 		/*mbox_register_cmd(MBOX_CMD_HASH, cmd_hash);*/
