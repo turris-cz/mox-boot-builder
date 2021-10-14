@@ -286,9 +286,6 @@ maybe_unused static u32 cmd_otp_read(u32 *args, u32 *out_args)
 	int lock, res;
 	u64 val;
 
-	if (args[0] > 43)
-		return MBOX_STS(0, EACCES, FAIL);
-
 	res = efuse_read_row_no_ecc(args[0], &val, &lock);
 	if (res < 0)
 		return MBOX_STS(0, -res, FAIL);
@@ -304,9 +301,6 @@ maybe_unused static u32 cmd_otp_write(u32 *args, u32 *out_args)
 {
 	int res;
 	u64 val;
-
-	if (args[0] > 43)
-		return MBOX_STS(0, EACCES, FAIL);
 
 	val = args[2];
 	val <<= 32;
