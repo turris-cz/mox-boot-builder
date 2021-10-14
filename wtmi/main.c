@@ -363,6 +363,14 @@ static void uart_init(const struct uart_info *uart, int reset)
 # define WTMI_APP 0
 #endif
 
+#ifndef WITHOUT_OTP_READ
+# define WITHOUT_OTP_READ 0
+#endif
+
+#ifndef WITHOUT_OTP_WRITE
+# define WITHOUT_OTP_WRITE 0
+#endif
+
 void main(void)
 {
 	enum board board;
@@ -406,12 +414,15 @@ void main(void)
 		mbox_register_cmd(MBOX_CMD_ECDSA_PUB_KEY, cmd_ecdsa_pub_key);
 		/*mbox_register_cmd(MBOX_CMD_HASH, cmd_hash);*/
 		mbox_register_cmd(MBOX_CMD_SIGN, cmd_sign);
-		/*mbox_register_cmd(MBOX_CMD_VERIFY, cmd_verify);
-		mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
-		mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);*/
+		/*mbox_register_cmd(MBOX_CMD_VERIFY, cmd_verify);*/
 	}
 
 	mbox_register_cmd(MBOX_CMD_REBOOT, cmd_reboot);
+
+	if (!WITHOUT_OTP_READ)
+		mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
+	if (!WITHOUT_OTP_WRITE && !is_secure_boot())
+		mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);
 
 	enable_irq();
 

@@ -55,6 +55,14 @@ ifeq ($(DEPLOY), 1)
 	CPPFLAGS += -DDEPLOY=1
 endif
 
+ifeq ($(WITHOUT_OTP_WRITE), 1)
+	CPPFLAGS += -DWITHOUT_OTP_WRITE=1
+endif
+
+ifeq ($(WITHOUT_OTP_READ), 1)
+	CPPFLAGS += -WITHOUT_OTP_READ=1
+endif
+
 ifeq ($(DEPLOY), 1)
 	CSRC = $(wildcard *.c)
 else

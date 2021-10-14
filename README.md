@@ -144,6 +144,13 @@ variables according to
 
 Secure firmware compilation can be configured by these variables:
 
+- `WITHOUT_OTP_WRITE=1` will compile secure firmware without mailbox OTP write
+  commands. This is useful for hardening trusted images on secured devices.
+  Note that secure firmware always rejects mailbox OTP write commands if BootROM
+  is already in secure state.
+- `WITHOUT_OTP_READ=1` will compile secure firmware without mailbox OTP read
+  commands. These command are by default enabled. If secure processor is in
+  secure state, reading OTP rows containing private keys is disallowed.
 - `LTO=1` will compile secure firmware with link time optimizations enabled. This
   will lead to smaller binary. This is now default. Use `LTO=0` to disable
 - `DEBUG_UART=1` or `DEBUG_UART=2` will start a debug console on UART1/UART2.
