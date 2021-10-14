@@ -77,7 +77,7 @@ void mbox_irq_handler(int irq)
 
 	cmd = readl(MBOX_IN_CMD) & MBOX_CMD_MASK;
 
-	if (cmd < 16 && cmd_handlers[cmd]) {
+	if (cmd < ARRAY_SIZE(cmd_handlers) && cmd_handlers[cmd]) {
 		cmd_request_t *req;
 
 		req = &cmd_queue[(cmd_queue_first + cmd_queue_fill) % CMD_QUEUE_SIZE];
@@ -110,7 +110,7 @@ void mbox_init(void)
 
 void mbox_register_cmd(u16 cmd, mbox_cmd_handler_t handler)
 {
-	if (cmd >= 16 || cmd_handlers[cmd])
+	if (cmd >= ARRAY_SIZE(cmd_handlers) || cmd_handlers[cmd])
 		return;
 
 	cmd_handlers[cmd] = handler;
