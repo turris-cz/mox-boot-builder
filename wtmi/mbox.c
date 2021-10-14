@@ -1,5 +1,6 @@
 #include "types.h"
 #include "clock.h"
+#include "errno.h"
 #include "io.h"
 #include "irq.h"
 #include "mbox.h"
@@ -20,6 +21,8 @@
 #define CMD_QUEUE_SIZE		8
 
 static mbox_cmd_handler_t cmd_handlers[16];
+static mbox_cmd_handler_t cmd_otp_read_handlers[5];
+static mbox_cmd_handler_t cmd_otp_write_handlers[5];
 
 typedef struct {
 	u16 cmd;
@@ -28,6 +31,33 @@ typedef struct {
 
 static cmd_request_t cmd_queue[CMD_QUEUE_SIZE];
 static int cmd_queue_fill, cmd_queue_first;
+
+static int is_marvell_read_cmd(u16 cmd)
+{
+	return cmd >= MBOX_CMD_OTP_READ_1B &&
+	       cmd - MBOX_CMD_OTP_READ_1B < ARRAY_SIZE(cmd_otp_read_handlers);
+}
+
+static int is_marvell_write_cmd(u16 cmd)
+{
+	return cmd >= MBOX_CMD_OTP_WRITE_1B &&
+	       cmd - MBOX_CMD_OTP_WRITE_1B < ARRAY_SIZE(cmd_otp_write_handlers);
+}
+
+static int is_marvell_cmd(u16 cmd)
+{
+	return is_marvell_read_cmd(cmd) || is_marvell_write_cmd(cmd);
+}
+
+static mbox_cmd_handler_t marvell_cmd_handler(u16 cmd)
+{
+	if (is_marvell_read_cmd(cmd))
+		return cmd_otp_read_handlers[cmd - MBOX_CMD_OTP_READ_1B];
+	else if (is_marvell_write_cmd(cmd))
+		return cmd_otp_write_handlers[cmd - MBOX_CMD_OTP_WRITE_1B];
+	else
+		return NULL;
+}
 
 void mbox_process_commands(void)
 {
@@ -42,9 +72,17 @@ void mbox_process_commands(void)
 
 		req = &cmd_queue[cmd_queue_first];
 
-		status = cmd_handlers[req->cmd](req->args, out_args);
-		if (MBOX_STS_CMD(status) == 0)
-			status |= req->cmd;
+		if (req->cmd < ARRAY_SIZE(cmd_handlers)) {
+			status = cmd_handlers[req->cmd](req->args, out_args);
+			if (MBOX_STS_CMD(status) == 0)
+				status |= req->cmd;
+		} else if (is_marvell_cmd(req->cmd)) {
+			status = marvell_cmd_handler(req->cmd)(req->args, out_args);
+		} else if (req->cmd >= 256) {
+			status = MBOX_STS_MARVELL(ENOSYS);
+		} else {
+			status = MBOX_STS(req->cmd, 0, BADCMD);
+		}
 
 		if (MBOX_STS_ERROR(status) != MBOX_STS_LATER)
 			mbox_send(status, out_args);
@@ -77,7 +115,8 @@ void mbox_irq_handler(int irq)
 
 	cmd = readl(MBOX_IN_CMD) & MBOX_CMD_MASK;
 
-	if (cmd < ARRAY_SIZE(cmd_handlers) && cmd_handlers[cmd]) {
+	if ((cmd < ARRAY_SIZE(cmd_handlers) && cmd_handlers[cmd]) ||
+	    marvell_cmd_handler(cmd)) {
 		cmd_request_t *req;
 
 		req = &cmd_queue[(cmd_queue_first + cmd_queue_fill) % CMD_QUEUE_SIZE];
@@ -87,6 +126,8 @@ void mbox_irq_handler(int irq)
 			req->args[i] = readl(MBOX_IN_ARG(i));
 
 		++cmd_queue_fill;
+	} else if (cmd >= 256) {
+		mbox_send(MBOX_STS_MARVELL(ENOSYS), NULL);
 	} else {
 		mbox_send(MBOX_STS(cmd, 0, BADCMD), NULL);
 	}
@@ -110,10 +151,12 @@ void mbox_init(void)
 
 void mbox_register_cmd(u16 cmd, mbox_cmd_handler_t handler)
 {
-	if (cmd >= ARRAY_SIZE(cmd_handlers) || cmd_handlers[cmd])
-		return;
-
-	cmd_handlers[cmd] = handler;
+	if (cmd < ARRAY_SIZE(cmd_handlers) && !cmd_handlers[cmd])
+		cmd_handlers[cmd] = handler;
+	else if (is_marvell_read_cmd(cmd) && !marvell_cmd_handler(cmd))
+		cmd_otp_read_handlers[cmd - MBOX_CMD_OTP_READ_1B] = handler;
+	else if (is_marvell_write_cmd(cmd) && !marvell_cmd_handler(cmd))
+		cmd_otp_write_handlers[cmd - MBOX_CMD_OTP_WRITE_1B] = handler;
 }
 
 void mbox_send(u32 status, u32 *args)

@@ -6,6 +6,7 @@
 #define EACCES		13
 #define EINVAL		22
 #define EDOM		33
+#define ENOSYS		38
 #define ENODATA		61
 #define EOPNOTSUPP	95
 #define ETIMEDOUT	110

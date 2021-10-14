@@ -36,6 +36,7 @@
 #define MBOX_STS_VALUE(s)		(((s) >> 10) & 0xfffff)
 #define MBOX_STS_CMD(s)			((s) & 0x3ff)
 #define MBOX_STS(cmd,val,err)		(((cmd) & 0x3ff) | (((val) & 0xfffff) << 10) | MBOX_STS_##err)
+#define MBOX_STS_MARVELL(err)		((err) == 0 ? 0 : (err) == ETIMEDOUT ? 2 : (err) == EINVAL ? 3 : (err) == ENOSYS ? 4 : 1)
 
 enum mbox_cmd {
 	MBOX_CMD_GET_RANDOM	= 1,
@@ -48,7 +49,21 @@ enum mbox_cmd {
 	MBOX_CMD_OTP_READ,
 	MBOX_CMD_OTP_WRITE,
 
-	MBOX_CMD_REBOOT
+	MBOX_CMD_REBOOT,
+
+	/* OTP read commands supported by Marvell's fuse.bin firmware */
+	MBOX_CMD_OTP_READ_1B	= 257,
+	MBOX_CMD_OTP_READ_8B,
+	MBOX_CMD_OTP_READ_32B,
+	MBOX_CMD_OTP_READ_64B,
+	MBOX_CMD_OTP_READ_256B,
+
+	/* OTP write commands supported by Marvell's fuse.bin firmware */
+	MBOX_CMD_OTP_WRITE_1B	= 513,
+	MBOX_CMD_OTP_WRITE_8B,
+	MBOX_CMD_OTP_WRITE_32B,
+	MBOX_CMD_OTP_WRITE_64B,
+	MBOX_CMD_OTP_WRITE_256B,
 };
 
 typedef u32 (*mbox_cmd_handler_t)(u32 *in_args, u32 *out_args);

@@ -297,6 +297,87 @@ maybe_unused static u32 cmd_otp_read(u32 *args, u32 *out_args)
 	return MBOX_STS(0, 0, SUCCESS);
 }
 
+maybe_unused static u32 cmd_otp_read_1b(u32 *args, u32 *out_args)
+{
+	int res;
+	u64 val;
+
+	/* check offset validity */
+	if (args[1] >= 64)
+		return MBOX_STS_MARVELL(EINVAL);
+
+	res = efuse_read_row_no_ecc(args[0], &val, NULL);
+	if (res < 0)
+		return MBOX_STS_MARVELL(-res);
+
+	/* read 3 bits from specified offset and return majority vote */
+	val >>= args[1];
+	val &= 0x7;
+	val = (val == 3 || val > 4) ? 1 : 0;
+
+	out_args[0] = val;
+
+	return MBOX_STS_MARVELL(0);
+}
+
+maybe_unused static u32 cmd_otp_read_Nb(u32 *args, u32 *out_args, u64 mask,
+					int dword)
+{
+	int res;
+	u64 val;
+
+	/* check offset validity (if not reading whole 64 bits) */
+	if (!dword && args[1] >= 64)
+		return MBOX_STS_MARVELL(EINVAL);
+
+	res = efuse_read_row_no_ecc(args[0], &val, NULL);
+	if (res < 0)
+		return MBOX_STS_MARVELL(-res);
+
+	/* read bits from specified offset (if not reading all 64 bits) */
+	if (!dword)
+		val >>= args[1];
+	val &= mask;
+
+	out_args[0] = val;
+	if (dword)
+		out_args[1] = val >> 32;
+
+	return MBOX_STS_MARVELL(0);
+}
+
+maybe_unused static u32 cmd_otp_read_8b(u32 *args, u32 *out_args)
+{
+	return cmd_otp_read_Nb(args, out_args, 0xff, 0);
+}
+
+maybe_unused static u32 cmd_otp_read_32b(u32 *args, u32 *out_args)
+{
+	return cmd_otp_read_Nb(args, out_args, 0xffffffff, 0);
+}
+
+maybe_unused static u32 cmd_otp_read_64b(u32 *args, u32 *out_args)
+{
+	return cmd_otp_read_Nb(args, out_args, 0xffffffffffffffffULL, 1);
+}
+
+maybe_unused static u32 cmd_otp_read_256b(u32 *args, u32 *out_args)
+{
+	int res, i;
+	u64 val;
+
+	for (i = 0; i < 4; ++i) {
+		res = efuse_read_row_no_ecc(args[0] + i, &val, NULL);
+		if (res < 0)
+			return MBOX_STS_MARVELL(-res);
+
+		out_args[2 * i] = val;
+		out_args[2 * i + 1] = val >> 32;
+	}
+
+	return MBOX_STS_MARVELL(0);
+}
+
 maybe_unused static u32 cmd_otp_write(u32 *args, u32 *out_args)
 {
 	int res;
@@ -419,10 +500,24 @@ void main(void)
 
 	mbox_register_cmd(MBOX_CMD_REBOOT, cmd_reboot);
 
-	if (!WITHOUT_OTP_READ)
+	if (!WITHOUT_OTP_READ) {
 		mbox_register_cmd(MBOX_CMD_OTP_READ, cmd_otp_read);
-	if (!WITHOUT_OTP_WRITE && !is_secure_boot())
+		mbox_register_cmd(MBOX_CMD_OTP_READ_1B, cmd_otp_read_1b);
+		mbox_register_cmd(MBOX_CMD_OTP_READ_8B, cmd_otp_read_8b);
+		mbox_register_cmd(MBOX_CMD_OTP_READ_32B, cmd_otp_read_32b);
+		mbox_register_cmd(MBOX_CMD_OTP_READ_64B, cmd_otp_read_64b);
+		mbox_register_cmd(MBOX_CMD_OTP_READ_256B, cmd_otp_read_256b);
+	}
+	if (!WITHOUT_OTP_WRITE && !is_secure_boot()) {
 		mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);
+		/* TODO: not implemented yet
+		mbox_register_cmd(MBOX_CMD_OTP_WRITE_1B, cmd_otp_write_1b);
+		mbox_register_cmd(MBOX_CMD_OTP_WRITE_8B, cmd_otp_write_8b);
+		mbox_register_cmd(MBOX_CMD_OTP_WRITE_32B, cmd_otp_write_32b);
+		mbox_register_cmd(MBOX_CMD_OTP_WRITE_64B, cmd_otp_write_64b);
+		mbox_register_cmd(MBOX_CMD_OTP_WRITE_256B, cmd_otp_write_256b);
+		*/
+	}
 
 	enable_irq();
 
