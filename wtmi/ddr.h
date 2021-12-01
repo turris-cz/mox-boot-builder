@@ -13,4 +13,6 @@ extern void rwtm_win_remap(u32 win, u32 remap_addr);
 extern int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH,
 		    int SPEED_BIN, int CS_NUM, int DEV_CAP);
 
+extern int get_ram_size(void);
+
 #endif /* _DDR_H_ */

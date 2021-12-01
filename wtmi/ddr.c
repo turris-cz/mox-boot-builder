@@ -298,3 +298,30 @@ int ddr_main(enum clk_preset WTMI_CLOCK, int DDR_TYPE, int BUS_WIDTH, int SPEED_
 
 	return ret;
 }
+
+static int cs_reg_to_ram_size(u32 addr)
+{
+	u32 reg = readl(addr);
+
+	if (!(reg & 0x1))
+		return 0;
+
+	reg = (reg >> 16) & 0x1f;
+	if (reg >= 7)
+		return 1 << (reg - 4);
+	else
+		return (1 << reg) * 384;
+}
+
+int get_ram_size(void)
+{
+	static int ram_size;
+
+	if (ram_size)
+		return ram_size;
+
+	ram_size = cs_reg_to_ram_size(0xc0000200) +
+		   cs_reg_to_ram_size(0xc0000208);
+
+	return ram_size;
+}

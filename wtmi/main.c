@@ -15,39 +15,6 @@
 #include "debug.h"
 
 #ifndef DEPLOY
-static int cs_reg_to_ram_size(u32 addr)
-{
-	u32 reg = readl(addr);
-
-	if (!(reg & 0x1))
-		return 0;
-
-	reg = (reg >> 16) & 0x1f;
-	if (reg >= 7)
-		return 1 << (reg - 4);
-	else
-		return (1 << reg) * 384;
-}
-
-static int get_ram_size(void)
-{
-	static int ram_size;
-
-	if (ram_size)
-		return ram_size;
-
-	ram_size = cs_reg_to_ram_size(0xc0000200) +
-		   cs_reg_to_ram_size(0xc0000208);
-
-	if (!ram_size) {
-		printf("No DDR chip configured!\n");
-		while (1)
-			wait_for_irq();
-	}
-
-	return ram_size;
-}
-
 static int process_ap_mem(void *param, u32 addr, u32 len,
 			  void (*cb)(void **, void *, u32))
 {
@@ -362,7 +329,7 @@ maybe_unused static u32 cmd_reboot(u32 *args, u32 *out_args)
 
 static void init_ddr(void)
 {
-	int type;
+	int type, ram_size;
 	u32 reg;
 
 	reg = (readl(0xc00002c4) >> 4) & 0xf;
@@ -371,9 +338,16 @@ static void init_ddr(void)
 	else
 		type = DDR3;
 
+	ram_size = get_ram_size();
+	if (!ram_size) {
+		printf("No DDR chip configured!\n");
+		while (1)
+			wait_for_irq();
+	}
+
 	printf("Initializing DDR... ");
 	if (ddr_main(CLK_PRESET_CPU1000_DDR800, type, 16,
-		     type == DDR4 ? 11 : 12, 1, MIN(get_ram_size(), 1024)))
+		     type == DDR4 ? 11 : 12, 1, MIN(ram_size, 1024)))
 		printf("failed\n");
 	else
 		printf("done\n");
