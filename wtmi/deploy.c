@@ -3,6 +3,7 @@
 #include "efuse.h"
 #include "clock.h"
 #include "crypto.h"
+#include "ddr.h"
 #include "efuse.h"
 #include "uart.h"
 #include "stdio.h"
@@ -25,6 +26,7 @@ volatile struct mox_builder_data __from_mox_builder mbd = {
 	{ 0, 0, 0, 0, 0, 0, 0, 0 }
 };
 
+#if 0
 #define PATTERN_1	0x0acc55aa
 #define PATTERN_2	0xdeadbeef
 
@@ -77,6 +79,7 @@ static int get_ram_size(void)
 
 	return -1;
 }
+#endif
 
 static int row_write_if_not_locked(int row, u64 val)
 {

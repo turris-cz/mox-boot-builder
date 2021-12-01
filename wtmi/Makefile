@@ -56,7 +56,7 @@ ifeq ($(DEPLOY), 1)
 endif
 
 ifeq ($(DEPLOY), 1)
-	CSRC = $(filter-out ddr.c,$(wildcard *.c))
+	CSRC = $(wildcard *.c)
 else
 	CSRC = $(filter-out deploy.c,$(wildcard *.c ddr/*.c))
 endif
