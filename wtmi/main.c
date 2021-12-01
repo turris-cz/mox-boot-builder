@@ -345,7 +345,8 @@ static void init_ddr(void)
 			wait_for_irq();
 	}
 
-	printf("Initializing DDR... ");
+	printf("Initializing DDR%c (%i MiB)... ", type == DDR4 ? '4' : '3',
+	       ram_size);
 	if (ddr_main(CLK_PRESET_CPU1000_DDR800, type, 16,
 		     type == DDR4 ? 11 : 12, 1, MIN(ram_size, 1024)))
 		printf("failed\n");
