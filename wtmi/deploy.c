@@ -122,6 +122,11 @@ static int ram_size_code(int ram_size)
 	}
 }
 
+static int is_ripe(void)
+{
+	return ((mbd.board_version >> 6) & 0x3) == 0x2;
+}
+
 static int write_ram_bver_mac(int ram_size)
 {
 	u64 val;
@@ -182,7 +187,8 @@ static int write_security_info(void)
 	}
 
 	efuse_write_row_with_ecc_lock(0, 0x70000070000700ULL);
-	efuse_write_row_with_ecc_lock(1, 0x70ULL);
+	efuse_write_row_with_ecc_lock(1, is_ripe() ? 0x0070000700000070ULL
+						   : 0x70ULL);
 	efuse_write_row_with_ecc_lock(2, 0x70770000ULL);
 	efuse_write_row_with_ecc_lock(3, 0x7ULL);
 
