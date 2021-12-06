@@ -201,7 +201,11 @@ static void do_deploy(void)
 	u32 pubkey[17];
 	u64 val;
 
-	ram_size = get_ram_size();
+	/* RIPE Atlas Probes have always 512 MiB RAM */
+	if (is_ripe())
+		ram_size = 512;
+	else
+		ram_size = get_ram_size();
 
 #define die(...) do { printf(__VA_ARGS__); return; } while (0)
 
