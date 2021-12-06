@@ -245,7 +245,7 @@ static void do_deploy(void)
 	if ((((val >> 56) & 1) + 1) * 512 != ram_size)
 		die("FAIL_BAD_RAM_WRTN");
 
-	printf("BVER%02XMACA%04x%08x", (u32) ((val >> 48) & 0xff),
+	printf("BVER%02XMACA%04x%08x", (u32) ((val >> 48) & 0x3f),
 	       (u32) ((val >> 32) & 0xffff), (u32) val);
 
 	res = ecdsa_get_efuse_public_key(pubkey);
