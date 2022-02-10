@@ -77,11 +77,11 @@ wtmi_app.bin: $(WTMI_PATH)/wtmi_app.bin
 	cp -a $< $@
 
 clean:
-	$(MAKE) -C u-boot clean
-	$(MAKE) -C arm-trusted-firmware realclean
-	$(MAKE) -C wtmi clean
-	$(MAKE) -C wtmi/compressed clean
-	$(MAKE) -C mox-imager clean
+	-$(MAKE) -C u-boot clean
+	-$(MAKE) -C arm-trusted-firmware realclean
+	-$(MAKE) -C wtmi clean
+	-$(MAKE) -C wtmi/compressed clean
+	-$(MAKE) -C mox-imager clean
 	rm -f wtmi_h.bin wtmi_app.bin a53-firmware.bin \
 		$(UNTRUSTED_IMAGES) $(TRUSTED_IMAGES) \
 		trusted-secure-firmware.bin trusted-secure-firmware-uart.bin trusted-secure-firmware-emmc.bin \
