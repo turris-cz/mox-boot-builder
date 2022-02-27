@@ -284,8 +284,6 @@ static int efuse_raw_write(int row, u64 val)
 	if (res < 0)
 		return res;
 
-	val |= _val;
-
 	setbitsl(EFUSE_CTRL, 0x8, 0x8);
 	setbitsl(EFUSE_CTRL, 0, 0x7);
 	ndelay(500);
