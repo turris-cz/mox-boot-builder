@@ -417,7 +417,7 @@ int efuse_write_row_with_ecc_lock(int row, u64 val)
 	if (res < 0)
 		return res;
 
-	if (_lock)
+	if (_lock || is_row_masked(row))
 		return -EACCES;
 
 	res = _efuse_read_row(ecc[row].row, &eccval, &_lock, 0, 0);
