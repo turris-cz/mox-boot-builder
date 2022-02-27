@@ -427,11 +427,12 @@ int efuse_write_row_with_ecc_lock(int row, u64 val)
 	if (_lock)
 		return -EACCES;
 
-	if ((eccval >> ((ecc[row].pos - 1) * 8)) & 0xff)
+	if (!is_row_masked(ecc[row].row) &&
+	    (eccval >> ((ecc[row].pos - 1) * 8)) & 0xff)
 		return -EACCES;
 
 	val |= _val;
-	eccval |= secded_ecc(val) << ((ecc[row].pos - 1) * 8);
+	eccval = secded_ecc(val) << ((ecc[row].pos - 1) * 8);
 
 	for (i = 0; i < 44; ++i) {
 		if (i != row && ecc[i].row == ecc[row].row) {
