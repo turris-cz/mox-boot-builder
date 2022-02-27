@@ -137,9 +137,14 @@ static int _efuse_raw_read(u32 rwreg, u32 ecc_pos, u64 *val, int *lock)
 	return res;
 }
 
+int is_secure_boot(void)
+{
+	return !!(readl(SEC_STATUS) & BIT(1));
+}
+
 static int is_row_masked(int row)
 {
-	if (!(readl(SEC_STATUS) & BIT(1)))
+	if (!is_secure_boot())
 		return 0;
 
 	if (row < 32) {
