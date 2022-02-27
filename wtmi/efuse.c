@@ -137,7 +137,7 @@ static int _efuse_raw_read(u32 rwreg, u32 ecc_pos, u64 *val, int *lock)
 	return res;
 }
 
-static inline int is_row_masked(int row)
+static int is_row_masked(int row)
 {
 	if (!(readl(SEC_STATUS) & BIT(1)))
 		return 0;
