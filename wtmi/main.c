@@ -397,6 +397,90 @@ maybe_unused static u32 cmd_otp_write(u32 *args, u32 *out_args)
 	return MBOX_STS(0, 0, SUCCESS);
 }
 
+maybe_unused static u32 cmd_otp_write_1b(u32 *args, u32 *out_args)
+{
+	int res;
+	u64 val;
+
+	/*
+	 * check row and offset validity: 3-bit majority encoding is only used
+	 * for rows 0-3, and offsets are always multiplies of 4
+	 */
+	if (args[0] > 3 || args[1] >= 64 || args[1] & 3)
+		return MBOX_STS_MARVELL(EINVAL);
+
+	/* expand single bit to 3 bits for majority vote */
+	val = (args[2] & 1) ? 7 : 0;
+	val <<= args[1];
+
+	res = efuse_write_row_no_ecc(args[0], val, 0);
+	if (res < 0)
+		return MBOX_STS_MARVELL(-res);
+
+	return MBOX_STS_MARVELL(0);
+}
+
+maybe_unused static u32 cmd_otp_write_Nb(u32 *args, u32 mask)
+{
+	int res;
+	u64 val;
+
+	if (args[1] >= 64)
+		return MBOX_STS_MARVELL(EINVAL);
+
+	val = args[2] & mask;
+	val <<= args[1];
+
+	res = efuse_write_row_no_ecc(args[0], val, 0);
+	if (res < 0)
+		return MBOX_STS_MARVELL(-res);
+
+	return MBOX_STS_MARVELL(0);
+}
+
+maybe_unused static u32 cmd_otp_write_8b(u32 *args, u32 *out_args)
+{
+	return cmd_otp_write_Nb(args, 0xff);
+}
+
+maybe_unused static u32 cmd_otp_write_32b(u32 *args, u32 *out_args)
+{
+	return cmd_otp_write_Nb(args, 0xffffffff);
+}
+
+maybe_unused static u32 cmd_otp_write_64b(u32 *args, u32 *out_args)
+{
+	int res;
+	u64 val;
+
+	val = args[2];
+	val <<= 32;
+	val |= args[1];
+
+	res = efuse_write_row_no_ecc(args[0], val, 0);
+	if (res < 0)
+		return MBOX_STS_MARVELL(-res);
+
+	return MBOX_STS_MARVELL(0);
+}
+
+maybe_unused static u32 cmd_otp_write_256b(u32 *args, u32 *out_args)
+{
+	int res, i;
+	u64 val;
+
+	for (i = 0; i < 4; ++i) {
+		val = args[2 * i + 2];
+		val <<= 32;
+		val |= args[2 * i + 1];
+		res = efuse_write_row_no_ecc(args[0] + i, val, 0);
+		if (res < 0)
+			return MBOX_STS_MARVELL(-res);
+	}
+
+	return MBOX_STS_MARVELL(0);
+}
+
 maybe_unused static u32 cmd_reboot(u32 *args, u32 *out_args)
 {
 	if (args[0] == SOC_MBOX_RESET_CMD_MAGIC)
@@ -513,13 +597,11 @@ void main(void)
 	}
 	if (!WITHOUT_OTP_WRITE && !is_secure_boot()) {
 		mbox_register_cmd(MBOX_CMD_OTP_WRITE, cmd_otp_write);
-		/* TODO: not implemented yet
 		mbox_register_cmd(MBOX_CMD_OTP_WRITE_1B, cmd_otp_write_1b);
 		mbox_register_cmd(MBOX_CMD_OTP_WRITE_8B, cmd_otp_write_8b);
 		mbox_register_cmd(MBOX_CMD_OTP_WRITE_32B, cmd_otp_write_32b);
 		mbox_register_cmd(MBOX_CMD_OTP_WRITE_64B, cmd_otp_write_64b);
 		mbox_register_cmd(MBOX_CMD_OTP_WRITE_256B, cmd_otp_write_256b);
-		*/
 	}
 
 	enable_irq();
