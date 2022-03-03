@@ -302,8 +302,11 @@ maybe_unused static u32 cmd_otp_read_1b(u32 *args, u32 *out_args)
 	int res;
 	u64 val;
 
-	/* check offset validity */
-	if (args[1] >= 64)
+	/*
+	 * check row and offset validity: 3-bit majority encoding is only used
+	 * for rows 0-3, and offsets are always multiplies of 4
+	 */
+	if (args[0] > 3 || args[1] >= 64 || args[1] & 3)
 		return MBOX_STS_MARVELL(EINVAL);
 
 	res = efuse_read_row_no_ecc(args[0], &val, NULL);
