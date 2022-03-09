@@ -6,4 +6,4 @@
 	url = https://gitlab.nic.cz/turris/u-boot.git
 [submodule "arm-trusted-firmware"]
 	path = arm-trusted-firmware
-	url = https://gitlab.labs.nic.cz/turris/mox-arm-trusted-firmware
+	url = https://gitlab.nic.cz/turris/trusted-firmware-a.git
