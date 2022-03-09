@@ -58,14 +58,14 @@ wtmi_h.bin: $(WTMI_PATH)/wtmi.bin
 mox-imager/mox-imager: FORCE
 	$(MAKE) -C mox-imager
 
-arm-trusted-firmware/build/a3700/release/boot-image.bin: u-boot/u-boot.bin FORCE
-	$(MAKE) -C arm-trusted-firmware \
+trusted-firmware-a/build/a3700/release/boot-image.bin: u-boot/u-boot.bin FORCE
+	$(MAKE) -C trusted-firmware-a \
 		CROSS_COMPILE=$(CROSS_COMPILE) \
 		PLAT=a3700 CM3_SYSTEM_RESET=1 USE_COHERENT_MEM=0 FIP_ALIGN=0x100 \
 		BL33=$(shell pwd)/u-boot/u-boot.bin \
 		mrvl_bootimage
 
-a53-firmware.bin: arm-trusted-firmware/build/a3700/release/boot-image.bin
+a53-firmware.bin: trusted-firmware-a/build/a3700/release/boot-image.bin
 	cp -a $< $@
 	od -v -tu8 -An -j 131184 -N 8 $@ | LC_ALL=C awk '{ for (i = 0; i < 64; i += 8) printf "%c", and(rshift(1310720-131072-$$1, i), 255) }' | dd of=$@ bs=1 seek=131192 count=8 conv=notrunc 2>/dev/null
 
@@ -78,7 +78,7 @@ wtmi_app.bin: $(WTMI_PATH)/wtmi_app.bin
 
 clean:
 	-$(MAKE) -C u-boot clean
-	-$(MAKE) -C arm-trusted-firmware realclean
+	-$(MAKE) -C trusted-firmware-a realclean
 	-$(MAKE) -C wtmi clean
 	-$(MAKE) -C wtmi/compressed clean
 	-$(MAKE) -C mox-imager clean

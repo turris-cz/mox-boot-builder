@@ -4,6 +4,6 @@
 [submodule "u-boot"]
 	path = u-boot
 	url = https://gitlab.nic.cz/turris/u-boot.git
-[submodule "arm-trusted-firmware"]
-	path = arm-trusted-firmware
+[submodule "trusted-firmware-a"]
+	path = trusted-firmware-a
 	url = https://gitlab.nic.cz/turris/trusted-firmware-a.git
