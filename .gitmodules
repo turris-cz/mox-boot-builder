@@ -1,6 +1,6 @@
 [submodule "mox-imager"]
 	path = mox-imager
-	url = https://gitlab.labs.nic.cz/turris/mox-imager
+	url = https://gitlab.nic.cz/turris/mox-imager.git
 [submodule "u-boot"]
 	path = u-boot
 	url = https://gitlab.nic.cz/turris/u-boot.git
