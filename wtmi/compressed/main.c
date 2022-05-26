@@ -37,7 +37,7 @@ static void die(void)
 		wait_for_irq();
 }
 
-void main (void)
+void __attribute__((section(".main"), used)) main(void)
 {
 	extern u8 compressed_start, compressed_end;
 	void *src;
