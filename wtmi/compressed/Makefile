@@ -23,7 +23,7 @@ LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -no-pie \
 	   -Xlinker "--build-id=none" -Xlinker "--gc-sections"
 
 CSRC = main.c malloc.c zlib.c string.c startup.c reload.c main_wtmi.c
-ASRC = startup_asm.S
+ASRC =
 
 COBJ   = $(CSRC:.c=.o)
 AOBJ   = $(ASRC:.S=.o)
