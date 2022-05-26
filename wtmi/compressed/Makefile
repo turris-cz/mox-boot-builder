@@ -14,10 +14,13 @@ CPUOPTS  = -mthumb -mcpu=cortex-m3 -mlittle-endian
 LDSCRIPT = wtmi.ld
 INCLUDE  = -I. -I..
 
-CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector -ffunction-sections -fdata-sections -fno-stack-clash-protection -fno-pie $(INCLUDE) -Os $(CPUOPTS)
+CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector \
+	   -ffunction-sections -fdata-sections -fno-stack-clash-protection \
+	   -fno-pie $(INCLUDE) -Os $(CPUOPTS)
 CPPFLAGS =
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
-LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -no-pie -Xlinker "--build-id=none" -Xlinker "--gc-sections"
+LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -no-pie \
+	   -Xlinker "--build-id=none" -Xlinker "--gc-sections"
 
 CSRC = main.c malloc.c zlib.c string.c startup.c reload.c main_wtmi.c
 ASRC = startup_asm.S

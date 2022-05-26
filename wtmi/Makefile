@@ -46,10 +46,13 @@ ifndef WTMI_VERSION
 $(error Repository is without git tags, please do a full git clone again)
 endif
 
-CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector -ffunction-sections -fdata-sections -fno-stack-clash-protection -fno-pie $(LTO_FLAGS) $(INCLUDE) -Os $(CPUOPTS)
+CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector \
+	   -ffunction-sections -fdata-sections -fno-stack-clash-protection \
+	   -fno-pie $(LTO_FLAGS) $(INCLUDE) -Os $(CPUOPTS)
 CPPFLAGS = -DWTMI_VERSION='"'$(WTMI_VERSION)'"'
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
-LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) $(CFLAGS) -no-pie -Xlinker "--build-id=none" -Xlinker "--gc-sections"
+LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) $(CFLAGS) -no-pie \
+	   -Xlinker "--build-id=none" -Xlinker "--gc-sections"
 
 ifeq ($(DEPLOY), 1)
 	CPPFLAGS += -DDEPLOY=1

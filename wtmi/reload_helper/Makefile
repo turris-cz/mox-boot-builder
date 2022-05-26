@@ -13,10 +13,12 @@ CPUOPTS  = -mthumb -mcpu=cortex-m3 -mlittle-endian
 
 LDSCRIPT = reload_helper.ld
 
-CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector -fno-stack-clash-protection -fno-pie $(INCLUDE) -Os $(CPUOPTS)
+CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector \
+	   -fno-stack-clash-protection -fno-pie $(INCLUDE) -Os $(CPUOPTS)
 CPPFLAGS =
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
-LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -no-pie -Xlinker "--build-id=none"
+LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) -no-pie \
+	   -Xlinker "--build-id=none"
 
 CSRC   = reload.c
 COBJ   = $(CSRC:.c=.o)
