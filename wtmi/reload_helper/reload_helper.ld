@@ -9,11 +9,8 @@ SECTIONS
   }
   .rw : {
     . = ALIGN(4);
-    *(.data)
-    *(.got*)
-    *(.data.*)
-    *(.bss)
-    *(COMMON)
+    KEEP(*(.data*));
+    KEEP(*(.bss*));
   }
 
   /DISCARD/ : { *(.interp*) }

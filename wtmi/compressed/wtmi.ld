@@ -18,11 +18,8 @@ SECTIONS
     compressed_start = .;
     KEEP(*(.compressed_data));
     compressed_end = .;
-    *(.data)
-    *(.got*)
-    *(.data.*)
-    *(.bss)
-    *(COMMON)
+    KEEP(*(.data*));
+    KEEP(*(.bss*));
   }
   . = ALIGN(8);
   . = . + 0x1000;

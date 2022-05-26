@@ -18,11 +18,8 @@ SECTIONS
     debug_cmds_start = .;
     KEEP(*(.debug_cmds));
     debug_cmds_end = .;
-    *(.data)
-    *(.got*)
-    *(.data.*)
-    *(.bss)
-    *(COMMON)
+    KEEP(*(.data*));
+    KEEP(*(.bss*));
   }
   . = 0x1FFFF000;
   stack_top = .;
