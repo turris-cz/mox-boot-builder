@@ -12,6 +12,7 @@
 #include "ddr.h"
 #include "board.h"
 #include "soc.h"
+#include "div64.h"
 
 #define NB_RESET		0xc0012400
 #define SB_RESET		0xc0018600
@@ -405,8 +406,8 @@ DECL_DEBUG_CMD(info)
 		cntr = readl(0xc0008314);
 		cntr |= ((u64)readl(0xc0008318)) << 32;
 		cntr *= (reg >> 8) & 0xff;
-		cntr /= 25000;
-		printf("Counter value: %d ms\n", (u32)cntr);
+		do_div(cntr, 25000);
+		printf("Counter value: %llu ms\n", cntr);
 	}
 }
 
