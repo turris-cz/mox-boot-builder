@@ -356,7 +356,7 @@ static void boot_device_read(void *buf, u32 offset, u32 size)
 	spi_nor_read(&nordev, buf, offset, size);
 }
 
-extern u8 next_timh_image, next_timn_image;
+extern u8 next_timh_image[], next_timn_image[];
 static timhdr_t *timhdr;
 
 static int load_tim(void)
