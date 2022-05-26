@@ -49,7 +49,7 @@ endif
 CFLAGS   = -g -gdwarf-2 -Wall -fno-common -ffreestanding -fno-stack-protector -fno-stack-clash-protection -fno-pie $(LTO_FLAGS) $(INCLUDE) -Os $(CPUOPTS)
 CPPFLAGS = -DWTMI_VERSION='"'$(WTMI_VERSION)'"'
 ASFLAGS  = -g --gdwarf-2 --warn $(INCLUDE) $(CPUOPTS)
-LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) $(CFLAGS) -no-pie -Xlinker "-fuse-ld=gold" -Xlinker "--build-id=none" -Xlinker "--rosegment" -Xlinker "--gc-sections"
+LDFLAGS  = -nostdlib -nostartfiles -T $(LDSCRIPT) $(CFLAGS) -no-pie -Xlinker "--build-id=none" -Xlinker "--gc-sections"
 
 ifeq ($(DEPLOY), 1)
 	CPPFLAGS += -DDEPLOY=1
