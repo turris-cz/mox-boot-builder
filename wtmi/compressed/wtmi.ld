@@ -37,4 +37,5 @@ SECTIONS
   /DISCARD/ : { *(.dynamic*) }
   /DISCARD/ : { *(.gnu*) }
   /DISCARD/ : { *(.rel*) }
+  /DISCARD/ : { *(.ARM*) }
 }
