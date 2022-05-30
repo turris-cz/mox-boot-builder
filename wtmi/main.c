@@ -539,7 +539,7 @@ static void uart_init(const struct uart_info *uart, int reset)
 # define WITHOUT_OTP_WRITE 0
 #endif
 
-void __attribute__((section(".main"), used)) main(void)
+void __attribute__((noreturn)) main(void)
 {
 	enum board board;
 

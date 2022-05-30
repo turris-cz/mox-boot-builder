@@ -8,7 +8,6 @@ SECTIONS
   .ro : {
     KEEP(*(.isr_vector));
     KEEP(*(.startup));
-    KEEP(*(.main));
     *(.text*)
     *(.rodata*)
   }

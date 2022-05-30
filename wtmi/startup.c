@@ -2,16 +2,15 @@
 #include "irq.h"
 
 extern u32 stack_top;
-extern void main(void);
+extern void __attribute__((noreturn)) main(void);
 
 void __attribute__((noreturn, naked, section(".startup"))) reset_handler(void)
 {
 	asm volatile(
 		"ldr	r2, =stack_top\n"
 		"msr	psp, r2\n"
-		"msr	msp, r2\n"
-		"ldr	r1, =main\n"
-		"bx	r1\n");
+		"msr	msp, r2\n");
+	main();
 }
 
 /* compressed wtmi does not implement this function */
