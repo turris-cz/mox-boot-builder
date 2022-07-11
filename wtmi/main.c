@@ -557,9 +557,6 @@ void __attribute__((noreturn)) main(void)
 	writel(0x1d1e, 0xc0013840);
 #else /* !DEPLOY */
 
-	if (!WTMI_APP)
-		puts("\n");
-
 	puts("CZ.NIC's Armada 3720 Secure Firmware " WTMI_VERSION
 	     " (" __DATE__ " " __TIME__ ")");
 	fputs("Running on ", stdout);
