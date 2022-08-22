@@ -39,7 +39,8 @@ static enum board _get_board(void)
 
 	if (reg0 == 0xffff && reg1 == 0xffff) {
 		return uDPU;
-	} else if (reg0 == 0x0141 && reg1 == 0x0141) {
+	} else if ((reg0 == 0x0141 && reg1 == 0xffff) ||
+		   (reg0 == 0xffff && reg1 == 0x0141)) {
 		return Armada3720_DB;
 	} else if (reg0 == 0xffff && reg1 == 0x0141) {
 		u8 id[6];
