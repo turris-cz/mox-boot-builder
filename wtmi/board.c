@@ -6,7 +6,8 @@
 
 static enum board _get_board(void)
 {
-	int reg0, reg1, reg3;
+	int reg02, reg12;
+	int reg03, reg13, reg33;
 	int lock;
 	u64 val;
 
@@ -31,21 +32,23 @@ static enum board _get_board(void)
 	 */
 	mdio_begin();
 
-	reg0 = mdio_read(0, 2);
-	reg1 = mdio_read(1, 2);
-	reg3 = mdio_read(3, 2);
+	reg02 = mdio_read(0, 2);
+	reg03 = mdio_read(0, 3);
+	reg12 = mdio_read(1, 2);
+	reg13 = mdio_read(1, 3);
+	reg33 = mdio_read(3, 3);
 
 	mdio_end();
 
-	if (reg0 == 0xffff && reg1 == 0xffff) {
+	if (reg03 == 0xffff && reg13 == 0xffff) {
 		return uDPU;
-	} else if ((reg0 == 0x0141 && reg1 == 0xffff) ||
-		   (reg0 == 0xffff && reg1 == 0x0141)) {
+	} else if ((reg02 == 0x0141 && reg13 == 0xffff) ||
+		   (reg03 == 0xffff && reg12 == 0x0141)) {
 		return Armada3720_DB;
-	} else if (reg0 == 0xffff && reg1 == 0x0141) {
+	} else if (reg03 == 0xffff && reg12 == 0x0141) {
 		u8 id[6];
 
-		if (reg3 != 0xffff)
+		if (reg33 != 0xffff)
 			return ESPRESSObin_Ultra;
 
 		spi_init(&nordev);
@@ -55,7 +58,7 @@ static enum board _get_board(void)
 			return Turris_MOX;
 		else
 			return RIPE_Atlas;
-	} else if (reg0 == 0xffff && reg1 != 0xffff) {
+	} else if (reg03 == 0xffff && reg13 != 0xffff) {
 		return ESPRESSObin;
 	} else {
 		return BOARD_Unknown;
