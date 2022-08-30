@@ -67,7 +67,7 @@ trusted-firmware-a/build/a3700/release/boot-image.bin: u-boot/u-boot.bin FORCE
 
 a53-firmware.bin: trusted-firmware-a/build/a3700/release/boot-image.bin
 	cp -a $< $@
-	od -v -tu8 -An -j 131184 -N 8 $@ | LC_ALL=C awk '{ for (i = 0; i < 64; i += 8) printf "%c", and(rshift(1310720-131072-$$1, i), 255) }' | dd of=$@ bs=1 seek=131192 count=8 conv=notrunc 2>/dev/null
+	od -v -tu8 -An -j 131184 -N 8 $@ | LC_ALL=C awk '{ for (i = 0; i < 64; i += 8) printf "%c", and(rshift(1441792-131072-$$1, i), 255) }' | dd of=$@ bs=1 seek=131192 count=8 conv=notrunc 2>/dev/null
 
 u-boot/u-boot.bin: FORCE
 	$(MAKE) -C u-boot CROSS_COMPILE=$(CROSS_COMPILE) turris_mox_defconfig
