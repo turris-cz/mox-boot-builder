@@ -36,7 +36,7 @@ static enum board _get_board(void)
 	reg03 = mdio_read(0, 3);
 	reg12 = mdio_read(1, 2);
 	reg13 = mdio_read(1, 3);
-	reg32 = mdio_read(3, 3);
+	reg32 = mdio_read(3, 2);
 	reg33 = mdio_read(3, 3);
 
 	mdio_end();
