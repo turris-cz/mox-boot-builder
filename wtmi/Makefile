@@ -32,7 +32,7 @@
 #***************************************************************************
 #*/
 
-CROSS_CM3 ?= armv7m-softfloat-eabi-
+CROSS_CM3 ?= arm-none-eabi-
 
 HOSTCC    ?= gcc
 HOSTCFLAGS = -O2

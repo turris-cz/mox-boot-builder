@@ -12,11 +12,11 @@ Dependencies:
 - *openssl* or *libressl* for *mox-imager*
 
 Cross-GCC needed:
-- `arm-linux-gnueabi-` or `armv7m-softfloat-eabi-` for the secure firmware
+- `arm-linux-gnueabi-` or `arm-none-eabi-` for the secure firmware
   runnning on internal Cortex-M3 secure processor
-  - `armv7m-softfloat-eabi-` can be built by [Gentoo's crossdev tool](https://wiki.gentoo.org/wiki/Crossdev)
-    and should always work, since it's internal `libgcc` is compiled with
-    `-mthumb` option
+  - `arm-none-eabi-` can be built by [Gentoo's crossdev tool](https://wiki.gentoo.org/wiki/Crossdev)
+    and should always work, since it has `libgcc` compiled for all possible CPU
+    configurations
 - `aarch64` for ATF and U-Boot
 
 For trusted image you will also need ECDSA private key with which the image will
