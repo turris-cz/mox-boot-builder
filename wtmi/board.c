@@ -4,33 +4,10 @@
 #include "spi.h"
 #include "board.h"
 
-static enum board _get_board(void)
+static enum board _get_board_fallback(void)
 {
 	int reg02, reg12, reg32;
 	int reg03, reg13, reg33;
-	int lock;
-	u64 val;
-
-	/*
-	 * First try determining board from eFuse - for boards from CZ.NIC
-	 * eFuse row 42 contains MAC address and board version.
-	 * If upper 3 bytes of MAC address are d8:58:d7, it is a CZ.NIC board,
-	 * so either Turris MOX (bit 55 is not set) or Atlas RIPE (bit 55 is
-	 * set).
-	 */
-	if (!efuse_read_row(42, &val, &lock) && lock) {
-		if (((val >> 24) & 0xffffff) == 0xd858d7) {
-			if ((val >> 55) & 1)
-				return RIPE_Atlas;
-			else
-				return Turris_MOX;
-		}
-	}
-
-	/*
-	 * If eFuse is not burned, fallback to determination via SMI and SPI.
-	 */
-	mdio_begin();
 
 	reg02 = mdio_read(0, 2);
 	reg03 = mdio_read(0, 3);
@@ -38,8 +15,6 @@ static enum board _get_board(void)
 	reg13 = mdio_read(1, 3);
 	reg32 = mdio_read(3, 2);
 	reg33 = mdio_read(3, 3);
-
-	mdio_end();
 
 	if (reg03 == 0xffff && reg13 == 0xffff) {
 		return uDPU;
@@ -64,6 +39,38 @@ static enum board _get_board(void)
 	} else {
 		return BOARD_Unknown;
 	}
+}
+
+static enum board _get_board(void)
+{
+	enum board board;
+	int lock;
+	u64 val;
+
+	/*
+	 * First try determining board from eFuse - for boards from CZ.NIC
+	 * eFuse row 42 contains MAC address and board version.
+	 * If upper 3 bytes of MAC address are d8:58:d7, it is a CZ.NIC board,
+	 * so either Turris MOX (bit 55 is not set) or Atlas RIPE (bit 55 is
+	 * set).
+	 */
+	if (!efuse_read_row(42, &val, &lock) && lock) {
+		if (((val >> 24) & 0xffffff) == 0xd858d7) {
+			if ((val >> 55) & 1)
+				return RIPE_Atlas;
+			else
+				return Turris_MOX;
+		}
+	}
+
+	/*
+	 * If eFuse is not burned, fallback to determination via SMI and SPI.
+	 */
+	mdio_begin();
+	board = _get_board_fallback();
+	mdio_end();
+
+	return board;
 }
 
 enum board get_board(void)
