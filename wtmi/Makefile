@@ -148,13 +148,13 @@ main.o main_app.o: $(filter-out main.o,$(COBJ)) $(AOBJ) $(LDSCRIPT)
 -include $(COBJ:.o=.d)
 -include main_app.d
 
-$(a53_helper_src): a53_helper/a53_helper.ld a53_helper/main.c bin2c
+a53_helper/a53_helper.c: a53_helper/a53_helper.ld a53_helper/main.c bin2c
 	$(MAKE) -C a53_helper
 
 reload_helper/reload_helper.c: reload_helper/reload_helper.ld reload_helper/reload.c bin2c
 	$(MAKE) -C reload_helper
 
-soc.c: $(a53_helper_src)
+soc.c: a53_helper/a53_helper.c
 
 reload.c: reload_helper/reload_helper.c
 

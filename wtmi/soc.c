@@ -12,6 +12,7 @@
 #include "ddr.h"
 #include "board.h"
 #include "soc.h"
+#include "uboot-env.h"
 #include "div64.h"
 
 #define NB_RESET		0xc0012400
@@ -137,16 +138,8 @@ static const struct reg_val reset_a53_regs[] = {
 
 static void reset_peripherals(void)
 {
-	/* Force INTn pin on PHY down to workaround reset bug */
-	mdio_begin();
-	mdio_write(1, 22, 3);
-	mdio_write(1, 18, 0xc985);
-	mdio_write(1, 22, 0);
-	mdio_write(1, 0, BIT(15));
-	udelay(1000000);
-	mdio_end();
-
 	/* North Bridge peripherals reset */
+	printf("Resetting North Bridge peripherals\n");
 	writel(BIT(10) | BIT(6) | BIT(3), NB_RESET);
 	udelay(1000);
 	writel(0x7fcff, NB_RESET);
@@ -155,12 +148,15 @@ static void reset_peripherals(void)
 	write_reg_vals(reset_nb_regs);
 
 	/* South Bridge peripheral reset */
+	printf("Resetting South Bridge peripherals\n");
 	writel(0, SB_RESET);
 	udelay(1000);
 	writel(0xf3c, SB_RESET);
 	udelay(1000);
 
 	write_reg_vals(reset_sb_regs);
+
+	printf("Resetting SerDeses\n");
 
 	/* PCIE/GBE0 PHY */
 	writel(0x122, 0xc001f382);
@@ -191,8 +187,6 @@ static void core1_reset(int reset)
 	setbitsl(0xc000d00c, reset ? 0 : BIT(31), BIT(31));
 }
 
-#ifdef A53_HELPER
-
 #include "a53_helper/a53_helper.c"
 #define A53_HELPER_ADDR		0x10000000
 #define A53_HELPER_DONE		0x10010000
@@ -200,6 +194,7 @@ static void core1_reset(int reset)
 
 static void _run_a53_helper(u32 cmd, int argc, ...)
 {
+	unsigned timeout_ms = 5000;
 	va_list ap;
 	int i;
 
@@ -215,7 +210,7 @@ static void _run_a53_helper(u32 cmd, int argc, ...)
 
 	start_ap_at(A53_HELPER_ADDR);
 
-	while (!readl(AP_RAM(A53_HELPER_DONE)))
+	while (!readl(AP_RAM(A53_HELPER_DONE)) && getc() != 3 && timeout_ms--)
 		udelay(1000);
 
 	core1_reset(1);
@@ -227,7 +222,39 @@ static inline __attribute__((__gnu_inline__)) __attribute__((__always_inline__))
 	_run_a53_helper(cmd, __builtin_va_arg_pack_len(), __builtin_va_arg_pack());
 }
 
-#endif /* A53_HELPER */
+DECL_DEBUG_CMD(cmd_run_a53_helper)
+{
+	u32 cmd, arg1, arg2;
+
+	if (argc < 2)
+		goto usage;
+
+	if (number(argv[1], &cmd))
+		return;
+
+	if (argc > 2) {
+		if (number(argv[2], &arg1))
+			return;
+
+		if (argc > 3) {
+			if (number(argv[3], &arg2))
+				return;
+
+			run_a53_helper(cmd, arg1, arg2);
+			return;
+		}
+
+		run_a53_helper(cmd, arg1);
+		return;
+	}
+
+	run_a53_helper(cmd);
+	return;
+usage:
+	printf("usage: a53 <cmdid> [arg]\n");
+}
+
+DEBUG_CMD("a53", "", cmd_run_a53_helper);
 
 void start_ap_workaround(void)
 {
@@ -265,20 +292,38 @@ static void reload_secure_firmware(void)
 	/* Should not reach here */
 }
 
-static void reset_mox(void)
+#define GICD_BASE	0xc1d00000
+#define GICR_BASE	0xc1d40000
+
+#include "gic.h"
+
+static void reset_workaround(void)
 {
 	disable_irq();
 	disable_systick();
 
+	/* disable watchdog and watchdog counter */
+	writel(0, 0xc000d064);
+	writel(readl(0xc0008310) & ~BIT(0), 0xc0008310);
+
+	/* reset CPUs */
 	core1_reset(1);
 	core0_reset_cycle();
 	udelay(1000);
 
-	reset_peripherals();
-	udelay(1000);
+	puts("\n\nTrying to work around the reset issue");
 
-	/* write magic value into WARM RESET register */
-	writel(0x1d1e, 0xc0013840);
+	reset_peripherals();
+
+	if (gicd_read(GICD_CTLR))
+		puts("GIC was not reset in ARM trusted firmware, trying to do it now");
+
+	run_a53_helper(0);
+
+	if (gicd_read(GICD_CTLR)) {
+		puts("Could not reset GIC");
+		return;
+	}
 
 	/*
 	 * If we get here, warm reset failed. Try to reload secure firmware from
@@ -289,6 +334,8 @@ static void reset_mox(void)
 
 	write_reg_vals(reset_a53_regs);
 
+	puts("Reloading boot firmware\n");
+
 	/* We do not need to check return value here. New secure firmware should
 	 * run without OBMI image. */
 	load_image(OBMI_ID, (void *)AP_RAM(ATF_ENTRY_ADDRESS), NULL);
@@ -296,10 +343,38 @@ static void reset_mox(void)
 	reload_secure_firmware();
 }
 
+DECL_DEBUG_CMD(cmd_reset_by_sw)
+{
+	reset_workaround();
+	puts("Reset workaround failed");
+}
+DEBUG_CMD("reset_by_sw",
+	  "Try to reset without touching the WARM reset register",
+	  cmd_reset_by_sw);
+
+static int reset_workaround_enabled = 0;
+
+void soc_init(void)
+{
+	const char *env = uboot_env_get("a3720_reset_issue_workaround");
+
+	reset_workaround_enabled = !strcmp(env, "yes");
+}
+
 void reset_soc(void)
 {
-	if (get_board() == Turris_MOX)
-		reset_mox();
+	if (reset_workaround_enabled) {
+		/* unset stdout if operating system disabled UART */
+		uart_unset_stdio_if_disabled();
+
+		/* try to reset the CPU and peripherals one by one and then
+		 * reload secure firmware
+		 */
+		reset_workaround();
+
+		/* if we get here, the workaround failed */
+		puts("Reset workaround failed, falling back to warm reset");
+	}
 
 	/* write magic value into WARM RESET register */
 	writel(0x1d1e, 0xc0013840);
@@ -367,6 +442,9 @@ DEBUG_CMD("kick", "Kick AP", kick);
 void mox_wdt_workaround(void)
 {
 	u32 reg, lo, hi;
+
+	if (!reset_workaround_enabled)
+		return;
 
 	reg = readl(0xc000d064);
 	if (!(reg & BIT(1)))

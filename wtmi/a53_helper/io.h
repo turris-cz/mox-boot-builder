@@ -5,6 +5,21 @@
 #include "types.h"
 #include "sysreg.h"
 
+static inline void isb(void)
+{
+	asm volatile("isb\n");
+}
+
+static inline void dsb(void)
+{
+	asm volatile("dsb sy\n");
+}
+
+static inline void nop(void)
+{
+	asm volatile("nop\n");
+}
+
 #define _DEFINE_SYSREG_READ_FUNC(_name, _reg_name)		\
 static inline u_register_t read_ ## _name(void)			\
 {								\
@@ -77,6 +92,7 @@ static inline void write_ ## _name(u_register_t v)			\
 	M(cntp_ctl_el0)		\
 	M(cntp_tval_el0)	\
 	M(cntp_cval_el0)	\
+	M(cntkctl_el1)		\
 	M(cnthctl_el2)		\
 	M(tpidr_el3)		\
 	M(cntvoff_el2)		\

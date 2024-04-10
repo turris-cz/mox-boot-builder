@@ -569,6 +569,8 @@ void __attribute__((noreturn)) main(void)
 	enable_systick();
 
 	board = get_board();
+	if (board == Turris_MOX)
+		soc_init();
 
 	/* TODO: what do we want to do with the disabled commands */
 	mbox_init();
