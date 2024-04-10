@@ -25,6 +25,11 @@ static inline int memcmp(const void *p1, const void *p2, size_t n)
 	return __builtin_memcmp(p1, p2, n);
 }
 
+static inline void *memchr(void *s, int c, size_t n)
+{
+	return __builtin_memchr(s, c, n);
+}
+
 static inline int strcmp(const char *p1, const char *p2)
 {
 	return __builtin_strcmp(p1, p2);
