@@ -52,6 +52,7 @@ const struct uart_info uart1_info = {
 	.possr	= 0xc0012014,
 	.dis	= 0xc0013804,
 	.dis_bit = 31,
+	.clk_gate_bit = 20,
 };
 
 const struct uart_info uart2_info = {
@@ -64,6 +65,7 @@ const struct uart_info uart2_info = {
 	.possr	= 0xc0012214,
 	.dis	= 0xc0013804,
 	.dis_bit = 29,
+	.clk_gate_bit = 21,
 };
 
 int uart_putc(int _c, void *p);
@@ -76,6 +78,22 @@ void uart_set_stdio(const struct uart_info *info)
 {
 	uart_stdout.data = (void *)info;
 	stdout = &uart_stdout;
+}
+
+void uart_unset_stdio_if_disabled(void)
+{
+	const struct uart_info *info;
+
+	/* don't unset stdout if UART is not used for stdout */
+	if (stdout != &uart_stdout)
+		return;
+
+	info = uart_stdout.data;
+
+	/* if stdout UART is disabled or it's clock is gated, unset stdout */
+	if ((readl(info->dis) & BIT(info->dis_bit)) ||
+	    (readl(UART_CLK_CTRL) & BIT(info->clk_gate_bit)))
+		stdout = NULL;
 }
 
 void uart_reset(const struct uart_info *info, unsigned int baudrate)

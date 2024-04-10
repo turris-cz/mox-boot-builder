@@ -47,12 +47,14 @@ struct uart_info {
 	u32 possr;
 	u32 dis;
 	u32 dis_bit;
+	u32 clk_gate_bit;
 };
 
 extern const struct uart_info uart1_info, uart2_info;
 
 extern void uart_reset(const struct uart_info *info, unsigned int baudrate);
 extern void uart_set_stdio(const struct uart_info *info);
+extern void uart_unset_stdio_if_disabled();
 extern int uart_putc(int _c, void *p);
 extern int uart_getc(const struct uart_info *info);
 
