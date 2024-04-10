@@ -38,6 +38,9 @@ int __attribute__((used)) putchar(int c)
 
 int __attribute__((used)) fputs(const char *str, FILE *stream)
 {
+	if (!stream)
+		return -1;
+
 	while (*str)
 		if (putc(*str++, stream) < 0)
 			return -1;
@@ -312,6 +315,9 @@ static int do_number(FILE *stream, enum flags flags, int width, int prec,
 int vfprintf(FILE *stream, const char *fmt, va_list ap)
 {
 	int res = 0;
+
+	if (!stream)
+		return EOF;
 
 	while (*fmt) {
 		enum flags flags;
