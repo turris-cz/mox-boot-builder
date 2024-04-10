@@ -18,14 +18,21 @@ static enum board _get_board_fallback(void)
 
 	if (reg03 == 0xffff && reg13 == 0xffff) {
 		return uDPU;
-	} else if ((reg02 == 0x0141 && reg13 == 0xffff) ||
-		   (reg03 == 0xffff && reg12 == 0x0141)) {
+	} else if (reg02 == 0x0141 && reg13 == 0xffff) {
 		return Armada3720_DB;
 	} else if (reg03 == 0xffff && reg12 == 0x0141) {
+		int id151x;
 		u8 id[6];
 
 		if (reg33 != 0xffff && reg32 == reg33)
 			return ESPRESSObin_Ultra;
+
+		mdio_write(1, 22, 18);
+		id151x = mdio_read(1, 30);
+		mdio_write(1, 22, 0);
+
+		if (id151x == 0x0006)
+			return Armada3720_DB;
 
 		spi_init(&nordev);
 		spi_nor_read_id(&nordev, id);
