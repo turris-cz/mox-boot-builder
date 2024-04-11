@@ -176,7 +176,7 @@ static int is_board_trusted(void)
 	val = (u16)val64;
 
 	boot_state = ecc_3bit_majority(val);
-	boot_state |= ecc_3bit_majority(val >> 8) << 1;
+	boot_state |= ecc_3bit_majority(val >> 4) << 1;
 	cache = boot_state + 1;
 
 cached:
