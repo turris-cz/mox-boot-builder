@@ -242,7 +242,7 @@ static void do_deploy(void)
 	if (efuse_read_row(42, &val, NULL) < 0)
 		die("FAIL_RD_RAM_V_MAC");
 
-	if ((((val >> 56) & 1) + 1) * 512 != ram_size)
+	if ((512 << ((val >> 56) & 3)) != ram_size)
 		die("FAIL_BAD_RAM_WRTN");
 
 	printf("BTYP%02XBVER%02XMACA%04x%08x", (u32) ((val >> 54) & 0x3),
