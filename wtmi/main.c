@@ -14,7 +14,6 @@
 #include "board.h"
 #include "debug.h"
 
-#ifndef DEPLOY
 static int process_ap_mem(void *param, u32 addr, u32 len,
 			  void (*cb)(void **, void *, u32))
 {
@@ -517,7 +516,6 @@ static void init_ddr(void)
 
 	udelay(1000);
 }
-#endif /* !DEPLOY */
 
 static void uart_init(const struct uart_info *uart, int reset)
 {
@@ -539,6 +537,10 @@ static void uart_init(const struct uart_info *uart, int reset)
 # define WITHOUT_OTP_WRITE 0
 #endif
 
+#ifndef DEPLOY
+# define DEPLOY 0
+#endif
+
 void __attribute__((noreturn)) main(void)
 {
 	enum board board;
@@ -548,14 +550,10 @@ void __attribute__((noreturn)) main(void)
 	else
 		uart_init(get_debug_uart(), 1);
 
-#ifdef DEPLOY
-	ebg_init();
-	deploy();
-
-	/* warm reset */
-	udelay(10000);
-	writel(0x1d1e, 0xc0013840);
-#else /* !DEPLOY */
+	if (DEPLOY) {
+		ebg_init();
+		deploy();
+	}
 
 	puts("CZ.NIC's Armada 3720 Secure Firmware " WTMI_VERSION
 	     " (" __DATE__ " " __TIME__ ")");
@@ -565,7 +563,9 @@ void __attribute__((noreturn)) main(void)
 	if (!WTMI_APP)
 		init_ddr();
 
-	ebg_init();
+	if (!DEPLOY)
+		ebg_init();
+
 	enable_systick();
 
 	board = get_board();
@@ -623,5 +623,4 @@ void __attribute__((noreturn)) main(void)
 		debug_process();
 		ebg_process();
 	}
-#endif /* !DEPLOY */
 }

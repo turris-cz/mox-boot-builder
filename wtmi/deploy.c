@@ -1,4 +1,5 @@
 #include "io.h"
+#include "irq.h"
 #include "ebg.h"
 #include "efuse.h"
 #include "clock.h"
@@ -276,7 +277,7 @@ static FILE deploy_stdout = {
 	.putc = deploy_putc,
 };
 
-void deploy(void)
+static void _deploy(void)
 {
 	stdout = &deploy_stdout;
 
@@ -304,4 +305,30 @@ void deploy(void)
 	return;
 fail:
 	printf("FAIL");
+}
+
+void deploy(void)
+{
+	int reset_after_deploy;
+	FILE *stdout_saved;
+
+	/* if bit 31 of mbd.op is set, don't reset after deploy */
+	reset_after_deploy = !(mbd.op & BIT(31));
+	mbd.op &= ~BIT(31);
+
+	stdout_saved = stdout;
+
+	_deploy();
+
+	stdout = stdout_saved;
+
+	if (reset_after_deploy) {
+		/* warm reset */
+		udelay(10000);
+		writel(0x1d1e, 0xc0013840);
+
+		/* Should not reach here */
+		while (1)
+			wait_for_irq();
+	}
 }

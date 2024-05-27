@@ -83,7 +83,7 @@ ifeq ($(WITHOUT_OTP_READ), 1)
 endif
 
 ifeq ($(DEPLOY), 1)
-	CSRC = $(wildcard *.c)
+	CSRC = $(wildcard *.c ddr/*.c)
 else
 	CSRC = $(filter-out deploy.c,$(wildcard *.c ddr/*.c))
 endif
