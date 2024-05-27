@@ -260,6 +260,14 @@ static void do_deploy(void)
 	return;
 }
 
+static void do_deploy_trust_only(void)
+{
+	if (write_security_info() < 0)
+		die("FAIL_WR_SECURITY ");
+
+	printf("DONE");
+}
+
 static int deploy_putc(int _c, void *p)
 {
 	int i;
@@ -298,6 +306,8 @@ static void _deploy(void)
 	} else if (mbd.op == 1) {
 		/* deploy */
 		do_deploy();
+	} else if (mbd.op == 2) {
+		do_deploy_trust_only();
 	} else {
 		goto fail;
 	}
