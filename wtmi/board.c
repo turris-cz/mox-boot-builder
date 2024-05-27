@@ -54,16 +54,19 @@ static enum board _get_board(void)
 	int lock;
 	u64 val;
 
-	/*
-	 * First try determining board from eFuse - for boards from CZ.NIC
-	 * eFuse row 42 contains MAC address and board version.
-	 * If upper 3 bytes of MAC address are d8:58:d7, it is a CZ.NIC board,
-	 * so either Turris MOX (bit 55 is not set) or Atlas RIPE (bit 55 is
-	 * set).
-	 */
-	if (!efuse_read_row(42, &val, &lock) && lock) {
-		if (((val >> 24) & 0xffffff) == 0xd858d7) {
-			if ((val >> 55) & 1)
+	/* First try determining board from eFuse row 42. */
+	if (!efuse_read_row(42, &val, &lock)) {
+		_Bool cznic_mac = ((val >> 24) & 0xffffff) == 0xd858d7;
+		u8 board_bits = (val >> 54) & 3;
+
+		/*
+		 * For CZ.NIC boards, the row contains MAC address and board
+		 * version. If upper 3 bytes of MAC address are d8:58:d7, it is
+		 * a CZ.NIC board, so either Atlas RIPE (bits 55:54 are 2) or
+		 * Turris MOX (bits 55:54 are 0).
+		 */
+		if (lock && cznic_mac) {
+			if (board_bits == 2)
 				return RIPE_Atlas;
 			else
 				return Turris_MOX;
