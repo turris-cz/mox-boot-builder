@@ -297,10 +297,8 @@ static void _deploy(void)
 		printf("OTP\n");
 		for (i = 0; i < 44; ++i) {
 			res = efuse_read_row_no_ecc(i, &val, &lock);
-			if (res < 0)
-				goto fail;
 
-			printf("%d %08x%08x\n", lock ? 1 : 0,
+			printf("%d %08x%08x\n", (lock ? 1 : 0) | (res ? 2 : 0),
 			       (u32) (val >> 32), (u32) val);
 		}
 	} else if (mbd.op == 1) {
